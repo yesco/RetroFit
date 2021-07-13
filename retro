@@ -1,2 +1,3 @@
-wget -O - "$1"
+node retro.js "$1"
+
 
