@@ -1,0 +1,43 @@
+    /* wow, this was difficult:
+       TOOD: return mixed with &nbsp; have effect on spacing...
+       TODO: \u0117 .. \u0110 without breakable space goes to column 0, hmmmm
+    */
+    return `
+\u030a
+\u0117
+&nbsp;
+\u0110
+&nbsp;&nbsp;
+&nbsp;&nbsp;
+&nbsp;&nbsp;
+&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;
+\u0210
+\u0217
+
+\u030a
+\u0117
+&nbsp;
+\u0110
+&nbsp;
+\u0104G\u0204
+\u0101o\u0201
+\u0103o\u0203
+\u0104g\u0204
+\u0102l\u0202
+\u0101e\u0201
+&nbsp;
+\u0210
+\u0217
+
+\u030a
+\u0117
+&nbsp;
+\u0110
+&nbsp;&nbsp;
+&nbsp;&nbsp;
+&nbsp;&nbsp;
+&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;
+\u0217
+`;
