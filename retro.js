@@ -6,6 +6,17 @@ const h2t = require('./html.js');
 let log = 0;
 
 
+//let url = 'http://www.google.com';
+let url = '';
+
+url = 'http://yesco.org/'; // TODO: 404
+// TODO: write redirector? or just call wget?
+
+url = 'http://runeberg.org/';
+url = 'http://yesco.org/index.html';
+url = 'http://www.lysator.liu.se/';
+
+url = process.argv[2] || url;
 
 
 function wget(url, cb) {
@@ -109,12 +120,6 @@ if (1)
   ;
 }
 
-//let url = 'http://www.google.com';
-let url = '';
-url = 'http://yesco.org/'; // TODO: 404
-// TODO: write redirector? or just call wget?
-url = 'http://yesco.org/index.html';
-
 wget(url, (status, h)=>{
   if (log) console.log("WGET: f", h);
   let nid = 0;
@@ -140,15 +145,21 @@ wget(url, (status, h)=>{
 
   debug = 0;
   let ansi = teletext2ansi(tele);
-  let bg = 7, fg = 0;
+  let fg = 3, bg = 0;
 //  process.stdout.write('[H[2J[3J'); // cls
 
-  process.stdout.write('[1m[3'+4+'m');
-  process.stdout.write('[4'+3+'m');
-  process.stdout.write('./retro ');
+//  process.stdout.write('[1m[3'+4+'m');
+  //process.stdout.write('[1m[3'+1+'m');
+  //process.stdout.write('[4'+3+'m');
+//  process.stdout.write('./retro ');
 
   process.stdout.write('[3'+bg+'m');
   process.stdout.write('[4'+fg+'m');
+  //process.stdout.write('./retro ');
+  process.stdout.write('<retro> ');
+
+  process.stdout.write('[3'+fg+'m');
+  process.stdout.write('[4'+bg+'m');
   if (log) {
     process.stdout.write("\n\n---ANSI---\n\n\n\n");
   }

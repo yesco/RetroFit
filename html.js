@@ -137,9 +137,10 @@ function HTML2TELETEXT(nid, h) {
     .replace(/\r/g, '\n')
     .replace(/[\x00-\x09\x11-\x1F]/g, '')
     .replace(/\xa0/g, '\u0320' /*nbsp*/)
-    .replace(
-      /([^\0-\x7f])/g,
-      (a,c)=>`\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`)
+    // if in ASCCI
+    //.replace(
+    //  /([^\0-\x7f])/g,
+    //  (a,c)=>`\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`)
 
     .replace(/<(\w+)[\s\S]*?aria-hidden=.*?[s\S]*?\/\1>/ig, '')
 
