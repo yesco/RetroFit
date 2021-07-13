@@ -211,7 +211,7 @@ function HTML2TELETEXT(nid, h) {
 //	wget.url[`${nid} ${txt}`] = href;
 //	let lid = `${nid} ${n}`;
 //	wget.url[lid] = href;
-	return '\u0104' + txt + '\u0204';
+	return ' \u0104' + txt + '\u0204 ';
 
 
       })
@@ -317,13 +317,12 @@ ${disp}
     .replace(/<\/div>/g, '\n')
     .replace(/\n\n+/g, '\n\n')
 
-    .replace(/<h1>([\s\S]*?)<\/h1>/g, '\n\u0110\u0107$1\u030a\u0210\u0207')
-    .replace(/<h2>([\s\S]*?)<\/h2>/g, '\n\u0112\u0100$1\u030a\u0212\u0200')
-    .replace(/<h3>([\s\S]*?)<\/h3>/g, '\n\u0113\u0100$1\u030a\u0213\u0200')
-    .replace(/<h4>([\s\S]*?)<\/h4>/g, '\n\u0116\u0100$1\u030a\u0216\u0200')
-    .replace(/<h5>([\s\S]*?)<\/h5>/g, '\n\u0116\u0101$1\u030a\u0216\u0201')
-    .replace(/<h6>([\s\S]*?)<\/h6>/g, '\n\u0116\u0105$1\u030a\u0215\u0200')
-
+    .replace(/<h1>([\s\S]*?)<\/h1>/g, '\n\u0110\u0107$1\n\u0210\u0207')
+    .replace(/<h2>([\s\S]*?)<\/h2>/g, '\n\u0112\u0100\u0320$1\n\u0212\u0200')
+    .replace(/<h3>([\s\S]*?)<\/h3>/g, '\n\u0113\u0100\u0320\u0320$1\n\u0213\u0200')
+    .replace(/<h4>([\s\S]*?)<\/h4>/g, '\n\u0116\u0100\u0320\u0320$1\n\u0216\u0200')
+    .replace(/<h5>([\s\S]*?)<\/h5>/g, '\n\u0116\u0101\u0320\u0320$1\n\u0216\u0201')
+    .replace(/<h6>([\s\S]*?)<\/h6>/g, '\n\u0116\u0105\u0320\u0320$1\n\u0215\u0200')
 
     .replace(/<table>/ig, '{{{' /* TODO: maybe show table as outline? */)
     .replace(/<\/table>/ig, '}}}\u030a')
