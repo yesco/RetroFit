@@ -3,6 +3,11 @@
 #include <string.h>
 #include <ctype.h>
 
+int trace= 0;
+
+#define HS -32
+#define HNL -10
+
 #define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote ul ol li dl dt dd table tr noscript address "
 #define TB " td /td th /th "
 #define TT " /td /th "
@@ -16,24 +21,36 @@
 
 enum color{black, red, green, yellow, blue, magnenta, cyan, white, none};
 enum color _fg= black, _bg= white;
-#define c(n) printf("\e[3%dm", n);
-#define b(n) printf("\e[4%dm", n);
+void C(int n) {
+//  printf("%s\e[3%dm", n!=white&&n!=black?"\e[1m":"x", n)
+  printf("\e[%dm", n!=0);
+  printf("\e[3%dm", n);
+}
+#define B(n) printf("\e[4%dm", n);
+//#define c(n) printf("{c:%d}", n);
+//#define b(n) printf("{b:%d}", n);
 
 int _pre= 0, _ws= 0, _nl= 0, _tb= 0, _skip= 0;
 
-void p(char c) {
+void p(int c) {
   if (_skip) return;
+  if (c < 0) {
+    c= -c;
+    if (c=='\n') printf("\e[K"); // workaroudn bug!
+    putchar(c);
+    return;
+  }
+
   // TODO: handle hard \N \T
-  int nl= (c=='\n' || c=='\r');
   int tb= (c=='\t');
-  int ws= (c==' ' || tb || nl);
+  int ws= (c==' '||tb||c=='\n'||c=='\r');
 
   if (ws) {
-    if (!_ws || _pre) putchar(c);
-    _ws= 1; _nl= nl; _tb= tb;
+    if (!_ws || _pre) putchar(' ');
+    _ws= 1; if(_tb) _tb= tb;
   } else {
     putchar(c);
-    _ws= 0;
+    _ws= 0; _tb= 0;
   }
 }
 
@@ -59,15 +76,16 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
   if (tag && !strstr(tags, *tag)) return;
 
   level++;
-  printf("--->%d %s\n", level, tag?*tag:NULL);
+  if (trace)
+    printf("--->%d %s %d %d\n", level, tag?*tag:NULL, fg, bg);
 
   // save colors
   enum color sfg= _fg, sbg= _bg, spre= _pre, sskip= _skip; {
-    if (_fg != none) _fg= fg;
-    if (_bg != none) _bg= bg;
+    if (fg != none) _fg= fg;
+    if (bg != none) _bg= bg;
     if (strstr(PR, tag)) _pre= 1;
     if (strstr(SKIP, tag)) _skip= 1;
-//    c(_fg); b(_fg);
+    C(_fg); B(_bg);
     
     TAG end = {0};
     if (tag && *tag) {
@@ -79,8 +97,13 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
 
   } _fg= sfg; _bg= sbg; _pre= spre; _skip= sskip;
 
+  if (strstr(NL, tag)) p(HNL);
+
+  C(_fg); B(_bg);
+
   level--;
-  printf("<--%d %s\n", level, tag?*tag:NULL);
+  if (trace)
+    printf("<--%d %s\n", level, tag?*tag:NULL);
 }
 
 #define HI(tags, fg, bg) hi(tag, tags, fg, bg)
@@ -94,15 +117,15 @@ void process(TAG *end) {
       TAG tag= {0};
 
       c= parse(f, " >", tag);
-      printf("\n---%s\n", tag);
+      if (trace) printf("\n---%s\n", tag);
       if (c==' ') parse(f, ">", NULL);
 
       if (end && *end && strstr(end, tag)) return;
 
-      if (strstr(NL, tag)) p('\n');
-      if (strstr(" p ", tag)) {p(' ');p(' ');}
+      if (strstr(NL, tag)) p(HNL);
+      if (strstr(" p ", tag)) {p(HS);p(HS);}
 
-      HI(" h1 ", black, white);
+      HI(" h1 ", white, black);
       HI(" h2 ", black, green);
       HI(" h3 ", black, yellow);
       HI(" h4 ", black, cyan);
@@ -125,17 +148,20 @@ void process(TAG *end) {
 
 int main(int argc, char**argv) {
   char* url= argv[1];
-  printf("URL=%s\n", url);
+  if (trace) printf("URL=%s\n", url);
   
   char* wget= calloc(strlen(url) + strlen(W) + 1, 0);
   sprintf(wget, W, url);
   f= popen(wget, "r");
   if (!f) return 404;
 
-  //c(_fg); b(_bg);
+  C(_fg); B(_bg);
 
   process(NULL);
 
   pclose(f);
+
+  C(white); B(black);
+  p(HNL); p(HNL); 
   return 0;
 }
