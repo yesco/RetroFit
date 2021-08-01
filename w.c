@@ -22,7 +22,6 @@ int trace= 0;
 enum color{black, red, green, yellow, blue, magnenta, cyan, white, none};
 enum color _fg= black, _bg= white;
 void C(int n) {
-//  printf("%s\e[3%dm", n!=white&&n!=black?"\e[1m":"x", n)
   printf("\e[%dm", n!=0);
   printf("\e[3%dm", n);
 }
@@ -54,19 +53,25 @@ void p(int c) {
   }
 }
 
+typedef char TAG[32];
+
 int parse(FILE* f, char* endchars, char* s) {
-  int c;
+  int c; char* origs= s;
   if (s) *s++ = ' ';
+  int l= 1;
   while (((c= fgetc(f)) != EOF)
     && (!strchr(endchars, c))) {
-    if (s) *s++= tolower(c);
+    if (s) {
+      *s++= tolower(c);
+      if (s-origs > sizeof(TAG)) {
+        exit(7);
+      }
+    }
   }
   if (s) *s++ = ' ';
   if (s) *s= 0;
   return c<0? 0: c;
 }
-
-typedef char TAG[32];
 
 void process(TAG *end);
 
@@ -106,7 +111,7 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     printf("<--%d %s\n", level, tag?*tag:NULL);
 }
 
-#define HI(tags, fg, bg) hi(tag, tags, fg, bg)
+#define HI(tags, fg, bg) hi(&tag, tags, fg, bg)
 
 FILE* f;
 
@@ -116,22 +121,24 @@ void process(TAG *end) {
     if (c=='<') { // <tag...>
       TAG tag= {0};
 
-      c= parse(f, " >", tag);
+      c= parse(f, "> \n\r", tag);
       if (trace) printf("\n---%s\n", tag);
-      if (c==' ') parse(f, ">", NULL);
+      if (c!='>') parse(f, ">", NULL);
 
-      if (end && *end && strstr(end, tag)) return;
+      // check if </endTAG>
+      if (strstr(*end, tag)) return;
 
       if (strstr(NL, tag)) p(HNL);
       if (strstr(" p ", tag)) {p(HS);p(HS);}
-
+      if (strstr(" h1 ", tag)) p(HNL);
       HI(" h1 ", white, black);
       HI(" h2 ", black, green);
       HI(" h3 ", black, yellow);
       HI(" h4 ", black, cyan);
       HI(" h5 h6 ", black, magnenta);
+
       HI(" b strong ", red, none);
-      HI(" i em ", yellow, none);
+      HI(" i em ", magnenta, none);
       HI(HL, magnenta, none);
 
       HI(FM, yellow, black);
@@ -157,7 +164,8 @@ int main(int argc, char**argv) {
 
   C(_fg); B(_bg);
 
-  process(NULL);
+  TAG dummy= {0};
+  process(&dummy);
 
   pclose(f);
 
