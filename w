@@ -31,6 +31,9 @@ URL=https://github.com/fractalide/copernica
 URL=test.html
 URL=http://yesco.org/
 
+# code/pre
+URL=http://www.columbia.edu/~fdc/sample.html
+
 ./w.x "${1:-$URL}"
 
 #echo "url.....$URL"

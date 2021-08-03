@@ -64,7 +64,7 @@ void B(int n) { bg(n); }
 #define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dl dt dd table tr noscript address "
 #define TB " td /td th /th "
 #define TT " /td /th "
-#define HL " strong u s q cite ins del caption noscript abbr acronym "
+#define HL " u s q cite ins del caption noscript abbr acronym "
 #define PR " pre code "
 #define CD " pre code bdo kbd dfn samp var "
 #define FM " form input textarea select option optgroup button label fieldset legend "
@@ -276,7 +276,7 @@ void process(TAG *end) {
       HI(" h2 ", black, green);
       HI(" h3 ", black, yellow);
       HI(" h4 ", black, cyan);
-      HI(" h5 h6 ", black, magnenta);
+      HI(" h5 h6 ", white, blue);
 
       HI(" b strong ", red, none);
       HI(" i em ", magnenta, none);
