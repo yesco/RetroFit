@@ -1,3 +1,4 @@
+
 //
 // ./w - a minimal web-browser in C
 //
@@ -23,12 +24,40 @@ void getsize() {
   ioctl(0, TIOCGWINSZ, &w);
   rows = w.ws_row;
   cols = w.ws_col;
-  if (trace) printf("rows=%d cols=%d\n", rows, cols);
+  if (1 || trace) printf("\t\trows=%d cols=%d\n", rows, cols);
 }
 
+// ansi
+enum color{black, red, green, yellow, blue, magnenta, cyan, white, none};
+enum color _fg= black, _bg= white;
+
+void _color(c) {
+  if (c >= 0) {
+    printf("5;%dm", c);
+  } else {
+    c= -c;
+    int b= c&0xff, g= (c>>8)&0xff, r=(c>>16);
+    printf("2;%d;%d;%dm", r, g, b);
+  }
+}
+
+void fg(int c) { printf("\e[38;"); _color(c); _fg= c; }
+void bg(int c) { printf("\e[48;"); _color(c); _bg= c; }
+
+int bold(int c /* 0-7 */) { return c+8; }
+int rgb(int r,g,b /* 0-5 */) { return 0x10+ 36*r + 6*g + b; }
+int gray(int c /* 0-7 */) { return 0xe8+  c; }
+int RGB(int r,g,b /* 0-255 */) { return -(r*256+g)*256+b; }
+
+// adjusted colors
+void C(int n) { fg(n + 8*(n!=0 && n<8)); }
+void B(int n) { bg(n); }
+
+// hard space, hard newline
 #define HS -32
 #define HNL -10
 
+// grouping of tags according to formatting
 #define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote ul ol li dl dt dd table tr noscript address "
 #define TB " td /td th /th "
 #define TT " /td /th "
@@ -38,26 +67,18 @@ void getsize() {
 #define FM " form input textarea select option optgroup button label fieldset legend "
 #define SKIP " script head "
 
+// template for getting HTML
 #define W "wget -O - %s 2>/dev/null"
 
-enum color{black, red, green, yellow, blue, magnenta, cyan, white, none};
-enum color _fg= black, _bg= white;
-void C(int n) {
-  printf("\e[%dm", n!=0);
-  printf("\e[3%dm", n);
-}
-#define B(n) printf("\e[4%dm", n);
-//#define c(n) printf("{c:%d}", n);
-//#define b(n) printf("{b:%d}", n);
-
+// screen state
 int _pre= 0, _ws= 0, _nl= 0, _tb= 0, _skip= 0, _indent= 0, _curx= 0, _cury= 0;
 
 //printf("\e[44;3m");
 // B: blue italics!
 
 void cls() {
-  getsize();
   printf("\e[H[2J[3J");
+  getsize();
   _cury= 0; _curx= 0;
 }
 
@@ -66,21 +87,27 @@ void nl() {
   _cury++; _curx= 0;
 }
 
+void nli() {
+  nl();
+  for(int i=_indent;i--;i>0) {
+    putchar(' ');
+  }
+  _curx= _indent;
+}
+
 void p(int c) {
   if (_skip) return;
+  // hard chars
   if (c < 0) {
     c= -c;
     if (c=='\n') {
-      nl();
-      for(int i=_indent;i--;i>0) {
-        putchar(' ');
-      }
-      _curx= _indent;
+      nli();
     } else {
       putchar(c);
       _curx++;
-      if (_curx > cols) {
-      }
+      if (_curx > cols-4)
+        printf("||"); // TODO:
+        nli();
     }
     return;
   }
@@ -130,15 +157,15 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     printf("--->%d %s %d %d\n", level, tag?*tag:NULL, fg, bg);
 
   // save colors
-  enum color sfg= _fg, sbg= _bg, spre= _pre, sskip= _skip; {
+  int sfg= _fg, sbg= _bg, spre= _pre, sskip= _skip; {
     if (fg != none) _fg= fg;
     if (bg != none) _bg= bg;
     if (strstr(PR, tag)) _pre= 1;
     if (strstr(SKIP, tag)) _skip= 1;
     // underline links!
-    if (strstr(" a ", tag)) printf("\e[4m");
+    if (strstr(" a ", tag)) { printf("\e[4m"); C(_fg); }
     // italics
-    if (strstr(" i em ", tag)) printf("\e[3m");
+    if (strstr(" i em ", tag)) { printf("\e[3m"); C(_fg); };
 
     C(_fg); B(_bg);
     
@@ -150,11 +177,16 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     }
     process(end);
 
-  } _fg= sfg; _bg= sbg; _pre= spre; _skip= sskip;
+    // off underline links!
+    if (strstr(" a ", tag)) printf("\e[24m");
+    // off italics
+    if (strstr(" i em ", tag)) printf("\e[23m");
 
+
+  } _pre= spre; _skip= sskip;
   if (strstr(NL, tag)) p(HNL);
+  C(sfg); B(sbg); 
 
-  C(_fg); B(_bg);
 
   level--;
   if (trace)
@@ -209,7 +241,6 @@ int main(int argc, char**argv) {
 
   C(white); B(black);
   cls();
-  //printf("\e[9m"); // crossed out
 
   C(white);
   nl();
@@ -217,7 +248,6 @@ int main(int argc, char**argv) {
   //printf("ᎳᎳᎳ");
   //printf("🅆");
   //printf("./w");
-  // 🌍 🌎 🌏 // TODO:spin?
   printf("🌍");
   //printf("🏠");
 
@@ -231,7 +261,7 @@ int main(int argc, char**argv) {
   if (strstr(u, "https://")==u) {
     printf("🔒"); u+= 8;
   } else if (strstr(u, "http://")==u) {
-    printf("🙀"); u+= 7;
+    printf(""); u+= 7;
   }
   if (u[strlen(u)-1]=='/')
     u[strlen(u)-1]=0;
@@ -239,8 +269,12 @@ int main(int argc, char**argv) {
   // 📂 📖 ⚠ ℯ 😱 🔓
   // ⌂ 🏠 🏡
   printf("%s", u); nl();
-  printf("\e[24m"); // crossed out
-  C(white);
+  printf("\e[9m"); // crossed out
+  nl();
+
+  printf("\e[29m"); // crossed end
+
+  C(black); B(white);
 
   char* wget= calloc(strlen(url) + strlen(W) + 1, 0);
   sprintf(wget, W, url);

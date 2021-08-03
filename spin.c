@@ -12,8 +12,6 @@ void gotorc(int r, c) { printf("\e[%d;%dH", r, c); }
 int spin_n= 0;
 
 void spin(int sig) {
-  //if (spin_n < 0) return;
-
   static char* states[]= {
     "🌍",
     "🌎",
@@ -23,10 +21,13 @@ void spin(int sig) {
 
   hide(); save(); {
     gotorc(0, 0);
-    printf("%s", states[spin_n % 3]);
+    if (!sig || spin_n < 0)
+      printf("😡"),
+      printf("🏠");
+    else
+      printf("%s", states[spin_n % 3]);
   } restore(); show();
   fflush(0);
-  signal(sig, spin);
 }
 
 #define SEC 0
@@ -50,12 +51,18 @@ void start_spin() {
 
 void stop_spin() {
   spin_n = -10;
+  spin(0);
+  setitimer(ITIMER_REAL, &old, &new);
 }
 
 int main(void) {
   start_spin();
 
-  while(1);
+  while(spin_n < 10) ;
+
+  stop_spin();
+
+  while(1) ;
 
   return 0;
 }
