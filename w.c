@@ -135,7 +135,10 @@ void p(int c) {
 
   if (ws) {
     if (!_curx) return;
-    if (!_ws || _pre) { putchar(' '); inx(); }
+    if (!_ws || _pre) {
+      putchar(' '); inx();
+      if (_fullwidth) { putchar(' '); inx(); }
+    }
     _ws= 1; if(_tb) _tb= tb;
   } else {
     indent();
