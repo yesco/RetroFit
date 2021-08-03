@@ -1,0 +1,70 @@
+！！！
+ef bc 81
+ef bc 81
+ef bc 81 0a
+
+ＡＡＡ
+ef bc a1
+ef bc a1
+ef bc a1 0a
+
+ＢＢＢ
+ef bc a2 
+ef bc a2
+ef bc a2 0a
+
+～～～
+ef bd 9e
+ef bd 9e
+ef bd 9e 0a
+
+ａａａ
+ef bd 81
+ef bd 81
+ef bd 81 0a
+
+．／ｗ
+
+🌑 🌒 🌓 🌔 🌕 🌖 🌗 🌘 moon
+🌙 
+
+🌱 🌶 🌵 🍄 
+
+🍆 🍇 🍉 🍋 🍒 🍎
+ 🍕 🎵 🐍
+
+👀
+
+🌍 🌎 🌏 globe
+🥶 frozen/stalled
+😡 fail
+😡 fail
+✅ ok
+
+🔒 lock=safe
+🙀 worry
+
+🤮 😨 sick/worry
+
+🏠 ⌂ home
+🍔 ☰ hamburger
+🔍 🔎 search
+👓 glasses
+
+🐛 🐞 🐜
+
+ᨏ
+
+
+📯 📧 📬 📫 ✉ 
+🐈🐼 👾 👽 
+
+☛ hand
+➔ arrow
+○ ● ◯ • ◦ ‣ ⦿ ⦾ ⁃ ⁍ ▪ ◉  bullet
+◾  ◼ ■ □ ▣ ▪ ▬   blocks
+
+font ℍ
+
+U+FF00–FFEF fullwidth
+

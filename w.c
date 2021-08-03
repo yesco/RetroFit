@@ -1,4 +1,3 @@
-
 //
 // ./w - a minimal web-browser in C
 //
@@ -8,6 +7,9 @@
 
 // various debug output
 int trace= 0;
+
+// general formatting
+int rmargin= 1; // 1 or more (no 0)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +26,7 @@ void getsize() {
   ioctl(0, TIOCGWINSZ, &w);
   rows = w.ws_row;
   cols = w.ws_col;
-  if (1 || trace) printf("\t\trows=%d cols=%d\n", rows, cols);
+  if (trace) printf("\t\trows=%d cols=%d\n", rows, cols);
 }
 
 // ansi
@@ -56,6 +58,7 @@ void B(int n) { bg(n); }
 // hard space, hard newline
 #define HS -32
 #define HNL -10
+#define SNL -11
 
 // grouping of tags according to formatting
 #define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote ul ol li dl dt dd table tr noscript address "
@@ -71,7 +74,7 @@ void B(int n) { bg(n); }
 #define W "wget -O - %s 2>/dev/null"
 
 // screen state
-int _pre= 0, _ws= 0, _nl= 0, _tb= 0, _skip= 0, _indent= 0, _curx= 0, _cury= 0;
+int _pre= 0, _ws= 0, _nl= 0, _tb= 0, _skip= 0, _indent= 0, _curx= 0, _cury= 0, _fullwidth= 0;
 
 //printf("\e[44;3m");
 // B: blue italics!
@@ -84,10 +87,11 @@ void cls() {
 
 void nl() {
   printf("\e[K\n"); // workaround bug!
-  _cury++; _curx= 0;
+  _cury++; _curx= 0; _ws= 1;
 }
 
 void nli() {
+  //if (_curx+rmargin>cols) nl();
   nl();
   for(int i=_indent;i--;i>0) {
     putchar(' ');
@@ -95,19 +99,28 @@ void nli() {
   _curx= _indent;
 }
 
+void inx() {
+  _curx++;
+  if (_curx+rmargin == cols) nli();
+}
+
 void p(int c) {
   if (_skip) return;
   // hard chars
   if (c < 0) {
-    c= -c;
-    if (c=='\n') {
-      nli();
+
+    if (c==SNL) {
+      if (_curx <= _indent) return;
+      c='\n';
     } else {
-      putchar(c);
-      _curx++;
-      if (_curx > cols-4)
-        printf("||"); // TODO:
-        nli();
+      c= -c;
+    }
+    
+    if (c=='\n') {
+      //printf("\\n");
+      nl();
+    } else {
+      putchar(c); inx();
     }
     return;
   }
@@ -117,10 +130,24 @@ void p(int c) {
   int ws= (c==' '||tb||c=='\n'||c=='\r');
 
   if (ws) {
-    if (!_ws || _pre) putchar(' ');
+    if (!_curx) return;
+    if (!_ws || _pre) { putchar(' '); inx(); }
     _ws= 1; if(_tb) _tb= tb;
   } else {
-    putchar(c);
+    if (_fullwidth && c < 128) {
+      // https://en.m.wikipedia.org/wiki/UTF-8
+      // modify unicode:
+      // ef  bc "10 xx xxxx" == "!"
+      char fw[4]; strcpy(fw, "！");
+      int cc= (int)fw[2] + c - 33;
+      fw[2]= (cc & 63) + 128;
+      if (cc >= 128+64) fw[1]++;
+      printf("%s", fw); inx(); inx();
+    } else {
+      // TODO: &#3333; (google.com full!)
+      // TODO: &named; 
+      putchar(c); inx();
+    }
     _ws= 0; _tb= 0;
   }
 }
@@ -166,6 +193,8 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (strstr(" a ", tag)) { printf("\e[4m"); C(_fg); }
     // italics
     if (strstr(" i em ", tag)) { printf("\e[3m"); C(_fg); };
+    // fullwidth
+    if (strstr(" h1 ", tag)) _fullwidth++;
 
     C(_fg); B(_bg);
     
@@ -181,7 +210,8 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (strstr(" a ", tag)) printf("\e[24m");
     // off italics
     if (strstr(" i em ", tag)) printf("\e[23m");
-
+    // off fullwidth
+    if (strstr(" h1 ", tag)) _fullwidth--;
 
   } _pre= spre; _skip= sskip;
   if (strstr(NL, tag)) p(HNL);
@@ -210,9 +240,15 @@ void process(TAG *end) {
       // check if </endTAG>
       if (strstr(*end, tag)) return;
 
-      if (strstr(NL, tag)) p(HNL);
-      if (strstr(" p ", tag)) {p(HS);p(HS);}
+      if (strstr(NL, tag)) p(SNL);
+      if (strstr(" p ", tag)) {
+        if (_curx>_indent) p(HNL);
+        p(HS);p(HS);
+      }
       if (strstr(" h1 ", tag)) p(HNL);
+      if (strstr(" li dt ", tag)) { printf(" ● "); inx(); }
+
+      // these require action after
       HI(" h1 ", white, black);
       HI(" h2 ", black, green);
       HI(" h3 ", black, yellow);
@@ -221,12 +257,14 @@ void process(TAG *end) {
 
       HI(" b strong ", red, none);
       HI(" i em ", magnenta, none);
+
       HI(HL, magnenta, none);
 
       HI(FM, yellow, black);
       HI(CD, green, black);
 
       HI(" a ", blue, none);
+
       HI(SKIP, none, none);
 
     } else {
@@ -242,16 +280,17 @@ int main(int argc, char**argv) {
   C(white); B(black);
   cls();
 
-  C(white);
-  nl();
+  C(white); B(black);
   //printf("./ω");
   //printf("ᎳᎳᎳ");
   //printf("🅆");
   //printf("./w");
   printf("🌍");
-  //printf("🏠");
-
   putchar(' ');
+  B(8);  // gray() ??? TODO
+  //printf("🏠");
+  putchar(' ');
+
   //printf("\e[4m"); // underlined
 
   char uu[strlen(url)+1];
@@ -269,13 +308,13 @@ int main(int argc, char**argv) {
   // 📂 📖 ⚠ ℯ 😱 🔓
   // ⌂ 🏠 🏡
   printf("%s", u); nl();
-  printf("\e[9m"); // crossed out
-  nl();
-
-  printf("\e[29m"); // crossed end
+  //printf("\e[9m"); // crossed out
+  //nl();
+  //printf("\e[29m"); // crossed end
 
   C(black); B(white);
 
+  // get HTML
   char* wget= calloc(strlen(url) + strlen(W) + 1, 0);
   sprintf(wget, W, url);
   f= popen(wget, "r");
