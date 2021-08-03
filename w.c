@@ -61,7 +61,7 @@ void B(int n) { bg(n); }
 #define SNL -11
 
 // grouping of tags according to formatting
-#define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote ul ol li dl dt dd table tr noscript address "
+#define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dl dt dd table tr noscript address "
 #define TB " td /td th /th "
 #define TT " /td /th "
 #define HL " strong u s q cite ins del caption noscript abbr acronym "
@@ -82,26 +82,25 @@ int _pre= 0, _ws= 0, _nl= 0, _tb= 0, _skip= 0, _indent= 0, _curx= 0, _cury= 0, _
 void cls() {
   printf("\e[H[2J[3J");
   getsize();
-  _cury= 0; _curx= 0;
+  _cury= 0; _curx= 0; _ws= 1; _nl= 1;
 }
 
 void nl() {
   printf("\e[K\n"); // workaround bug!
-  _cury++; _curx= 0; _ws= 1;
+  _cury++; _curx= 0; _ws= 1; _nl= 1;
 }
 
-void nli() {
-  //if (_curx+rmargin>cols) nl();
-  nl();
-  for(int i=_indent;i--;i>0) {
+void indent() {
+  while(_curx < _indent*2) {
     putchar(' ');
+    _curx++;
   }
-  _curx= _indent;
+  _ws= 1;
 }
 
 void inx() {
-  _curx++;
-  if (_curx+rmargin == cols) nli();
+  _curx++; _nl= 0;
+  if (_curx+rmargin == cols) nl();
 }
 
 void p(int c) {
@@ -110,8 +109,13 @@ void p(int c) {
   if (c < 0) {
 
     if (c==SNL) {
-      if (_curx <= _indent) return;
-      c='\n';
+      if (_nl) return;
+      if (_curx < _indent*2) {
+        indent();
+      } else {
+        nl();
+      }
+      return;
     } else {
       c= -c;
     }
@@ -120,7 +124,7 @@ void p(int c) {
       //printf("\\n");
       nl();
     } else {
-      putchar(c); inx();
+      putchar(c); _ws= 0; inx();
     }
     return;
   }
@@ -134,6 +138,7 @@ void p(int c) {
     if (!_ws || _pre) { putchar(' '); inx(); }
     _ws= 1; if(_tb) _tb= tb;
   } else {
+    indent();
     if (_fullwidth && c < 128) {
       // https://en.m.wikipedia.org/wiki/UTF-8
       // modify unicode:
@@ -195,6 +200,7 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (strstr(" i em ", tag)) { printf("\e[3m"); C(_fg); };
     // fullwidth
     if (strstr(" h1 ", tag)) _fullwidth++;
+    if (strstr(" ul ol ", tag)) _indent++;
 
     C(_fg); B(_bg);
     
@@ -212,9 +218,11 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (strstr(" i em ", tag)) printf("\e[23m");
     // off fullwidth
     if (strstr(" h1 ", tag)) _fullwidth--;
+    if (strstr(" ul ol ", tag)) { p(SNL); _indent--; }
+
 
   } _pre= spre; _skip= sskip;
-  if (strstr(NL, tag)) p(HNL);
+  if (strstr(NL, tag)) p(SNL);
   C(sfg); B(sbg); 
 
 
@@ -233,9 +241,21 @@ void process(TAG *end) {
     if (c=='<') { // <tag...>
       TAG tag= {0};
 
+      // parse tag
       c= parse(f, "> \n\r", tag);
-      if (trace) printf("\n---%s\n", tag);
-      if (c!='>') parse(f, ">", NULL);
+      if (0 ||trace) printf("\n---%s\n", tag);
+      if (strstr(" !-- ", tag)) {
+        char com[4] = "1234";
+        while ((c= fgetc(f)) != EOF) {
+          strcpy(&com[0], &com[1]);
+          com[2]= c;
+          if (!strcmp("-->", com)) break;
+        }
+        if (c==EOF) return;
+        continue;
+      } else if (c!='>') {
+        parse(f, ">", NULL);
+      }
 
       // check if </endTAG>
       if (strstr(*end, tag)) return;
@@ -246,7 +266,7 @@ void process(TAG *end) {
         p(HS);p(HS);
       }
       if (strstr(" h1 ", tag)) p(HNL);
-      if (strstr(" li dt ", tag)) { printf(" ● "); inx(); }
+      if (strstr(" li dt ", tag)) { p(SNL); indent(); printf(" ● "); inx(); inx(); inx(); }
 
       // these require action after
       HI(" h1 ", white, black);
@@ -265,6 +285,7 @@ void process(TAG *end) {
 
       HI(" a ", blue, none);
 
+      HI(" ul ol ", none, none);
       HI(SKIP, none, none);
 
     } else {
@@ -305,7 +326,7 @@ int main(int argc, char**argv) {
     printf("🚩");
     fg(f);
     u+= 7;
-  }
+  } 
   if (u[strlen(u)-1]=='/')
     u[strlen(u)-1]=0;
   
@@ -321,8 +342,10 @@ int main(int argc, char**argv) {
   // get HTML
   char* wget= calloc(strlen(url) + strlen(W) + 1, 0);
   sprintf(wget, W, url);
-  f= popen(wget, "r");
-  if (!f) return 404;
+  f= fopen(url, "r");
+  if (!f) // && strstr(url, "http")==url)
+    f= popen(wget, "r");
+  if (!f) return 404; // TODO:
 
   C(_fg); B(_bg);
 
