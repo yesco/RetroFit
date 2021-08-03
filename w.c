@@ -300,7 +300,11 @@ int main(int argc, char**argv) {
   if (strstr(u, "https://")==u) {
     printf("🔒"); u+= 8;
   } else if (strstr(u, "http://")==u) {
-    printf(""); u+= 7;
+    int f=_fg;
+    C(red);
+    printf("🚩");
+    fg(f);
+    u+= 7;
   }
   if (u[strlen(u)-1]=='/')
     u[strlen(u)-1]=0;
