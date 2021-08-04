@@ -26,15 +26,15 @@ URL=http://runeberg.org
 URL=https://github.com/fractalide/copernica
 
 
-URL=test.html
-URL=http://yesco.org/
-
 # code/pre
 URL=http://www.columbia.edu/~fdc/sample.html
 
-./w.x "${1:-$URL}"
+URL=http://yesco.org/
+URL=test.html
 
-#echo "url.....$URL"
+# run it!
+
+./w.x "${1:-$URL}"
 
 # possibly pipe to "less -R" for ansi
 
@@ -42,3 +42,7 @@ echo
 echo "---"
 echo "(w.c: total lines    : `cat w.c |wc`)"
 echo "(w.c: pure code lines: `grep -iPv '^\s*//' w.c | grep -v '^\s*$' | wc`)"
+echo "usage: ./w            (loads test.html)"
+echo "       ./w FILE.NAME  (tries file first)"
+echo "       ./w URL        (if no file, wget)"
+echo "       ./w yesco.org  (my homepage)"
