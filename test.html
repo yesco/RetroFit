@@ -1,8 +1,10 @@
 <h1>Minimialist Browser</h1>
 
 <p>
-This is a test of the <i>minimalist</i> <tt>./w</tt> web-brower written in C. At this morning it was 370 lines of code (2021-08-04). pre/code added 10 lines, word-wrap 40, misc formatting improvements &mdash; 10 lines. I added 36 for handling HTML entities. Now, I didn't want to count pure comment lines &amp; nor empty lines; so changed my counting script; Now there are 335 lines of C;
+This is a test of the <i>minimalist</i> <tt>./w</tt> web-brower written in C. At this morning it was 370 lines of code (2021-08-04). pre/code added 10 lines, word-wrap 40, misc formatting improvements &mdash; 10 lines. I added 36 for handling HTML entities. Now, I didn't want to count pure comment lines &amp; nor empty lines; so changed my counting script; Now there are <b>335 lines</b> of <i>C</i>;
 </p>
+
+<P>As you saw above; it supports named entities (caveat inline without surrounded by space, see bug below). Did you know that the list of HTML entties is <b>2234</b> elements long! &amp; <tt> &amp; amp;</tt> &lt; <tt> &amp; lt;</tt>  &gt; <tt>&amp; gt;</tt> are just few examples.</p>
 
 <p>Links are rendered <a href="http://google.com/">Google</a> but there is no navigation or paging.</p>
 
@@ -61,12 +63,26 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 <p>Blah blahbalhbal albhablab ablahblabhalbla blabhalbahbla bahbl ablhaba</p>
 <h1>Current Bugs</h1>
 
+<h2>Terminal bugs:</h2>
+<ul>
+<li>A test with <i>italic when ending with a 'd' like 3d=ddd</i> you can't see the last 'd' fully. Possible fix: if it's a space after, "move" the space inside the end-italics tag. Not easy the way we parse...</li>
+</ul>
+
+<h2>TODO:</h2>
+<ul>
+<li>Support numbered entities on the form: This is decimal 'A': &#65; <tt> &amp; #4711;</tt>, and fullwidth 'Ａ': &#xff21; <tt> &amp; #xff21</tt>.</li>
+<li>Not really a bug, but a matter of resilience of missing end tags. For example of the end li-tag is missing, indentation becomes messed up.</li>
+<li>Handle image tag, show alt. Image maps too.</li>
+<li>Extract a-links href:s and allow to list them</li>
+<li>Be able to choose link by letter/number, and go to it.</li>
+<li>Be able to choose link by letter/number, and go to it.</li>
+<li>Paging, up/down - may require cashing. Unless keep in memory. (disk is fast!)</li>
+<li>Navigate to links by cursor movements.</li>
+</ul>
+
+<h2>My Code Bugs in ./w</h2>
 <ul>
 <li>A text with inline&amp;code with no spaces ( &amp; ) (&amp;).</li>
 <li>Some code are <tt> &amp;amp</tt> without the ';' &mdash; this is a parsing problem.</li>
 </ul>
 
-<h2>Terminal bugs:</h2>
-<ul>
-<li>A test with <i>italic when ending with a 'd' like 3d=ddd</i> you can't see the last 'd' fully.</li>
-</ul>

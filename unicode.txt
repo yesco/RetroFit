@@ -43,7 +43,7 @@ ef bd 81 0a
 
 🔒 lock=safe
 🙀 worry
-⛛🔺▲ ⟁ warning
+🚩⛛🔺▲ ⟁ warning
 
 🤮 😨 sick/worry
 
