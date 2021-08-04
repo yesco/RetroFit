@@ -17,6 +17,7 @@ int rmargin= 1; // 1 or more (no 0)
 #include <ctype.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <wchar.h>
 
 int rows= 24, cols= 80;
 
@@ -75,6 +76,41 @@ void B(int n) { bg(n); }
 // template for getting HTML
 #define W "wget -O - %s 2>/dev/null"
 
+// https://html.spec.whatwg.org/entities.json
+// (reworked using entities.js and hand-edit)
+
+// one long string repated (&name;? UU?)*\&
+// the file is 27K
+// - I think we can just do strstr, LOL!
+#include "entities.h"
+
+// name must be "&name;" ';' is optional :-(
+// returns unicode string 1-2 bytes, or NULL
+// the string is static, so use it fast!
+char* decode_entity(char* name) {
+  char fnd[32]= {0};
+  strcpy(fnd, name);
+  fnd[strlen(fnd)]= ' ';
+  if (trace) printf("[>> \"%s\" <<]", fnd);
+  static char result[2*4*2]; // max result 2 unicode chars
+  memset(result, 0, sizeof(result));
+  char* m= strcasestr(ENTITIES, fnd);
+  if (!m) return NULL;
+  
+  // skip 'name;? '
+  m+= strlen(name)+1;
+  char* p= result;
+  // copy first char at least (might be '&')
+  do {
+    *p++ = *m++;
+  } while ('&' != *m); // until '&...';
+  if (trace) printf("{$s}", result);
+  return result;
+
+// TODO: maybe hardcode the common ones?
+// &nbsp;&gt;&lt;&quot;&.squo;&dquo;&lsaquo;&rsaquo;&ndash;&mdash;&circ;&tilde;&permil;&amp;&eur;&em;&emm;&raquo;&copy;
+}
+
 // screen state
 int _pre= 0, _ws= 0, _nl= 0, _tb= 0, _skip= 0, _indent= 0, _curx= 0, _cury= 0, _fullwidth= 0;
 
@@ -103,12 +139,26 @@ void _pc(int c) {
   //printf("[%c]", c);
   if (c<=' ' || c==';' || c=='\n' || c=='\r' || c=='\t') { // output word
 //    if (word[0]) printf("{%s}", word);
-    printf("%s", word);
-    if (c>=0) putchar(c);
+
+    // html entity?
+    char* e_result= NULL;
+    if (word[0]=='&') {
+      if (c==';') word[strlen(word)]= c;
+      e_result= decode_entity(word);
+    }
+    if (e_result) {
+      printf("%s", e_result);
+      //if (c!=';') putchar(c);
+    } else {
+      printf("%s", word);
+      if (c>=0) putchar(c);
+      //printf("{%c}", c);
+    }
     memset(word, 0, sizeof(word));
     _overflow= 0;
+    //_ws= (c==' '||c=='\t'); // TODO: doesn't matter!
   } else if (_overflow) {
-    if (_curx+rmargin >= cols) {
+    if (_curx+rmargin+1 >= cols) {
       putchar('-');
       nl();
     }
@@ -121,15 +171,22 @@ void _pc(int c) {
       for(int i=0; i<strlen(word); i++)
         putchar(word[i]);
 
-      putchar(c);
+      putchar(c); //inx();
       memset(word, 0, sizeof(word));
       return;
     }
     word[l]= c;
     // word too long for this line?
-    if (_curx+rmargin >= cols) {
+    if (_curx+rmargin+1 >= cols) {
       nl();
       _curx += strlen(word);
+    }
+    // TODO: this isn't correct
+    // complex: an be followed by ';' or NOT!
+    // html entity?
+    if (0 && word[0]=='&') {
+      char* e= decode_entity(word);
+      printf(" { %s } ", e);
     }
   }
 }

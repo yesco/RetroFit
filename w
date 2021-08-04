@@ -1,9 +1,7 @@
 if [[ w.c -nt w.x ]]; then
   echo "--- w.c changed, recompiling w.x..."
-  wc w.c 
   clang -g -w w.c -o w.x || exit
 fi
-
 
 # ./spin & # how to stop!!
 # clang -g -w w.c && ((echo "run http://yesco.org/";echo "where") | gdb ./a.out )
@@ -39,3 +37,6 @@ URL=http://www.columbia.edu/~fdc/sample.html
 #echo "url.....$URL"
 
 # possibly pipe to "less -R" for ansi
+
+echo "total lines    : `cat w.c |wc`"
+echo "pure code lines: `grep -iPv '^\s*//' w.c | grep -v '^$' | wc`"
