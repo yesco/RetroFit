@@ -100,11 +100,19 @@ void indent() {
 
 void inx() {
   _curx++; _nl= 0;
-  if (_curx+rmargin == cols) nl();
+  if (!_pre && _curx+rmargin == cols) nl();
 }
 
 void p(int c) {
   if (_skip) return;
+
+  // TODO: handle &...;
+  if (_pre) {
+    putchar(c); inx();
+    if (c=='\n') _curx= 0;
+    return;
+  }
+
   // hard chars
   if (c < 0) {
 
@@ -241,7 +249,9 @@ FILE* f;
 void process(TAG *end) {
   int c;
   while ((c= fgetc(f)) != EOF) {
-    if (c=='<') { // <tag...>
+    if (c!='<') {
+      p(c);
+    } else { // <tag...>
       TAG tag= {0};
 
       // parse tag
@@ -290,9 +300,6 @@ void process(TAG *end) {
 
       HI(" ul ol ", none, none);
       HI(SKIP, none, none);
-
-    } else {
-      p(c);
     }
   }
 }
