@@ -1,12 +1,16 @@
 <h1>Minimialist Browser</h1>
 
 <p>
-This is a test of the <i>minimalist</i> <tt>./w</tt> web-brower written in C. At this morning it was 370 lines of code (2021-08-04). pre/code added 10 lines, word-wrap 40, misc formatting improvements &mdash; 10 lines. I added 36 for handling HTML entities. Now, I didn't want to count pure comment lines &amp; nor empty lines; so changed my counting script; Now there are <b>335 lines</b> of <i>C</i>;
+This is a test of the <i>minimalist</i> <tt>./w</tt> web-brower written in C. It is a meagure of <b>345</b> pure C-code lines (comments and empty lines not counted).
+
+In the morning of August 4th, 2021, in the morning: it was a total 370 lines. <b>pre/code</b> added 10 lines, <b>word-wrap</b> 40, misc formatting improvements &mdash; 10 lines. I added 36 for handling <b>HTML entities</b>. Now, I didn't want to count pure comment lines &amp; nor empty lines; so changed my counting script; Adding <b>numbered entities</b>: Hex and deciaml; there are <b>345 lines</b> of <i>C</i>;
 </p>
 
-<P>As you saw above; it supports named entities (caveat inline without surrounded by space, see bug below). Did you know that the list of HTML entties is <b>2234</b> elements long! &amp; <tt> &amp; amp;</tt> &lt; <tt> &amp; lt;</tt>  &gt; <tt>&amp; gt;</tt> are just few examples.</p>
+<P>As you saw above; it supports <b>named entities</b> (caveat inline without surrounded by space, see bug below). Did you know that the list of HTML entties is <b>2234</b> elements long! &amp; <tt> &amp; amp;</tt> &lt; <tt> &amp; lt;</tt>  &gt; <tt>&amp; gt;</tt> are just few examples.</p>
 
-<p>Links are rendered <a href="http://google.com/">Google</a> but there is no navigation or paging.</p>
+<p>It supports <b>numbered entities</b> on the form: This is decimal 'A': &#65; <tt> &amp; #4711;</tt>, and fullwidth 'Ａ': &#xff21; <tt> &amp; #xff21</tt>.</p>
+
+<p><b>Links</b> are rendered <a href="http://google.com/">Google</a> but there is no navigation or paging.</p>
 
 <p>
 Below continues various plain simple html. CSS is <b>not</b> handled. But all other tags <i>should</i> be (Terminal bug: 'o' in should is overwritten and looks like 'p'). Can you mix: <b>bold <i>bold italics</i> bold</b> or <i>italics <b>italics bold</b> italics</i>.
@@ -70,7 +74,6 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 
 <h2>TODO:</h2>
 <ul>
-<li>Support numbered entities on the form: This is decimal 'A': &#65; <tt> &amp; #4711;</tt>, and fullwidth 'Ａ': &#xff21; <tt> &amp; #xff21</tt>.</li>
 <li>Not really a bug, but a matter of resilience of missing end tags. For example of the end li-tag is missing, indentation becomes messed up.</li>
 <li>Handle image tag, show alt. Image maps too.</li>
 <li>Extract a-links href:s and allow to list them</li>

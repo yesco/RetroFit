@@ -67,5 +67,5 @@ void main(void) {
 
   // #include <stdlib.h>
   //int mbtowc(wchar_t *restrict pwc, const char *restrict s, size_t n);
-  int ri = mbtowc(&cc, s, strlen(s));
+  //int ri = mbtowc(&cc, s, strlen(s));
 }

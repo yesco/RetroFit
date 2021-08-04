@@ -21,6 +21,10 @@ int rmargin= 1; // 1 or more (no 0)
 #include <ctype.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <assert.h>
+
+#include <unistr.h>
+#include <uniname.h>
 #include <wchar.h>
 
 int rows= 24, cols= 80;
@@ -91,17 +95,34 @@ void B(int n) { bg(n); }
 // name must be "&name;" ';' is optional :-(
 // returns unicode string 1-2 bytes, or NULL
 // the string is static, so use it fast!
+// - &amp;    - HTML named Entity
+// - &#4711;  - decimal numbered char
+// - &#xff21; - fullwidth 'A'
 char* decode_entity(char* name) {
   char fnd[32]= {0};
   strcpy(fnd, name);
+
+  // return pointer to fixed static string
+  static char result[2*4*2];
+  memset(result, 0, sizeof(result));
+
+  // numbered entity?
+  uint32_t c = 0;
+  assert(sizeof(int)==4);
+  if (sscanf(fnd, "&#x%x;", &c) ||
+      sscanf(fnd, "&#%i;", &c)) {
+    size_t len=sizeof(result)-1;
+    return u32_to_u8(&c, 1, result, &len);
+  }
+
+  // search for '&name; '
   fnd[strlen(fnd)]= ' ';
   if (trace) printf("[>> \"%s\" <<]", fnd);
-  static char result[2*4*2]; // max result 2 unicode chars
-  memset(result, 0, sizeof(result));
+
   char* m= strcasestr(ENTITIES, fnd);
   if (!m) return NULL;
   
-  // skip 'name;? '
+  // skip '&name;? '
   m+= strlen(name)+1;
   char* p= result;
   // copy first char at least (might be '&')
@@ -404,7 +425,8 @@ void process(TAG *end) {
       HI(" h2 ", black, green);
       HI(" h3 ", black, yellow);
       HI(" h4 ", black, blue);
-      HI(" h5 h6 ", black, cyan);
+      HI(" h5 ", black, cyan);
+      HI(" h6 ", black, white);
 
       HI(" b strong ", red, none);
       //HI(" i em ", magnenta, none);

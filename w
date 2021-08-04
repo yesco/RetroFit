@@ -1,6 +1,6 @@
 if [[ w.c -nt w.x ]]; then
   echo "--- w.c changed, recompiling w.x..."
-  clang -g -w w.c -o w.x || exit
+  clang -g -w -lunistring  w.c -o w.x || exit
 fi
 
 # ./spin & # how to stop!!
@@ -42,6 +42,7 @@ echo
 echo "---"
 echo "(w.c: total lines    : `cat w.c |wc`)"
 echo "(w.c: pure code lines: `grep -iPv '^\s*//' w.c | grep -v '^\s*$' | wc`)"
+echo
 echo "usage: ./w            (loads test.html)"
 echo "       ./w FILE.NAME  (tries file first)"
 echo "       ./w URL        (if no file, wget)"
