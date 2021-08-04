@@ -202,9 +202,8 @@ void nl() {
 }
 
 void indent() {
-  while(_curx < _indent*2) {
+  while(_curx < _indent) {
     putchar(' '); inx();
-    _curx++;
   }
   _ws= 1;
 }
@@ -309,7 +308,8 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (bg != none) _bg= bg;
     if (strstr(PR, tag)) _pre= 1;
     if (strstr(SKIP, tag)) _skip= 1;
-    if (strstr(" ul ol ", tag)) _indent++;
+    if (strstr(" ul ol ", tag)) _indent+= 2;
+    if (strstr(" li ", tag)) _indent+= 3;
     // underline links!
     if (strstr(" a ", tag)) { printf("\e[4m"); C(_fg); }
     // italics
@@ -334,7 +334,8 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     // end content
 
     // - cleanups
-    if (strstr(" ul ol ", tag)) { p(SNL); _indent--; }
+    if (strstr(" ul ol ", tag)) { p(SNL); _indent-= 2; }
+    if (strstr(" li ", tag)) _indent-= 3;
     if (strstr(TT, tag)) p(HS);
     // off underline links!
     if (strstr(" a ", tag)) printf("\e[24m");
@@ -413,7 +414,7 @@ void process(TAG *end) {
 
       HI(" a ", blue, none);
 
-      HI(" ul ol ", none, none);
+      HI(" ul ol li ", none, none);
       HI(SKIP, none, none);
     }
   }
