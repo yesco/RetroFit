@@ -1,8 +1,12 @@
 //
-// ./w - a minimal web-browser in C
+//               ./w 
 //
-//    (>) 2021 Jonas S Karlsson
-//         jsk@yesco.org
+//    a minimal web-browser in C
+//
+//
+//  (>) CC-BY 2021 Jonas S Karlsson
+//
+//          jsk@yesco.org
 //
 
 // various debug output
