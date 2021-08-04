@@ -1,7 +1,7 @@
 if [[ w.c -nt w.x ]]; then
   echo "--- w.c changed, recompiling w.x..."
   wc w.c 
-  clang -g -w w.c -o w.x
+  clang -g -w w.c -o w.x || exit
 fi
 
 

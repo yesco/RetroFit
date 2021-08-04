@@ -62,11 +62,13 @@ void B(int n) { bg(n); }
 
 // grouping of tags according to formatting
 #define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dl dt dd table tr noscript address "
+#define HD " h1 h2 h3 h4 h5 h6 "
 #define TB " td /td th /th "
 #define TT " /td /th "
 #define HL " u s q cite ins del caption noscript abbr acronym "
 #define PR " pre code "
-#define CD " pre code bdo kbd dfn samp var "
+#define CD " pre code "
+#define TT " bdo kbd dfn samp var tt "
 #define FM " form input textarea select option optgroup button label fieldset legend "
 #define SKIP " script head "
 
@@ -85,22 +87,65 @@ void cls() {
   _cury= 0; _curx= 0; _ws= 1; _nl= 1;
 }
 
+void nl();
+
+void inx() {
+  _curx++; _nl= 0;
+  if (!_pre && _curx+rmargin == cols) nl();
+}
+
+// internal putchar that buffers words/&#4711; and does wordwrap
+#define WORDLEN 10
+char word[WORDLEN+1] = {0};
+int _overflow= 0;
+
+void _pc(int c) {
+  //printf("[%c]", c);
+  if (c<=' ' || c==';' || c=='\n' || c=='\r' || c=='\t') { // output word
+//    if (word[0]) printf("{%s}", word);
+    printf("%s", word);
+    if (c>=0) putchar(c);
+    memset(word, 0, sizeof(word));
+    _overflow= 0;
+  } else if (_overflow) {
+    if (_curx+rmargin >= cols) {
+      putchar('-');
+      nl();
+    }
+    putchar(c); inx();
+  } else {
+    int l= strlen(word);
+    if (l>=WORDLEN) {
+      _overflow= 1;
+      // flush
+      for(int i=0; i<strlen(word); i++)
+        putchar(word[i]);
+
+      putchar(c);
+      memset(word, 0, sizeof(word));
+      return;
+    }
+    word[l]= c;
+    // word too long for this line?
+    if (_curx+rmargin >= cols) {
+      nl();
+      _curx += strlen(word);
+    }
+  }
+}
+
 void nl() {
+  //printf("\\N");
   printf("\e[K\n"); // workaround bug!
   _cury++; _curx= 0; _ws= 1; _nl= 1;
 }
 
 void indent() {
   while(_curx < _indent*2) {
-    putchar(' ');
+    _pc(' ');
     _curx++;
   }
   _ws= 1;
-}
-
-void inx() {
-  _curx++; _nl= 0;
-  if (!_pre && _curx+rmargin == cols) nl();
 }
 
 void p(int c) {
@@ -108,7 +153,7 @@ void p(int c) {
 
   // TODO: handle &...;
   if (_pre) {
-    putchar(c); inx();
+    _pc(c); inx();
     if (c=='\n') _curx= 0;
     return;
   }
@@ -132,7 +177,7 @@ void p(int c) {
       //printf("\\n");
       nl();
     } else {
-      putchar(c); _ws= 0; inx();
+      _pc(c); _ws= 0; inx();
     }
     return;
   }
@@ -144,8 +189,8 @@ void p(int c) {
   if (ws) {
     if (!_curx) return;
     if (!_ws || _pre) {
-      putchar(' '); inx();
-      if (_fullwidth) { putchar(' '); inx(); }
+      _pc(' '); inx();
+      if (_fullwidth) { _pc(' '); inx(); }
     }
     _ws= 1; if(_tb) _tb= tb;
   } else {
@@ -160,9 +205,7 @@ void p(int c) {
       if (cc >= 128+64) fw[1]++;
       printf("%s", fw); inx(); inx();
     } else {
-      // TODO: &#3333; (google.com full!)
-      // TODO: &named; 
-      putchar(c); inx();
+      _pc(c); inx();
     }
     _ws= 0; _tb= 0;
   }
@@ -205,15 +248,20 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (bg != none) _bg= bg;
     if (strstr(PR, tag)) _pre= 1;
     if (strstr(SKIP, tag)) _skip= 1;
+    if (strstr(" ul ol ", tag)) _indent++;
     // underline links!
     if (strstr(" a ", tag)) { printf("\e[4m"); C(_fg); }
     // italics
     if (strstr(" i em ", tag)) { printf("\e[3m"); C(_fg); };
     // fullwidth
     if (strstr(" h1 ", tag)) _fullwidth++;
-    if (strstr(" ul ol ", tag)) _indent++;
+    if (strstr(HD, tag)) _fullwidth++;
 
+    // content
     C(_fg); B(_bg);
+    if (strstr(" h1 ", tag)) p(HNL);
+    if (strstr(HD, tag)) p(HS);
+    if (strstr(TT, tag)) p(HS);
     
     TAG end = {0};
     if (tag && *tag) {
@@ -222,15 +270,18 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
       strcpy(end+2, *tag+1);
     }
     process(end);
+    // end content
 
+    // - cleanups
+    if (strstr(" ul ol ", tag)) { p(SNL); _indent--; }
+    if (strstr(TT, tag)) p(HS);
     // off underline links!
     if (strstr(" a ", tag)) printf("\e[24m");
     // off italics
     if (strstr(" i em ", tag)) printf("\e[23m");
     // off fullwidth
     if (strstr(" h1 ", tag)) _fullwidth--;
-    if (strstr(" ul ol ", tag)) { p(SNL); _indent--; }
-
+    if (strstr(HD, tag)) _fullwidth--;
 
   } _pre= spre; _skip= sskip;
   if (strstr(NL, tag)) p(SNL);
@@ -253,6 +304,7 @@ void process(TAG *end) {
       p(c);
     } else { // <tag...>
       TAG tag= {0};
+      _pc(-1); // flush word
 
       // parse tag
       c= parse(f, "> \n\r", tag);
@@ -278,15 +330,15 @@ void process(TAG *end) {
         if (_curx>_indent) p(HNL);
         p(HS);p(HS);
       }
-      if (strstr(" h1 ", tag)) p(HNL);
+      //if (strstr(" h1 ", tag)) p(HNL);
       if (strstr(" li dt ", tag)) { p(SNL); indent(); printf(" ● "); inx(); inx(); inx(); }
 
       // these require action after
       HI(" h1 ", white, black);
       HI(" h2 ", black, green);
       HI(" h3 ", black, yellow);
-      HI(" h4 ", black, cyan);
-      HI(" h5 h6 ", white, blue);
+      HI(" h4 ", black, blue);
+      HI(" h5 h6 ", black, cyan);
 
       HI(" b strong ", red, none);
       HI(" i em ", magnenta, none);
@@ -295,6 +347,7 @@ void process(TAG *end) {
 
       HI(FM, yellow, black);
       HI(CD, green, black);
+      HI(TT, black, rgb(3,3,3));
 
       HI(" a ", blue, none);
 
