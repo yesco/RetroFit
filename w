@@ -38,5 +38,7 @@ URL=http://www.columbia.edu/~fdc/sample.html
 
 # possibly pipe to "less -R" for ansi
 
-echo "total lines    : `cat w.c |wc`"
-echo "pure code lines: `grep -iPv '^\s*//' w.c | grep -v '^$' | wc`"
+echo
+echo "---"
+echo "(w.c: total lines    : `cat w.c |wc`)"
+echo "(w.c: pure code lines: `grep -iPv '^\s*//' w.c | grep -v '^\s*$' | wc`)"

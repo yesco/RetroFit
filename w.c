@@ -74,7 +74,7 @@ void B(int n) { bg(n); }
 #define SKIP " script head "
 
 // template for getting HTML
-#define W "wget -O - %s 2>/dev/null"
+#define WGET "wget -O - \"%s\" 2>/dev/null"
 
 // https://html.spec.whatwg.org/entities.json
 // (reworked using entities.js and hand-edit)
@@ -124,6 +124,7 @@ void cls() {
 }
 
 void nl();
+void indent();
 
 void inx() {
   _curx++; _nl= 0;
@@ -136,10 +137,10 @@ char word[WORDLEN+1] = {0};
 int _overflow= 0;
 
 void _pc(int c) {
-  //printf("[%c]", c);
+  // TODO: break on '&' this doesn't work:
+  //if (strlen(word) && (c<=' ' || c==';' || c=='\n' || c=='\r' || c=='\t' || c=='&')) {
   if (c<=' ' || c==';' || c=='\n' || c=='\r' || c=='\t') { // output word
-//    if (word[0]) printf("{%s}", word);
-
+    // output word
     // html entity?
     char* e_result= NULL;
     if (word[0]=='&') {
@@ -150,9 +151,9 @@ void _pc(int c) {
       printf("%s", e_result);
       //if (c!=';') putchar(c);
     } else {
+      // no entity, just output word
       printf("%s", word);
       if (c>=0) putchar(c);
-      //printf("{%c}", c);
     }
     memset(word, 0, sizeof(word));
     _overflow= 0;
@@ -162,6 +163,7 @@ void _pc(int c) {
       putchar('-');
       nl();
     }
+    indent();
     putchar(c); inx();
   } else {
     int l= strlen(word);
@@ -171,7 +173,7 @@ void _pc(int c) {
       for(int i=0; i<strlen(word); i++)
         putchar(word[i]);
 
-      putchar(c); //inx();
+      putchar(c); inx();
       memset(word, 0, sizeof(word));
       return;
     }
@@ -179,11 +181,13 @@ void _pc(int c) {
     // word too long for this line?
     if (_curx+rmargin+1 >= cols) {
       nl();
-      _curx += strlen(word);
+      indent(); // this affects <li> second line indent
+      _curx+= strlen(word);
     }
-    // TODO: this isn't correct
-    // complex: an be followed by ';' or NOT!
+
     // html entity?
+    //   TODO: this isn't correct
+    //   complex: &amp followed by ';' or NOT!
     if (0 && word[0]=='&') {
       char* e= decode_entity(word);
       printf(" { %s } ", e);
@@ -199,7 +203,7 @@ void nl() {
 
 void indent() {
   while(_curx < _indent*2) {
-    _pc(' ');
+    putchar(' '); inx();
     _curx++;
   }
   _ws= 1;
@@ -398,7 +402,8 @@ void process(TAG *end) {
       HI(" h5 h6 ", black, cyan);
 
       HI(" b strong ", red, none);
-      HI(" i em ", magnenta, none);
+      //HI(" i em ", magnenta, none);
+      HI(" i em ", none, none);
 
       HI(HL, magnenta, none);
 
@@ -460,8 +465,8 @@ int main(int argc, char**argv) {
   C(black); B(white);
 
   // get HTML
-  char* wget= calloc(strlen(url) + strlen(W) + 1, 0);
-  sprintf(wget, W, url);
+  char* wget= calloc(strlen(url) + strlen(WGET) + 1, 0);
+  sprintf(wget, WGET, url);
   f= fopen(url, "r");
   if (!f) // && strstr(url, "http")==url)
     f= popen(wget, "r");
