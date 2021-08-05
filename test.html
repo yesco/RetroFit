@@ -1,9 +1,11 @@
 <h1>Minimialist Browser</h1>
 
 <p>
-This is a test of the <i>minimalist</i> <tt>./w</tt> web-brower written in C. It is a meagure of <b>345</b> pure C-code lines (comments and empty lines not counted).
+This is a test of the <i>minimalist</i> <tt>./w</tt> web-brower written in C. It is a meagure of <b>367 C-code lines</b> (comments and empty lines not counted).
+</p>
 
-In the morning of August 4th, 2021, in the morning: it was a total 370 lines. <b>pre/code</b> added 10 lines, <b>word-wrap</b> 40, misc formatting improvements &mdash; 10 lines. I added 36 for handling <b>HTML entities</b>. Now, I didn't want to count pure comment lines &amp; nor empty lines; so changed my counting script; Adding <b>numbered entities</b>: Hex and deciaml; there are <b>345 lines</b> of <i>C</i>;
+<p>
+In the morning of August 4th, 2021, in the morning: it was a total 370 lines. <b>pre/code</b> added 10 lines, <b>word-wrap</b> 40, misc formatting improvements &mdash; 10 lines. I added 36 for handling <b>HTML entities</b>. Now, I didn't want to count pure comment lines &amp; nor empty lines; so changed my counting script; Adding <b>numbered entities</b>: Hex and deciaml; there are <b>345 lines</b> of <i>C</i>; Adding parsing of <b>attributes</b> added a whole lot: 70 lines. But then I did a general cleanup of most code, and got it down to 30ish lines!
 </p>
 
 <P>As you saw above; it supports <b>named entities</b> (caveat inline without surrounded by space, see bug below). Did you know that the list of HTML entties is <b>2234</b> elements long! &amp; <tt> &amp; amp;</tt> &lt; <tt> &amp; lt;</tt>  &gt; <tt>&amp; gt;</tt> are just few examples.</p>
@@ -69,6 +71,7 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 
 <h2>Terminal bugs:</h2>
 <ul>
+<li>When resizing in Termux, background losses color at en dof line.</li>
 <li>A test with <i>italic when ending with a 'd' like 3d=ddd</i> you can't see the last 'd' fully. Possible fix: if it's a space after, "move" the space inside the end-italics tag. Not easy the way we parse...</li>
 </ul>
 

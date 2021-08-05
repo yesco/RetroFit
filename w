@@ -34,14 +34,15 @@ URL=test.html
 
 # run it!
 
-./w.x "${1:-$URL}"
+./w.x "${1:-$URL}" || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
 
 # possibly pipe to "less -R" for ansi
 
 echo
-echo "---"
-echo "(w.c: total lines    : `cat w.c |wc`)"
-echo "(w.c: pure code lines: `grep -iPv '^\s*//' w.c | grep -v '^\s*$' | grep -vP 'TRACE\(' | wc`)"
+echo
+echo "___________________________________"
+echo "(w.c - total: `cat w.c |wc`)"
+echo "(w.c -  code: `grep -iPv '^\s*//' w.c | grep -v '^\s*$' | grep -vP 'TRACE\(' | wc`)"
 echo
 echo "usage: ./w            (loads test.html)"
 echo "       ./w FILE.NAME  (tries file first)"

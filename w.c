@@ -111,7 +111,7 @@ void B(int n) { bg(n); }
 #define FM " form input textarea select option optgroup button label fieldset legend "
 #define SKIP " script head "
 #define TATTR " img a base iframe frame "
-#define ATTR " href src alt aria-label title aria-hidden name id type value size "
+#define ATTR " href src alt aria-label title aria-hidden name id type value size accesskey "
 
 // template for getting HTML
 #define WGET "wget -O - \"%s\" 2>/dev/null"
@@ -120,9 +120,6 @@ void B(int n) { bg(n); }
 typedef char TAG[32];
 
 // - HTML Name Entities
-/// https://html.spec.whatwg.org/entities.json
-// (reworked using entities.js and hand-edit))
-// one long string repated (&name;? UU?)*\& = about 27KB
 #include "entities.h"
 
 // decodes a HTML Named Entity to UTF-8
@@ -130,7 +127,7 @@ typedef char TAG[32];
 //   - &amp;    - HTML named Entity
 //   - &#4711;  - decimal numbered char
 //   - &#xff21; - fullwidth 'A'
-// Returns unicode string 1-2 bytes, or NULL
+// Return unicode string 1-2 bytes, or NULL
 // the string is static, so use it fast!
 char* decode_entity(char* name) {
   TAG fnd= {0};
@@ -165,17 +162,11 @@ char* decode_entity(char* name) {
   } while ('&' != *m); // until '&...';
   TRACE("{$s}", result);
   return result;
-
-// TODO: maybe hardcode the common ones?
-// &nbsp;&gt;&lt;&quot;&.squo;&dquo;&lsaquo;&rsaquo;&ndash;&mdash;&circ;&tilde;&permil;&amp;&eur;&em;&emm;&raquo;&copy;
 }
 
 // screen state
 int _pre= 0, _ws= 0, _nl= 0, _tb= 0, _skip= 0, _indent= lmargin;
 int _curx= 0, _cury= 0, _fullwidth= 0;
-
-//printf("\e[44;3m");
-// B: blue italics!
 
 void cls() {
   printf("\e[H[2J[3J");
@@ -186,12 +177,13 @@ void cls() {
 void nl();
 void indent();
 
+// track visible chars printed
 void inx() {
   _curx++; _nl= 0;
   if (!_pre && _curx+rmargin == cols) nl();
 }
 
-// internal putchar that buffers words/&#4711; and does wordwrap
+// _pc buffers word, and word-wrap+ENTITIES
 #define WORDLEN 10
 char word[WORDLEN+1] = {0};
 int _overflow= 0;
@@ -199,8 +191,9 @@ int _overflow= 0;
 void _pc(int c) {
   // TODO: break on '&' this doesn't work:
   //if (strlen(word) && (c<=' ' || c==';' || c=='\n' || c=='\r' || c=='\t' || c=='&')) {
-  if (c<=' ' || c==';' || c=='\n' || c=='\r' || c=='\t') { // output word
-    // output word
+
+  // output word (if at break char)
+  if (c<=' ' || c==';' || isspace(c)) {
     // html entity?
     char* e_result= NULL;
     if (word[0]=='&') {
@@ -218,6 +211,7 @@ void _pc(int c) {
     memset(word, 0, sizeof(word));
     _overflow= 0;
     //_ws= (c==' '||c=='\t'); // TODO: doesn't matter!
+
   } else if (_overflow) {
     if (_curx+rmargin+1 >= cols) {
       putchar('-');
@@ -225,7 +219,8 @@ void _pc(int c) {
     }
     indent();
     putchar(c); inx();
-  } else {
+
+  } else { // add char to word
     int l= strlen(word);
     if (l>=WORDLEN) {
       _overflow= 1;
@@ -238,6 +233,7 @@ void _pc(int c) {
       return;
     }
     word[l]= c;
+
     // word too long for this line?
     if (_curx+rmargin+1 >= cols) {
       nl();
@@ -256,7 +252,6 @@ void _pc(int c) {
 }
 
 void nl() {
-  //printf("\\N");
   printf("\e[K\n"); // workaround bug!
   _cury++; _curx= 0; _ws= 1; _nl= 1;
 }
@@ -271,96 +266,100 @@ void indent() {
 void p(int c) {
   if (_skip) return;
 
-  // TODO: handle &...;
+  // preformatted
   if (_pre) {
     _pc(c); inx();
     if (c=='\n') _curx= 0;
     return;
   }
 
-  // hard chars
-  if (c < 0) {
-
+  // soft+hard chars
+  if (c<0) {
+    // soft char
     if (c==SNL) {
-      if (_nl) return;
-      if (_curx < _indent*2) {
-        indent();
-      } else {
-        nl();
-      }
-      return;
+      if (!_nl) nl();
     } else {
+      // hard chars
       c= -c;
-    }
-    
-    if (c=='\n') {
-      //printf("\\n");
-      nl();
-    } else {
-      _pc(c); _ws= 0; inx();
+      if (c=='\n') {
+        nl();
+      } else {
+        _pc(c); _ws= 0; inx();
+      }
     }
     return;
   }
 
-  // TODO: handle hard \N \T
-  int tb= (c=='\t');
+  // collapse whitespace
+  int tb= (c=='\t'); // TODO: table?
   int ws= (c==' '||tb||c=='\n'||c=='\r');
-
   if (ws) {
     if (!_curx) return;
     if (!_ws || _pre) {
       _pc(' '); inx();
       if (_fullwidth) { _pc(' '); inx(); }
     }
-    _ws= 1; if(_tb) _tb= tb;
-  } else {
-    indent();
-    if (_fullwidth && c < 128) {
-      // https://en.m.wikipedia.org/wiki/UTF-8
-      // modify unicode:
-      // ef  bc "10 xx xxxx" == "!"
-      char fw[4]; strcpy(fw, "！");
-      int cc= (int)fw[2] + c - 33;
-      fw[2]= (cc & 63) + 128;
-      if (cc >= 128+64) fw[1]++;
-      printf("%s", fw); inx(); inx();
-    } else {
-      _pc(c); inx();
-    }
-    _ws= 0; _tb= 0;
+    _ws= 1; if (_tb) _tb= tb;
+    return;
   }
+
+  // visible chars
+  indent();
+  if (_fullwidth && c < 128) {
+    putwchar(0xff01 + c-33);
+  } else {
+    _pc(c); inx();
+  }
+  _ws= 0; _tb= 0;
 }
 
+// steps one char in input stream
+// == true if "have next" (not EOF)
+// c is set to character read
+#define STEP ((c= fgetc(f)) != EOF)
+
+// parse chars till one of ENDCHARS
+// S: if not NULL, lowercase char, append
+// Returns non-matching char
 int parse(FILE* f, char* endchars, char* s) {
   int c; char* origs= s;
   if (s) *s++ = ' ';
-  int l= 1;
-  while (((c= fgetc(f)) != EOF)
-    && (!strchr(endchars, c))) {
+  while (STEP && (!strchr(endchars, c))) {
     if (s) {
       *s++= tolower(c);
+      // TODO: error here for google.com
       if (s-origs > sizeof(TAG)) {
+        printf("\n\n%%%%TAG==%s<<<\n", origs);
         exit(7);
       }
     }
   }
-  if (s) *s++ = ' ';
-  if (s) *s= 0;
+  if (s) { *s++ = ' '; *s= 0; }
   return c<0? 0: c;
 }
 
 void process(TAG *end);
 
-int level= 0;
+// Use HI macro! (passes in tag)
 
+#define HI(tags, fg, bg) hi(&tag, tags, fg, bg)
+
+// hilight TAG if it's part of TAGS
+// using FG color and BG color, and other
+// formatting.
+
+// After the matching </TAG> is reached:
+// restore colors and undo formatting.
 void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
-  if (tag && !strstr(tags, *tag)) return;
+  static int level= 0;
+  if (!tag || !*tag || !strstr(tags, *tag)) return;
 
   level++;
   TRACE("--->%d %s %d %d\n", level, tag?*tag:NULL, fg, bg);
 
   // save colors
   int sfg= _fg, sbg= _bg, spre= _pre, sskip= _skip; {
+    // - START highlight
     if (fg != none) _fg= fg;
     if (bg != none) _bg= bg;
     if (strstr(PR, tag)) _pre= 1;
@@ -372,7 +371,6 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     // italics
     if (strstr(" i em ", tag)) { printf("\e[3m"); C(_fg); };
     // fullwidth
-    if (strstr(" h1 ", tag)) _fullwidth++;
     if (strstr(HD, tag)) _fullwidth++;
 
     // content
@@ -381,16 +379,14 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (strstr(HD, tag)) p(HS);
     if (strstr(TT, tag)) p(HS);
     
-    TAG end = {0};
-    if (tag && *tag) {
-      end[0]= ' ';
-      end[1]= '/';
-      strcpy(end+2, *tag+1);
-    }
+    // find end tag (recurse)
+    TAG end = {' ', '/'};
+    strcpy(end+2, *tag+1);
     process(end);
+
     // end content
 
-    // - cleanups
+    // - END highlight
     if (strstr(" ul ol ", tag)) { p(SNL); _indent-= 2; }
     if (strstr(" li ", tag)) _indent-= 3;
     if (strstr(TT, tag)) p(HS);
@@ -399,25 +395,16 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     // off italics
     if (strstr(" i em ", tag)) printf("\e[23m");
     // off fullwidth
-    if (strstr(" h1 ", tag)) _fullwidth--;
     if (strstr(HD, tag)) _fullwidth--;
 
+    // restore saved state
   } _pre= spre; _skip= sskip;
   if (strstr(NL, tag)) p(SNL);
   C(sfg); B(sbg); 
 
-
   level--;
   TRACE("<--%d %s\n", level, tag?*tag:NULL);
 }
-
-#define HI(tags, fg, bg) hi(&tag, tags, fg, bg)
-
-
-// steps one char in input stream
-// == true if "have next" (not EOF)
-// c is set to character read
-#define STEP ((c= fgetc(f)) != EOF)
 
 FILE* f;
 
@@ -430,14 +417,17 @@ int skipspace() {
 void storeAttr(TAG tag, TAG attr, dstr* val) {
   //printf("\n---%s.%s=\"%s\"  y=%d x=%d", tag, attr, val->s, _cury, _curx);
   // TODO: get end _cury, _curx, len/chars
+  free(val);
 }
 
 void process(TAG *end) {
   int c;
   while (STEP) {
-    if (c!='<') {
+
+    if (c!='<') { // content
       p(c);
-    } else { // <tag...>
+
+    } else { // '<' tag start
       TAG tag= {0};
       _pc(-1); // flush word
 
@@ -447,13 +437,13 @@ void process(TAG *end) {
 
       // comment
       if (strstr(" !-- ", tag)) {
+        // shift 3 characters
         char com[4] = "1234";
         while (STEP) {
           strcpy(&com[0], &com[1]);
-          com[2]= c;
+          com[2]= c; // add at end
           if (!strcmp("-->", com)) break;
         }
-        if (c==EOF) return;
         continue;
       }
       
@@ -476,22 +466,19 @@ void process(TAG *end) {
               dstr *v = NULL;
               if (q=='"' || q=='\'') {
                 // id='foo' id="foo"
-                while (STEP && c!=q) {
+                while (STEP && c!=q)
                   v = dstrncat(v, &c, 1);
-                }
                 ungetc(' ', f);
               } else {
                 // id=foo
-                while (STEP && c!=' '  && c!='>') {
+                while (STEP && !isspace(c) && c!='>')
                   v = dstrncat(v, &c, 1);
-                }
               }
 
               storeAttr(tag, attr, v);
             }
           }
         }
-        if (c==EOF) return;
       }
       if (c!='>') c= parse(f, ">", NULL);
 
@@ -535,22 +522,15 @@ int main(int argc, char**argv) {
   char* url= argv[1];
   TRACE("URL=%s\n", url);
 
-  C(white); B(black);
   cls();
 
   C(white); B(black);
-  //printf("./ω");
-  //printf("ᎳᎳᎳ");
-  //printf("🅆");
-  //printf("./w");
-  printf("🌍");
-  putchar(' ');
-  B(8);  // gray() ??? TODO
+  printf("🌍 ");
+  B(8); // gray() ??? TODO
   //printf("🏠");
   putchar(' ');
 
-  //printf("\e[4m"); // underlined
-
+  // simplify url shown
   char uu[strlen(url)+1];
   char* u= &uu;
   strcpy(u, url);
@@ -566,15 +546,7 @@ int main(int argc, char**argv) {
   } 
   if (u[strlen(u)-1]=='/')
     u[strlen(u)-1]=0;
-  
-  // 📂 📖 ⚠ ℯ 😱 🔓
-  // ⌂ 🏠 🏡
   printf("%s", u); nl();
-  //printf("\e[9m"); // crossed out
-  //nl();
-  //printf("\e[29m"); // crossed end
-
-  C(black); B(white);
 
   // get HTML
   char* wget= calloc(strlen(url) + strlen(WGET) + 1, 0);
@@ -582,16 +554,18 @@ int main(int argc, char**argv) {
   f= fopen(url, "r");
   if (!f) // && strstr(url, "http")==url)
     f= popen(wget, "r");
-  if (!f) return 404; // TODO:
+  if (!f) return 404; // TODO: better error
 
-  C(_fg); B(_bg);
+  // render HTML
+  C(black); B(white);
+  //C(_fg); B(_bg);
 
   TAG dummy= {0};
   process(&dummy);
 
-  pclose(f);
+  p(HNL);
+  C(white); B(black); p(HNL); p(HNL);
 
-  C(white); B(black);
-  p(HNL); p(HNL); 
+  pclose(f);
   return 0;
 }
