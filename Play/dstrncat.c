@@ -34,7 +34,7 @@ int main(void) {
   while (!d || strlen(d->s) < 1024) {
     // add whole string (strcat)
     d= dstrncat(d, "foo", -1);
-    // add n chars from string
+    // add n chars from string (strncat)
     d= dstrncat(d, "barfie", 3);
     char spc= ' ';
     // add 1 char!
