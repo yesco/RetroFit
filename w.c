@@ -15,7 +15,8 @@ int trace= 0;
 #define TRACE(exprs...) if (trace) printf(exprs);
 
 // general formatting
-int rmargin= 1; // 1 or more (no 0)
+const int rmargin= 1; // 1 or more (no 0)
+const int lmargin= 2;
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -170,7 +171,8 @@ char* decode_entity(char* name) {
 }
 
 // screen state
-int _pre= 0, _ws= 0, _nl= 0, _tb= 0, _skip= 0, _indent= 0, _curx= 0, _cury= 0, _fullwidth= 0;
+int _pre= 0, _ws= 0, _nl= 0, _tb= 0, _skip= 0, _indent= lmargin;
+int _curx= 0, _cury= 0, _fullwidth= 0;
 
 //printf("\e[44;3m");
 // B: blue italics!
@@ -499,7 +501,7 @@ void process(TAG *end) {
       if (strstr(NL, tag)) p(SNL);
       if (strstr(" p ", tag)) {
         if (_curx>_indent) p(HNL);
-        p(HS);p(HS);
+        indent(); p(HS);p(HS);
       }
       if (strstr(" li dt ", tag)) { p(SNL); indent(); printf(" ● "); inx(); inx(); inx(); }
 
