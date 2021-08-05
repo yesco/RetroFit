@@ -41,7 +41,7 @@ URL=test.html
 echo
 echo "---"
 echo "(w.c: total lines    : `cat w.c |wc`)"
-echo "(w.c: pure code lines: `grep -iPv '^\s*//' w.c | grep -v '^\s*$' | wc`)"
+echo "(w.c: pure code lines: `grep -iPv '^\s*//' w.c | grep -v '^\s*$' | grep -vP 'TRACE\(' | wc`)"
 echo
 echo "usage: ./w            (loads test.html)"
 echo "       ./w FILE.NAME  (tries file first)"

@@ -12,6 +12,8 @@
 // various debug output
 int trace= 0;
 
+#define TRACE(exprs...) if (trace) printf(exprs);
+
 // general formatting
 int rmargin= 1; // 1 or more (no 0)
 
@@ -35,7 +37,33 @@ void getsize() {
   ioctl(0, TIOCGWINSZ, &w);
   rows = w.ws_row;
   cols = w.ws_col;
-  if (trace) printf("\t\trows=%d cols=%d\n", rows, cols);
+  TRACE(printf("\t\trows=%d cols=%d\n", rows, cols));
+}
+
+// Dynamic STRings (see Play/dstrncat.c)
+#define DSTR_STEP 64
+
+typedef struct dstr {
+  int max;
+  char s[0];
+} dstr;
+
+// Usage: d= dstrncat(d, "foo", -1);
+//   d, add: can be NULL (both->alloc N)
+//   n: -1) strlen(add), or copy N chars
+// 
+// Returns: d or newly allocated dstr
+dstr* dstrncat(dstr* d, char* add, int n) {
+  int len= d ? strlen(d->s) : 0, max= d ? d->max : 0;
+  n= (n<0 && d)? strlen(add) : n;
+  if (!d || len+n+1>max) {
+    max= ((max+n)/DSTR_STEP + 1)*DSTR_STEP;
+    d= realloc(d, sizeof(dstr)+max);
+    d->s[len]= 0; // if new allocated
+  }
+  d->max= max;
+  if (add) strncat(d->s, add, n);
+  return d;
 }
 
 // ansi
@@ -56,9 +84,9 @@ void fg(int c) { printf("\e[38;"); _color(c); _fg= c; }
 void bg(int c) { printf("\e[48;"); _color(c); _bg= c; }
 
 int bold(int c /* 0-7 */) { return c+8; }
-int rgb(int r,g,b /* 0-5 */) { return 0x10+ 36*r + 6*g + b; }
+int rgb(int r, int g, int b /* 0-5 */) { return 0x10+ 36*r + 6*g + b; }
 int gray(int c /* 0-7 */) { return 0xe8+  c; }
-int RGB(int r,g,b /* 0-255 */) { return -(r*256+g)*256+b; }
+int RGB(int r, int g, int b /* 0-255 */) { return -(r*256+g)*256+b; }
 
 // adjusted colors
 void C(int n) { fg(n + 8*(n!=0 && n<8)); }
@@ -69,7 +97,8 @@ void B(int n) { bg(n); }
 #define HNL -10
 #define SNL -11
 
-// grouping of tags according to formatting
+// groups of different formatted tag
+// test member ship using strstr or HI
 #define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dl dt dd table tr noscript address "
 #define HD " h1 h2 h3 h4 h5 h6 "
 #define TB " td /td th /th "
@@ -80,26 +109,30 @@ void B(int n) { bg(n); }
 #define TT " bdo kbd dfn samp var tt "
 #define FM " form input textarea select option optgroup button label fieldset legend "
 #define SKIP " script head "
+#define TATTR " img a base iframe frame "
+#define ATTR " href src alt aria-label title aria-hidden name id type value size "
 
 // template for getting HTML
 #define WGET "wget -O - \"%s\" 2>/dev/null"
 
-// https://html.spec.whatwg.org/entities.json
-// (reworked using entities.js and hand-edit)
+// generally used for parse() of symbols
+typedef char TAG[32];
 
-// one long string repated (&name;? UU?)*\&
-// the file is 27K
-// - I think we can just do strstr, LOL!
+// - HTML Name Entities
+/// https://html.spec.whatwg.org/entities.json
+// (reworked using entities.js and hand-edit))
+// one long string repated (&name;? UU?)*\& = about 27KB
 #include "entities.h"
 
-// name must be "&name;" ';' is optional :-(
-// returns unicode string 1-2 bytes, or NULL
+// decodes a HTML Named Entity to UTF-8
+// name must be "&ID" (';' is optional)
+//   - &amp;    - HTML named Entity
+//   - &#4711;  - decimal numbered char
+//   - &#xff21; - fullwidth 'A'
+// Returns unicode string 1-2 bytes, or NULL
 // the string is static, so use it fast!
-// - &amp;    - HTML named Entity
-// - &#4711;  - decimal numbered char
-// - &#xff21; - fullwidth 'A'
 char* decode_entity(char* name) {
-  char fnd[32]= {0};
+  TAG fnd= {0};
   strcpy(fnd, name);
 
   // return pointer to fixed static string
@@ -117,7 +150,7 @@ char* decode_entity(char* name) {
 
   // search for '&name; '
   fnd[strlen(fnd)]= ' ';
-  if (trace) printf("[>> \"%s\" <<]", fnd);
+  TRACE("[>> \"%s\" <<]", fnd);
 
   char* m= strcasestr(ENTITIES, fnd);
   if (!m) return NULL;
@@ -129,7 +162,7 @@ char* decode_entity(char* name) {
   do {
     *p++ = *m++;
   } while ('&' != *m); // until '&...';
-  if (trace) printf("{$s}", result);
+  TRACE("{$s}", result);
   return result;
 
 // TODO: maybe hardcode the common ones?
@@ -296,8 +329,6 @@ void p(int c) {
   }
 }
 
-typedef char TAG[32];
-
 int parse(FILE* f, char* endchars, char* s) {
   int c; char* origs= s;
   if (s) *s++ = ' ';
@@ -324,8 +355,7 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
   if (tag && !strstr(tags, *tag)) return;
 
   level++;
-  if (trace)
-    printf("--->%d %s %d %d\n", level, tag?*tag:NULL, fg, bg);
+  TRACE("--->%d %s %d %d\n", level, tag?*tag:NULL, fg, bg);
 
   // save colors
   int sfg= _fg, sbg= _bg, spre= _pre, sskip= _skip; {
@@ -376,17 +406,33 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
 
 
   level--;
-  if (trace)
-    printf("<--%d %s\n", level, tag?*tag:NULL);
+  TRACE("<--%d %s\n", level, tag?*tag:NULL);
 }
 
 #define HI(tags, fg, bg) hi(&tag, tags, fg, bg)
 
+
+// steps one char in input stream
+// == true if "have next" (not EOF)
+// c is set to character read
+#define STEP ((c= fgetc(f)) != EOF)
+
 FILE* f;
+
+int skipspace() {
+  int c;
+  while (STEP && isspace(c));
+  return c;
+}
+
+void storeAttr(TAG tag, TAG attr, dstr* val) {
+  //printf("\n---%s.%s=\"%s\"  y=%d x=%d", tag, attr, val->s, _cury, _curx);
+  // TODO: get end _cury, _curx, len/chars
+}
 
 void process(TAG *end) {
   int c;
-  while ((c= fgetc(f)) != EOF) {
+  while (STEP) {
     if (c!='<') {
       p(c);
     } else { // <tag...>
@@ -395,19 +441,57 @@ void process(TAG *end) {
 
       // parse tag
       c= parse(f, "> \n\r", tag);
-      if (0 ||trace) printf("\n---%s\n", tag);
+      TRACE("\n---%s\n", tag);
+
+      // comment
       if (strstr(" !-- ", tag)) {
         char com[4] = "1234";
-        while ((c= fgetc(f)) != EOF) {
+        while (STEP) {
           strcpy(&com[0], &com[1]);
           com[2]= c;
           if (!strcmp("-->", com)) break;
         }
         if (c==EOF) return;
         continue;
-      } else if (c!='>') {
-        parse(f, ">", NULL);
       }
+      
+      // process attributes till '>'
+      // TODO:move out to function
+      if (c!='>') {
+        // <TAG attr>
+        if (strstr(TATTR, tag)) {
+          while (STEP) {
+            ungetc(skipspace(f), f); //hmm
+            // read attribute
+            TAG attr= {0};
+            c= parse(f, "= >\"\'", attr);
+            if (c=='>' ||c==EOF) break;
+            // do we want it?
+            if (strstr, ATTR, attr) {
+              int q= skipspace(f);
+              // TODO: move out?
+              // merge w parse?
+              dstr *v = NULL;
+              if (q=='"' || q=='\'') {
+                // id='foo' id="foo"
+                while (STEP && c!=q) {
+                  v = dstrncat(v, &c, 1);
+                }
+                ungetc(' ', f);
+              } else {
+                // id=foo
+                while (STEP && c!=' '  && c!='>') {
+                  v = dstrncat(v, &c, 1);
+                }
+              }
+
+              storeAttr(tag, attr, v);
+            }
+          }
+        }
+        if (c==EOF) return;
+      }
+      if (c!='>') c= parse(f, ">", NULL);
 
       // check if </endTAG>
       if (strstr(*end, tag)) return;
@@ -417,7 +501,6 @@ void process(TAG *end) {
         if (_curx>_indent) p(HNL);
         p(HS);p(HS);
       }
-      //if (strstr(" h1 ", tag)) p(HNL);
       if (strstr(" li dt ", tag)) { p(SNL); indent(); printf(" ● "); inx(); inx(); inx(); }
 
       // these require action after
@@ -448,7 +531,7 @@ void process(TAG *end) {
 
 int main(int argc, char**argv) {
   char* url= argv[1];
-  if (trace) printf("URL=%s\n", url);
+  TRACE("URL=%s\n", url);
 
   C(white); B(black);
   cls();
