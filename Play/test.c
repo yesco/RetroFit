@@ -17,9 +17,6 @@ dlist* dlistadd(dlist* d, ulong hash, void* data) {
 }
 
 int main() {
-  char* foo="foo";
-  char* bar="bar";
-
   dlist* d= NULL;
   d= dlistadd(d, 42, "foo");
   d= dlistadd(d, 37, "bar");
