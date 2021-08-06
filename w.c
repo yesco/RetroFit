@@ -166,7 +166,7 @@ char* decode_entity(char* name) {
 
 // screen state
 int _pre= 0, _ws= 0, _nl= 0, _tb= 0, _skip= 0, _indent= lmargin;
-int _curx= 0, _cury= 0, _fullwidth= 0;
+int _curx= 0, _cury= 0, _fullwidth= 0, _capture= 0;
 
 void cls() {
   printf("\e[H[2J[3J");
@@ -263,7 +263,13 @@ void indent() {
   _ws= 1;
 }
 
+dstr* content = NULL;
+
 void p(int c) {
+  if (_capture) {
+    char b= c;
+    content= dstrncat(content, &b, 1);
+  }
   if (_skip) return;
 
   // preformatted
@@ -338,6 +344,8 @@ int parse(FILE* f, char* endchars, char* s) {
   return c<0? 0: c;
 }
 
+void addContent();
+
 void process(TAG *end);
 
 // Use HI macro! (passes in tag)
@@ -367,7 +375,10 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (strstr(" ul ol ", tag)) _indent+= 2;
     if (strstr(" li ", tag)) _indent+= 3;
     // underline links!
-    if (strstr(" a ", tag)) { printf("\e[4m"); C(_fg); }
+    if (strstr(" a ", tag)) {
+      printf("\e[4m"); C(_fg);
+      _capture++;
+    }
     // italics
     if (strstr(" i em ", tag)) { printf("\e[3m"); C(_fg); };
     // fullwidth
@@ -391,13 +402,16 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (strstr(" li ", tag)) _indent-= 3;
     if (strstr(TT, tag)) p(HS);
     // off underline links!
-    if (strstr(" a ", tag)) printf("\e[24m");
+    if (strstr(" a ", tag)) {
+      printf("\e[24m");
+      if (!--_capture) addContent();
+    }
     // off italics
     if (strstr(" i em ", tag)) printf("\e[23m");
     // off fullwidth
     if (strstr(HD, tag)) _fullwidth--;
 
-    // restore saved state
+    // restore saved state (colors/pre/skip)
   } _pre= spre; _skip= sskip;
   if (strstr(NL, tag)) p(SNL);
   C(sfg); B(sbg); 
@@ -415,9 +429,15 @@ int skipspace() {
 }
 
 void storeAttr(TAG tag, TAG attr, dstr* val) {
-  //printf("\n---%s.%s=\"%s\"  y=%d x=%d", tag, attr, val->s, _cury, _curx);
+  printf("\n---%s.%s=\"%s\"  y=%d x=%d", tag, attr, val->s, _cury, _curx);
   // TODO: get end _cury, _curx, len/chars
   free(val);
+}
+
+void addContent() {
+  printf("\n---content: \"%s\"", content->s);
+  free(content);
+  content= NULL;
 }
 
 void process(TAG *end) {
