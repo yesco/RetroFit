@@ -18,7 +18,7 @@ dstr* dstrncat(dstr* d, char* add, int n) {
   int len= d ? strlen(d->s) : 0, max= d ? d->max : 0;
   n= (n<0 && d)? strlen(add) : n;
   if (!d || len+n+1>max) {
-    max= ((max+n)/DSTR_STEP + 1)*DSTR_STEP;
+    max= ((max+n+1)/DSTR_STEP + 1)*DSTR_STEP;
     d= realloc(d, sizeof(dstr)+max);
     d->s[len]= 0; // if new allocated
   }
@@ -27,6 +27,8 @@ dstr* dstrncat(dstr* d, char* add, int n) {
   return d;
 }
 
+#ifndef MAIN
+#define MAIN __FILE__
 int main(void) {
   dstr* d= NULL;
   // preallocate (add to max)
@@ -44,6 +46,7 @@ int main(void) {
   printf("\"%s\"\n", d->s);
   free(d);
 }
+#endif
 
 // poste in FB: Minimalistic Computing
 // - https://m.facebook.com/groups/441341066956027/permalink/510852976671502
