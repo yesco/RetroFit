@@ -42,7 +42,7 @@ echo
 echo
 echo "___________________________________"
 echo "(w.c - total: `cat w.c |wc`)"
-echo "(w.c -  code: `grep -iPv '^\s*//' w.c | grep -v '^\s*$' | grep -vP 'TRACE\(' | wc`)"
+echo "(w.c -  code: `./wcode w.c`"
 echo
 echo "usage: ./w            (loads test.html)"
 echo "       ./w FILE.NAME  (tries file first)"

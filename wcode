@@ -1,0 +1,5 @@
+# count code lines
+# - no full comment lines
+# - no empty lines
+# - no 'TRACE(' lines
+grep -iPv '^\s*//' $* | grep -iPv '^\s*#' | grep -v '^\s*$' | grep -vP 'TRACE\(' | wc

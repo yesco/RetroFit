@@ -10,7 +10,7 @@
 //
 
 // various debug output
-int trace= 0;
+int trace= 0, trace_content= 0;
 
 #define TRACE(exprs...) if (trace) printf(exprs);
 
@@ -110,6 +110,7 @@ void B(int n) { bg(n); }
 #define TT " bdo kbd dfn samp var tt "
 #define FM " form input textarea select option optgroup button label fieldset legend "
 #define SKIP " script head "
+#define TCONT " a th td "
 #define TATTR " img a base iframe frame "
 #define ATTR " href src alt aria-label title aria-hidden name id type value size accesskey "
 
@@ -263,6 +264,7 @@ void indent() {
   _ws= 1;
 }
 
+// TODO: need a stack? <a> inside <td>?
 dstr* content = NULL;
 
 void p(int c) {
@@ -428,15 +430,46 @@ int skipspace() {
   return c;
 }
 
-void storeAttr(TAG tag, TAG attr, dstr* val) {
-  printf("\n---%s.%s=\"%s\"  y=%d x=%d", tag, attr, val->s, _cury, _curx);
-  // TODO: get end _cury, _curx, len/chars
+// capture deatails of an entity rendering
+typedef struct pos{
+  int x, y;
+} pos;
+
+typedef struct entity {
+  TAG tag;
+  //dhash* attr;
+  dstr* content;
+
+  pos start, end;
+} entity;
+
+entity* lastentity= NULL;
+
+void newTag(TAG tag) {
+  entity* e= calloc(sizeof(link), 0);
+  memcpy(e->tag, tag, sizeof(tag));
+
+  lastentity= e; // TODO: add to list/stack?
+}
+
+void addAttr(TAG attr, dstr* val) {
+  entity* e= lastentity;
+  //else if (strstr(" href src ")) e->url= val;
   free(val);
 }
 
 void addContent() {
-  printf("\n---content: \"%s\"", content->s);
-  free(content);
+  if (trace_content) {
+    printf("\n---%s y=%d x=%d", lastentity->tag, _cury, _curx);
+    printf("\n---content: \"%s\" y=%d, x=%d", content->s, _cury, _curx);
+  }
+
+  if (lastentity) {
+    lastentity->content= content;
+    lastentity->end= (pos){_cury, _curx};
+  } else {
+    free(content);
+  }
   content= NULL;
 }
 
@@ -472,6 +505,7 @@ void process(TAG *end) {
       if (c!='>') {
         // <TAG attr>
         if (strstr(TATTR, tag)) {
+          newTag(tag);
           while (STEP) {
             ungetc(skipspace(f), f); //hmm
             // read attribute
@@ -494,18 +528,24 @@ void process(TAG *end) {
                 while (STEP && !isspace(c) && c!='>')
                   v = dstrncat(v, &c, 1);
               }
-
-              storeAttr(tag, attr, v);
+              addAttr(attr, v);
             }
           }
         }
       }
       if (c!='>') c= parse(f, ">", NULL);
 
+      // pre action for tags (and </tag>)
+      // TODO: tab is reverse? ugly!
+      if (strstr(" /th /td  ", tag)) { /*p(-'\t'); */ p(HS); p('|'); p(HS); }
+      if (strstr(" /tr ", tag)) p(SNL);
+
       // check if </endTAG>
       if (strstr(*end, tag)) return;
 
+      // pre action for some tags
       if (strstr(NL, tag)) p(SNL);
+      if (strstr(" tr ", tag)) { p('|'); p(' '); }
       if (strstr(" p ", tag)) {
         if (_curx>_indent) p(HNL);
         indent(); p(HS);p(HS);
