@@ -1,12 +1,17 @@
-# count code lines
-# - no full comment lines
+# count code lines:
+# - no full comment lines '//' '#'
 # - no empty lines
+# - no single '{' or'}
 # - no 'TRACE(' lines
+# - nothing after the string  'ENDWCOUNT'
+
 ls -1 $* | xargs -I% sh -c "
 cat % | \
 sed '/ENDWCOUNT/q' | \
 grep -iPv '^\s*//' | \
 grep -iPv '^\s*#' | \
+grep -iPv '^\s*}\s*$' | \
+grep -iPv '^\s*{\s*$' | \
 grep -v '^\s*$' | \
 grep -vP 'TRACE\(' | \
 wc"
