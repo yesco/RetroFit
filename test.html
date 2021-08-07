@@ -69,10 +69,11 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 <p>Blah blahbalhbal albhablab ablahblabhalbla blabhalbahbla bahbl ablhaba</p>
 <h1>Current Bugs</h1>
 
-<h2>Terminal bugs:</h2>
+<h2>Terminal issues:</h2>
 <ul>
 <li>When resizing in Termux, background losses color at en dof line.</li>
 <li>A test with <i>italic when ending with a 'd' like 3d=ddd</i> you can't see the last 'd' fully. Possible fix: if it's a space after, "move" the space inside the end-italics tag. Not easy the way we parse...</li>
+<li>Text background/underline wraps with nl, it's "correct" but ugly</li>
 </ul>
 
 <h2>TODO:</h2>

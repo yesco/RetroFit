@@ -311,6 +311,7 @@ void p(int c) {
     return;
   }
 
+  if (_fullwidth) _pc(-1);
   // collapse whitespace
   int tb= (c=='\t'); // TODO: table?
   int ws= (c==' '||tb||c=='\n'||c=='\r');
@@ -326,12 +327,17 @@ void p(int c) {
 
   // visible chars
   indent();
-  if (_fullwidth && c < 128) {
-    putwchar(0xff01 + c-33);
+  if (_fullwidth) {
+    // cheat, no word-wrap, print now!
+    if (c<128) {
+      putwchar(0xff01 + c-33); inx();
+    } else {
+      putchar(c);
+    }
   } else {
-    _pc(c); inx();
+    _pc(c);
   }
-  _ws= 0; _tb= 0;
+  inx(); _ws= 0; _tb= 0;
 }
 
 // steps one char in input stream
@@ -381,7 +387,7 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
   TRACE("--->%d %s %d %d\n", level, tag?*tag:NULL, fg, bg);
 
   // save colors
-  int sfg= _fg, sbg= _bg, spre= _pre, sskip= _skip; {
+  int sfg= _fg, sbg= _bg, spre= _pre, sskip= _skip, sindent=_indent; {
     // - START highlight
     if (fg != none) _fg= fg;
     if (bg != none) _bg= bg;
@@ -413,8 +419,6 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     // end content
 
     // - ENDing highlight/formatting
-    if (strstr(" ul ol ", tag)) { p(SNL); _indent-= 2; }
-    if (strstr(" li ", tag)) _indent-= 3;
     if (strstr(TT, tag)) p(HS);
     // off underline links!
     if (strstr(" a ", tag)) {
@@ -427,7 +431,7 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (strstr(HD, tag)) _fullwidth--;
 
     // restore saved state (colors/pre/skip)
-  } _pre= spre; _skip= sskip;
+  } _pre= spre; _skip= sskip; _indent= sindent;
   if (strstr(NL, tag)) p(SNL);
   C(sfg); B(sbg); 
 
@@ -561,6 +565,7 @@ void process(TAG *end) {
       if (strstr(XNL, tag)) p(HNL);
 
       // table hacks
+      // TODO: at TD TH set indent to _curx, reset at <tr></table> to saved before <table> can HI() store _indent?
       // TODO: inside td/th handle \n differently
       // <COLGROUP align="center">
       // <COLGROUP align="left">
@@ -593,7 +598,7 @@ void process(TAG *end) {
       HI(PR, green, black);
       HI(TT, black, rgb(3,3,3));
 
-      HI(" a ", blue, none);
+      HI(" a ", 27, none);
 
       HI(" ul ol li ", none, none);
       HI(SKIP, none, none);
