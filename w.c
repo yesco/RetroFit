@@ -128,6 +128,9 @@ void B(int n) { bg(n); }
 #define ATTR " href src alt aria-label title aria-hidden name id type value size accesskey align valign span "
 
 // -- template for getting HTML
+// TODO: use "tee" to save to cache
+// - https://www.gnu.org/software/coreutils/manual/html_node/tee-invocation.html#tee-invocation
+// TODO: read headers from wget/curl and show loading status
 #define WGET "wget -O - \"%s\" 2>/dev/null"
 
 // generally used for parse() of symbols
