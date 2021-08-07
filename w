@@ -34,17 +34,24 @@ URL=test.html
 
 # run it!
 
-./w.x "${1:-$URL}" || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
+clear
+
+./w.x "${1:-$URL}" | less -r || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
 
 # possibly pipe to "less -R" for ansi
+# actually it seems "less -r" works better, except for the clear
 
-echo
-echo
-echo "___________________________________"
-echo "(w.c - total: `cat w.c |wc`)"
-echo "(w.c -  code: `./wcode w.c`"
-echo
-echo "usage: ./w            (loads test.html)"
-echo "       ./w FILE.NAME  (tries file first)"
-echo "       ./w URL        (if no file, wget)"
-echo "       ./w yesco.org  (my homepage)"
+# print to STDERR
+(echo \
+;echo \
+;echo "___________________________________" \
+;echo "(w.c - total: `cat w.c |wc`)" \
+;echo "(w.c -  code: `./wcode w.c`" \
+;echo \
+;echo "usage: ./w            (loads test.html)" \
+;echo "       ./w FILE.NAME  (tries file first)" \
+;echo "       ./w URL        (if no file, wget)" \
+;echo "       ./w yesco.org  (my homepage)" \
+) 1>&2
+
+

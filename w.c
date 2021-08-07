@@ -179,7 +179,7 @@ char* decode_entity(char* name) {
 }
 
 // screen state
-int _pre= 0, _ws= 0, _nl= 0, _tb= 0, _skip= 0, _indent= lmargin;
+int _pre= 0, _ws= 1, _nl= 1, _tb= 0, _skip= 0, _indent= lmargin;
 int _curx= 0, _cury= 0, _fullwidth= 0, _capture= 0;
 
 void cls() {
@@ -267,6 +267,7 @@ void _pc(int c) {
 
 void nl() {
   printf("\e[K\n"); // workaround bug!
+  B(_bg); C(_fg); // fix "less -r" scroll up
   _cury++; _curx= 0; _ws= 1; _nl= 1;
 }
 
@@ -617,7 +618,8 @@ int main(int argc, char**argv) {
   char* url= argv[1];
   TRACE("URL=%s\n", url);
 
-  cls();
+  //cls();
+  getsize();
 
   C(white); B(black);
   printf("🌍 ");
@@ -653,7 +655,6 @@ int main(int argc, char**argv) {
 
   // render HTML
   C(black); B(white);
-  //C(_fg); B(_bg);
 
   TAG dummy= {0};
   process(&dummy);
