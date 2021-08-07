@@ -104,7 +104,7 @@ void B(int n) { bg(n); }
 #define SKIP " script head "
 
 #define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dl dt dd table tr noscript address tbody "
-#define XNL " hr tbody "
+#define XNL " /ul /ol hr tbody "
 #define HD " h1 h2 h3 h4 h5 h6 "
 //#define CENTER " center caption " // TODO
 
@@ -393,8 +393,9 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (bg != none) _bg= bg;
     if (strstr(PR, tag)) _pre= 1;
     if (strstr(SKIP, tag)) _skip= 1;
+
     if (strstr(" ul ol ", tag)) _indent+= 2;
-    if (strstr(" li ", tag)) _indent+= 3;
+
     // underline links!
     if (strstr(" a ", tag)) {
       underline(); C(_fg);
@@ -557,12 +558,13 @@ void process(TAG *end) {
 //      if (strstr(" /th /td  ", tag)) { /*p(-'\t'); */ p(' '); p('|'); p(' '); }
 //      if (strstr(" /tr ", tag)) p(SNL);
 
+      if (strstr(XNL, tag)) p(HNL);
+
       // check if </endTAG>
       if (strstr(*end, tag)) return;
 
       // pre action for some tags
       if (strstr(NL, tag)) p(SNL);
-      if (strstr(XNL, tag)) p(HNL);
 
       // table hacks
       // TODO: at TD TH set indent to _curx, reset at <tr></table> to saved before <table> can HI() store _indent?
@@ -579,7 +581,12 @@ void process(TAG *end) {
         if (_curx>_indent) p(HNL);
         indent(); p(HS);p(HS);
       }
-      if (strstr(" li dt ", tag)) { p(SNL); indent(); printf(" ● "); inx(); inx(); inx(); }
+      // TODO: dt
+      if (strstr(" li dt ", tag)) {
+        p(SNL);
+        _indent-= 3; indent(); _indent+= 3;
+        printf(" ● "); inx(); inx(); inx();
+      }
 
       // these require action after
       HI(" h1 ", white, black);
@@ -600,7 +607,7 @@ void process(TAG *end) {
 
       HI(" a ", 27, none);
 
-      HI(" ul ol li ", none, none);
+      HI(" ul ol ", none, none);
       HI(SKIP, none, none);
     }
   }
