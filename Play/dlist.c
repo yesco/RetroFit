@@ -4,6 +4,24 @@
 // (>) CC-BY 2021 Jonas S Karlsson
 //         jsk@yesco.org
 
+// This is a linked-list, with a twist.
+// It basically, allows you to store a
+//
+//   map: key->value
+// or
+//   map: num->value
+//
+// If you only have a numeric key value
+// you get an additional char* pointer to use.
+//
+// If you only have a string key value
+// you get an additonal integer to use.
+//
+// However, if you store hashed key in
+// a linked list, you can cache the pseudo-hash
+// together with the key. For searching this
+// works like a faster discriminator.
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -18,18 +36,19 @@ typedef struct list {
 
 // Usage:
 //   list* d= NULL;
-//   d = ladd(d, item);
-list* ladd(list* d, char* key, lint num, void* data) {
-  return memcpy(malloc(sizeof(*d)), &(list){ d, key, num, data}, sizeof(*d));
+//   ladd(&d, "a", 42, "FOO");
+//   ladd(&d, NULL, 42, "foo");
+//   ladd(&d, "b", 0, "foo");
+void ladd(list** dp, char* key, lint num, void* data) {
+  *dp= memcpy(malloc(sizeof(list)), &(list){ *dp, key, num, data}, sizeof(list));
 }
 
 // Usage:
 //   char* bar=  "BAR";
-//   list* d=  ladd(NULL, "foo", 42, bar);
-
-//   list* f=  lfindkey(d, "foo");
-//   list* f=  lfindnum(d, 42);
-//   list* f=  lfindata(d, bar);
+//   list* r=  lfindkey(d, "foo");
+//   list* r=  lfindnum(d, 42);
+//   list* r=  lfindata(d, bar);
+//   list* r=  lfindhash(d, "foo", 42);
 list* lfindkey(list* d, char* key) {
   for(; d &&(!d->key || strcmp(d->key, key)); d= d->next) ;
   return d;
@@ -45,23 +64,33 @@ list* lfinddata(list* d, void* data) {
   return d;
 }
 
-// Usage:
-//   d = lrem(d, item);
-//   d = lrem(d, lfind(item)); // LOL
-// That is: it'll delete node POINTING to item,
-// or a NODE passed in. NULLs are ignored.
-list* lrem(list* d, void* p) {
-  if (!d || !p) return d;
-  list* n= d->next;
-  if (d==p || d->data==p) {
-    free(d);
-    return n;
-  }
-  // TODO: get rid of recursion?
-  d->next= lrem(d->next, p);
+list* lfindhash(list* d, char* key, lint num) {
+  for(; d && d->num!=num && strcmp(d->key, key); d= d->next) ;
   return d;
 }
 
+// A found result can be removed
+// Usage:
+//   // free key + data if on heap
+//   free(r->key); free(r->data);
+//   lrem(&d, r);
+//   free(r);
+list* lrem(list** dp, list* r) {
+  if (!dp || !*dp || !r) return NULL;
+  list* n= *dp;
+  while (n && n!=r)
+    n= *(dp=&n->next);
+
+  if (n) {
+    // unlink
+    printf("[--unlink %s--]\n", n->key);
+    *dp = n->next;
+    n->next= NULL;
+  }
+  return n;
+}
+
+void* FREE(r) { if (r) free(r); return NULL; }
 char* lstring(list* d) { return d?d->data:"(NULL)"; }
 void* ldata(list* d, void* v) { return d?d->data:v; }
 
@@ -79,11 +108,11 @@ int main(void) {
   list* d= NULL;
   char* mystring="MINE";
 
-  d= ladd(d, "a", 42, "foo");
-
-  d= ladd(d, "b", 42, "FOO");
-  d= ladd(d, "c", 37, "bar");
-  d= ladd(d, "q", 0, mystring);
+  ladd(&d, "a", 42, "foo");
+  
+  ladd(&d, "b", 42, "FOO");
+  ladd(&d, "c", 37, "bar");
+  ladd(&d, "q", 0, mystring);
   
   lpr(d);
 
@@ -102,15 +131,15 @@ int main(void) {
   printf("3. %s - not have\n", lstring(r));
 
   // remove it
-  d= lrem(d, lfindnum(d, 42));
+  lrem(&d, lfindnum(d, 42));
 
   // safe to try to remove non-existing
-  d= lrem(d, lfindnum(d, 4711));
+  lrem(&d, lfindnum(d, 4711));
 
   // find 42 ("foo")
   r= lfindnum(d, 42);
   printf("4. %s - 42: foo\n", lstring(r));
-  d= lrem(d, r);
+  lrem(&d, r);
 
   // find nothing
   r= lfindnum(d, 42);
@@ -119,7 +148,9 @@ int main(void) {
   // find mystring ("mystring")
   r= lfinddata(d, mystring);
   printf("6. %s - 42: mystring\n", (char*)ldata(r, "not"));
-  d= lrem(d, r);
+  lrem(&d, r);
+
+  //lrem(&d, lfindkey(d, "c"));
 
   printf("\n--- only 37: bar - remains\n");
   lpr(d);
