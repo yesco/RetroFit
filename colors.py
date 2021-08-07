@@ -14,6 +14,7 @@ import sys
 
 import sys
 for i in range(0, 32):
+    sys.stdout.write(u"\u001b[48;2;255;255;255m"); # white bg
     for j in range(0, 8):
         code = str(i * 8 + j)
         sys.stdout.write(u"\u001b[38;5;" + code + "m " + code.ljust(4))

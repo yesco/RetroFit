@@ -88,6 +88,8 @@ int bold(int c /* 0-7 */) { return c+8; }
 int rgb(int r, int g, int b /* 0-5 */) { return 0x10+ 36*r + 6*g + b; }
 int gray(int c /* 0-7 */) { return 0xe8+  c; }
 int RGB(int r, int g, int b /* 0-255 */) { return -(r*256+g)*256+b; }
+void underline() { printf("\e[4m"); }
+void end_underline() { printf("\e[24m"); }
 
 // adjusted colors
 void C(int n) { fg(n + 8*(n!=0 && n<8)); }
@@ -98,23 +100,34 @@ void B(int n) { bg(n); }
 #define HNL -10
 #define SNL -11
 
-// groups of different formatted tag
-// test member ship using strstr or HI
-#define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dl dt dd table tr noscript address "
-#define HD " h1 h2 h3 h4 h5 h6 "
-#define TB " td /td th /th "
-#define TT " /td /th "
-#define HL " u s q cite ins del caption noscript abbr acronym "
-#define PR " pre code "
-#define CD " pre code "
-#define TT " bdo kbd dfn samp var tt "
-#define FM " form input textarea select option optgroup button label fieldset legend "
+// -- groups of tags according to format
 #define SKIP " script head "
-#define TCONT " a th td "
-#define TATTR " img a base iframe frame "
-#define ATTR " href src alt aria-label title aria-hidden name id type value size accesskey "
 
-// template for getting HTML
+#define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dl dt dd table tr noscript address tbody "
+#define XNL " hr tbody "
+#define HD " h1 h2 h3 h4 h5 h6 "
+//#define CENTER " center caption " // TODO
+
+#define BD " b strong "
+#define IT " i em caption "
+
+#define HL " u s q cite ins del noscript abbr acronym "
+
+#define PR " pre code "
+#define TT " bdo kbd dfn samp var tt "
+
+// thead tfoot tbody /tbody-optional!
+// td/th: rowspan colspan
+
+#define FM " form input textarea select option optgroup button label fieldset legend "
+
+// attribute captures
+#define TCONT " a th td "
+#define TATTR " img a base iframe frame colgroup "
+
+#define ATTR " href src alt aria-label title aria-hidden name id type value size accesskey align valign span "
+
+// -- template for getting HTML
 #define WGET "wget -O - \"%s\" 2>/dev/null"
 
 // generally used for parse() of symbols
@@ -378,11 +391,11 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (strstr(" li ", tag)) _indent+= 3;
     // underline links!
     if (strstr(" a ", tag)) {
-      printf("\e[4m"); C(_fg);
+      underline(); C(_fg);
       _capture++;
     }
     // italics
-    if (strstr(" i em ", tag)) { printf("\e[3m"); C(_fg); };
+    if (strstr(IT, tag)) { printf("\e[3m"); C(_fg); };
     // fullwidth
     if (strstr(HD, tag)) _fullwidth++;
 
@@ -399,17 +412,17 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
 
     // end content
 
-    // - END highlight
+    // - ENDing highlight/formatting
     if (strstr(" ul ol ", tag)) { p(SNL); _indent-= 2; }
     if (strstr(" li ", tag)) _indent-= 3;
     if (strstr(TT, tag)) p(HS);
     // off underline links!
     if (strstr(" a ", tag)) {
-      printf("\e[24m");
+      end_underline();
       if (!--_capture) addContent();
     }
     // off italics
-    if (strstr(" i em ", tag)) printf("\e[23m");
+    if (strstr(IT, tag)) printf("\e[23m");
     // off fullwidth
     if (strstr(HD, tag)) _fullwidth--;
 
@@ -536,16 +549,27 @@ void process(TAG *end) {
       if (c!='>') c= parse(f, ">", NULL);
 
       // pre action for tags (and </tag>)
-      // TODO: tab is reverse? ugly!
-      if (strstr(" /th /td  ", tag)) { /*p(-'\t'); */ p(HS); p('|'); p(HS); }
-      if (strstr(" /tr ", tag)) p(SNL);
+      // TODO: /th /td /tr tags are optional.. :-(
+//      if (strstr(" /th /td  ", tag)) { /*p(-'\t'); */ p(' '); p('|'); p(' '); }
+//      if (strstr(" /tr ", tag)) p(SNL);
 
       // check if </endTAG>
       if (strstr(*end, tag)) return;
 
       // pre action for some tags
       if (strstr(NL, tag)) p(SNL);
-      if (strstr(" tr ", tag)) { p('|'); p(' '); }
+      if (strstr(XNL, tag)) p(HNL);
+
+      // table hacks
+      // TODO: inside td/th handle \n differently
+      // <COLGROUP align="center">
+      // <COLGROUP align="left">
+      // <COLGROUP align="center" span="2">
+      // <COLGROUP align="center" span="3">
+      if (strstr(" th ", tag)) underline();
+      if (strstr(" td tr /table ", tag)) end_underline();
+      if (strstr(" td th ", tag)) if (!_nl) { p('|'); p(' '); }
+
       if (strstr(" p ", tag)) {
         if (_curx>_indent) p(HNL);
         indent(); p(HS);p(HS);
@@ -560,14 +584,13 @@ void process(TAG *end) {
       HI(" h5 ", black, cyan);
       HI(" h6 ", black, white);
 
-      HI(" b strong ", red, none);
-      //HI(" i em ", magnenta, none);
-      HI(" i em ", none, none);
+      HI(BD, red, none);
+      HI(IT, none, none);
 
       HI(HL, magnenta, none);
 
       HI(FM, yellow, black);
-      HI(CD, green, black);
+      HI(PR, green, black);
       HI(TT, black, rgb(3,3,3));
 
       HI(" a ", blue, none);

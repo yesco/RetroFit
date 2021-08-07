@@ -69,3 +69,4 @@ font ℍ
 
 U+FF00–FFEF fullwidth
 
+⅏ - biblical editorial symbol looks like dddd/www
