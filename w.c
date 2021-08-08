@@ -186,7 +186,7 @@ char* decode_entity(char* name) {
 
 // screen state
 int _pre= 0, _ws= 1, _nl= 1, _tb= 0, _skip= 0, _indent= lmargin;
-int _curx= 0, _cury= 0, _fullwidth= 0, _capture= 0;
+int _curx= 0, _cury= 0, _fullwidth= 0, _capture= 0, _table= 0;
 
 void cls() {
   printf("\e[H[2J[3J");
@@ -285,13 +285,116 @@ void indent() {
 }
 
 // TODO: need a stack? <a> inside <td>?
+typedef struct tcol {
+  int i, span;
+  char* s;
+  int w, h, len; // in chars
+  char align; // l(eft) r(ight) c(enter) '.' for decimal
+  char* tag; // TODO: remove
+} tcol;
+
 dstr* content = NULL;
+dstr *table = NULL;
+int tdn= 0, tdi= 1, ty=0, tx=0, tp= 0;
+
+#define TD_MAX 1000
+tcol tds[TD_MAX] = {0};
+int incell= 0;
+
+void handle_trd(int isRow, int isEndTag, TAG tag) {
+  assert(tdn < TD_MAX);
+
+  // end
+  if (incell) {
+    // store previous cells info
+    // TODO: should set indent=0 ???
+    tcol* t= &tds[tdn++];
+    t->i= tdi;
+    t->span= 1;
+    t->s= strdup(table->s+tp);
+    t->len= (_cury-ty)*cols + _curx-tx;
+    t->w= strlen(t->s); // < as \n
+    t->h= _cury-ty;;
+    t->tag= strdup(tag);
+    //B(green); printf("[%s]", t->tag); B(white);
+
+    tdi++;
+    incell= 0;
+  }
+
+  if (strstr(" td th ", tag)) incell= 1;
+
+  //C(blue); printf("[%s]", tag); C(black);
+
+  // ok, now we're ready for new element
+  ty= _cury; tx= _curx;
+  tp= strlen(table->s);
+
+  if (isRow) {
+    // insert a zero elemetn for each new line
+    memset(&tds[tdn++], 0, sizeof(tcol));
+    tdi= 1;
+  }
+}
+
+void renderTable() {
+  C(green); B(black);
+  printf("\n----------TABLE----------\n");
+  //printf("%s\n<<<---STRING\n", table->s);
+#define MAX_COLS 11
+  int w[MAX_COLS]= {0}, h[MAX_COLS]= {0};
+  int sum_w[MAX_COLS]= {0}, sum_h[MAX_COLS]= {0};
+  int rows= 0;
+  for(int i=0; i<tdn; i++) {
+    tcol* t= &tds[i];
+
+    if (!t->i) rows++;
+ 
+    { int a= w[t->i], b= t->w;
+      sum_w[t->i]+= b;
+      w[t->i] = a > b ? a: b;
+    }
+ 
+    { int a= h[t->i], b= t->h;
+      sum_h[t->i]+= b;
+      h[t->i] = a > b ? a: b;
+    }
+ 
+    printf("===%2d: i=%1d span=%1d h=%2d w=%2d l=%3d '%s' ... tag=%s\n",
+           i, t->i, t->span, t->h, t->w, t->len,t->s?t->s:"(NULL)", t->tag);
+  }
+  printf("\nROWS=%d\n", rows);
+  printf("\niiii::::: ");
+  for(int i= 0; i<MAX_COLS; i++) printf("%3d ", i);
+  printf("\nWIDTH::: ");
+  for(int i= 0; i<MAX_COLS; i++) printf("%3d ", w[i]);
+  printf("\n   AVG:: ");
+  for(int i= 0; i<MAX_COLS; i++) printf("%3d ",  (sum_w[i]+rows/2)/rows);
+  printf("\n  A.ZIG: "); int width= 0;
+  for(int i= 0; i<MAX_COLS; i++) printf("%3d ",  width+=(sum_w[i]+rows/2)/rows);
+
+  printf("\n\nHEIGHT:: ");
+  for(int i= 0; i<MAX_COLS; i++) printf("%3d ", h[i]);
+  printf("\n   AVG:: ");
+  for(int i= 0; i<MAX_COLS; i++) printf("%3d ", (sum_h[i]+rows/2)/rows);
+  printf("\n---END\n", table->s);
+  C(black); B(white);
+
+  // clear
+  free(table); table= NULL;
+
+  tdn= 0, tdi= 1, ty=0, tx=0, tp= 0;
+  incell= 0;
+  memset(tds, 0, sizeof(tds));
+}
 
 void p(int c) {
-  if (_capture) {
-    char b= c;
+  char b= c;
+  if (_table)
+    table= dstrncat(table, &b, 1);
+  if (_capture)
     content= dstrncat(content, &b, 1);
-  }
+
   if (_skip) return;
 
   // preformatted
@@ -408,6 +511,10 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
       underline(); C(_fg);
       _capture++;
     }
+    if (strstr(" table ", tag)) {
+      table= dstrncat(NULL, NULL, 1024);
+      _table++;
+    }
     // italics
     if (strstr(IT, tag)) { printf("\e[3m"); C(_fg); };
     // fullwidth
@@ -432,6 +539,9 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (strstr(" a ", tag)) {
       end_underline();
       if (!--_capture) addContent();
+    }
+    if (strstr(" table ", tag)) {
+      if (!--_table) renderTable();
     }
     // off italics
     if (strstr(IT, tag)) printf("\e[23m");
@@ -497,15 +607,6 @@ void addContent() {
   }
   content= NULL;
 }
-
-typedef struct tcol {
-  dstr* s;
-  int w, h; // in chars
-  char align; // l(eft) r(ight) c(enter) '.' for decimal
-} tcol;
-
-#define TABLE_MAX 100
-tcol table[TABLE_MAX] = {0};
 
 void process(TAG *end) {
   int c;
@@ -588,6 +689,12 @@ void process(TAG *end) {
 //      if (strstr(" /tr ", tag)) p(SNL);
 
       if (strstr(XNL, tag)) p(HNL);
+      if (strstr(" td th tr /td /th /tr /table ", tag)) {
+        //if (strstr(" td th tr /table ", tag)) {
+        end_underline();
+        //printf("\n[===%s===]\n", tag);
+        handle_trd(strstr(" tr ", tag), strchr(tag, '/'), tag);
+      }
 
       // check if </endTAG>
       if (strstr(*end, tag)) return;
@@ -603,7 +710,6 @@ void process(TAG *end) {
       // <COLGROUP align="center" span="2">
       // <COLGROUP align="center" span="3">
       if (strstr(" th ", tag)) underline();
-      if (strstr(" td tr /table ", tag)) end_underline();
       if (strstr(" td th ", tag)) if (!_nl) { p('|'); p(' '); }
 
       if (strstr(" p ", tag)) {
@@ -645,6 +751,10 @@ void process(TAG *end) {
 }
 
 int main(int argc, char**argv) {
+  if (argc<2 || !strlen(argv[1])) {
+    fprintf(stderr, "Usage:\n  ./w URL\n");
+    return 0;
+  }
   char* url= argv[1];
   TRACE("URL=%s\n", url);
 

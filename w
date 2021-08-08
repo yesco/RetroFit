@@ -32,14 +32,16 @@ URL=http://www.columbia.edu/~fdc/sample.html
 URL=http://yesco.org/
 URL=test.html
 
+GO="${1:-$URL}"
+
 # run it!
 
 clear
 
-./w.x "${1:-$URL}" | less -r || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
+(./w.x "$GO" > stdout 2>stderr && less -r -f stdout) || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
 
-# possibly pipe to "less -R" for ansi
-# actually it seems "less -r" works better, except for the clear
+echo
+cat stderr 1>&2
 
 # print to STDERR
 (printf "

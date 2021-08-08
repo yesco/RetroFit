@@ -65,3 +65,9 @@ Test files:
 - [ ] bookmarks?
 - [ ] cookies?
 - [ ] news (check bookmarks, sort, order)
+
+# Graphics
+- Look into caca-library (https://github.com/cacalabs/libcaca)
+
+
+
