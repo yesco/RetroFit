@@ -1,8 +1,9 @@
-# count code lines:
+# count code lines (LOC):
 # - no full comment lines '//' '#'
 # - no empty lines
-# - no single '{' or'}
+# - no single '{' or '}'
 # - no 'TRACE(' lines
+# - no 'else'-only lines
 # - nothing after the string  'ENDWCOUNT'
 
 ls -1 $* | xargs -I% sh -c "
@@ -14,7 +15,9 @@ grep -iPv '^\s*}\s*$' | \
 grep -iPv '^\s*{\s*$' | \
 grep -v '^\s*$' | \
 grep -vP 'TRACE\(' | \
+grep -vinP '^\s*}?\s*else\s*{?\s*(//.*)?$' | \
 wc"
+
 
 
 

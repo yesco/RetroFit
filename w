@@ -42,16 +42,23 @@ clear
 # actually it seems "less -r" works better, except for the clear
 
 # print to STDERR
-(echo \
-;echo \
-;echo "___________________________________" \
-;echo "(w.c - total: `cat w.c |wc`)" \
-;echo "(w.c -  code: `./wcode w.c`" \
-;echo \
-;echo "usage: ./w            (loads test.html)" \
-;echo "       ./w FILE.NAME  (tries file first)" \
-;echo "       ./w URL        (if no file, wget)" \
-;echo "       ./w yesco.org  (my homepage)" \
+(printf "
+      __            minimal 
+     / /_      __         webbrowser 
+    / /\ \ /\ / /   (>) CC-BY 2021    
+ _ / /  \ V  V /    Jonas S Karlsson    
+(_)_/    \_/\_/     jsk@yesco.org
+
+- https://github.com/yesco/RetroFit -
+
+w.c - total: `cat w.c |wc`
+w.c -   LOC: `./wcode w.c`
+
+usage: ./w            (loads test.html)
+       ./w FILE.NAME  (tries file first)
+       ./w URL        (if no file, wget)
+       ./w yesco.org  (my homepage)
+"
 ) 1>&2
 
 
