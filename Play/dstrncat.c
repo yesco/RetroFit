@@ -16,7 +16,7 @@ typedef struct dstr {
 // Returns: d or newly allocated dstr
 dstr* dstrncat(dstr* d, char* add, int n) {
   int len= d ? strlen(d->s) : 0, max= d ? d->max : 0;
-  n= (n<0 && d)? strlen(add) : n;
+  n= (n<0 && add)? strlen(add) : n;
   if (!d || len+n+1>max) {
     max= ((max+n+1)/DSTR_STEP + 1)*DSTR_STEP;
     d= realloc(d, sizeof(dstr)+max);

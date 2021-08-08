@@ -56,7 +56,7 @@ typedef struct dstr {
 // Returns: d or newly allocated dstr
 dstr* dstrncat(dstr* d, char* add, int n) {
   int len= d ? strlen(d->s) : 0, max= d ? d->max : 0;
-  n= (n<0 && d)? strlen(add) : n;
+  n= (n<0 && add)? strlen(add) : n;
   if (!d || len+n+1>max) {
     max= ((max+n)/DSTR_STEP + 1)*DSTR_STEP;
     d= realloc(d, sizeof(dstr)+max);
@@ -66,6 +66,9 @@ dstr* dstrncat(dstr* d, char* add, int n) {
   if (add) strncat(d->s, add, n);
   return d;
 }
+
+// w3c colors
+// - https://www.w3.org/wiki/CSS/Properties/color/keywords
 
 // ansi
 enum color{black, red, green, yellow, blue, magnenta, cyan, white, none};
@@ -495,6 +498,15 @@ void addContent() {
   content= NULL;
 }
 
+typedef struct tcol {
+  dstr* s;
+  int w, h; // in chars
+  char align; // l(eft) r(ight) c(enter) '.' for decimal
+} tcol;
+
+#define TABLE_MAX 100
+tcol table[TABLE_MAX] = {0};
+
 void process(TAG *end) {
   int c;
   while (STEP) {
@@ -528,6 +540,19 @@ void process(TAG *end) {
         // <TAG attr>
         if (strstr(TATTR, tag)) {
           newTag(tag);
+          // TODO: CSS cheat: match nay
+          // - color:\s*\S+[ ;}]
+          // - background(-color)?:\s*\S+[ ;}]
+          // - width/height/max-height/min-height
+          // - linebreak/hypens/overflow/clip/white-space/word-break/word-spacing/word-wrap
+          // - left/right/top/bottom
+          // - text-align/align-content
+          // - clear/break-before/break-after
+          // - float
+          // - display/visibility/
+          // - font-size/font-weight/text-decoration/text-shadow/
+          // - text-indent/text-justify/text-overflow
+          // - table-layout
           while (STEP) {
             ungetc(skipspace(f), f); //hmm
             // read attribute
@@ -611,8 +636,10 @@ void process(TAG *end) {
 
       HI(" a ", 27, none);
 
+      // formatting only
       HI(" ul ol ", none, none);
       HI(SKIP, none, none);
+      HI(" table ", none, none);
     }
   }
 }
