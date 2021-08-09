@@ -1,3 +1,9 @@
+// table.c part of w.c minimal webbrowser
+// (>) CC-BY 2021 Jonas S Karlsson
+
+// Status:
+//   - being worked on, exploratory
+//   - bad hack!
 ////////////////////////////////////////
 ////////////////////////////////////////
 ////////////////////////////////////////
@@ -5,6 +11,11 @@
 //          is just a hack for now, bad
 //          explorative hack!
 // TODO: need a stack? <a> inside <td>?
+
+// REFERENCES:
+// W3C suggested layout (not used here)
+// - https://www.w3.org/TR/1998/REC-html40-19980424/appendix/notes.html#h-B.5.2.2
+
 typedef struct tcol {
   int i, span;
   bool head;
