@@ -78,8 +78,47 @@ dstr* dstrncat(dstr* d, char* add, int n) {
   return d;
 }
 
+// generally used for parse() of symbols
+typedef char TAG[32];
+
 // w3c colors
 // - https://www.w3.org/wiki/CSS/Properties/color/keywords
+#include "colors.h"
+
+// #112233 aabbcc #abc abc rgb(170, 33, 33)
+int parse_color(TAG fnd, int dflt) {
+  // parse numeric formats in fnd
+  int32_t r=0, g=0, b=0, c=0;
+  assert(sizeof(int)==4);
+  if (sscanf(fnd, " rgb ( %i , %i , %i )", &r, &g, &b)) return -((256*r+g)*256+b);
+  if (sscanf(fnd, "%x", &c) || sscanf(fnd, "#%x", &c)) {
+    if (strlen(fnd)<6 && c<16*16*16) {
+      b= c & 0xf; g= (c>>=4) & 0xf, r= (c>>4);
+      return -((256*(16*r+r) + (16*g+g))*256 + (16*b+b));
+    } else {
+      return -c;
+    }
+  }
+  return dflt;
+}
+
+// pink gray lightgreen cyan ...
+// RGB (256^3) or rgb (0-255) color for C()/B()
+int decode_color(char* name, int dflt) {
+  int32_t c= parse_color(name, -1);
+  if (c!=-1) return c;
+  
+  // search for ' name#'
+  TAG fnd;
+  snprintf(fnd, sizeof(fnd), " %s#", name);
+
+  // if answer put in fnd
+  char* m= strcasestr(COLORS, fnd);
+  if (!m) return dflt;
+
+  // skip ' name#'
+  return parse_color(m+strlen(name)+2, dflt);
+}
 
 // ansi
 enum color{black, red, green, yellow, blue, magnenta, cyan, white, none};
@@ -124,6 +163,7 @@ void B(int n) { bg(n); }
 
 #define BD " b strong "
 #define IT " i em caption "
+// TODO: #define UL " u a "
 
 #define HL " u s q cite ins del noscript abbr acronym "
 
@@ -136,19 +176,15 @@ void B(int n) { bg(n); }
 #define FM " form input textarea select option optgroup button label fieldset legend "
 
 // attribute captures
-#define TCONT " a th td "
-#define TATTR " img a base iframe frame colgroup "
+#define TATTR " a body table th td tr font img a base iframe frame colgroup span div p "
 
-#define ATTR " href src alt aria-label title aria-hidden name id type value size accesskey align valign span "
+#define ATTR " href src alt aria-label title aria-hidden name id type value size accesskey align valign colspan rowspan span color bgcolor "
 
 // -- template for getting HTML
 // TODO: use "tee" to save to cache
 // - https://www.gnu.org/software/coreutils/manual/html_node/tee-invocation.html#tee-invocation
 // TODO: read headers from wget/curl and show loading status
 #define WGET "wget -O - \"%s\" 2>/dev/null"
-
-// generally used for parse() of symbols
-typedef char TAG[32];
 
 // - HTML Name Entities
 #include "entities.h"
@@ -162,7 +198,7 @@ typedef char TAG[32];
 // the string is static, so use it fast!
 char* decode_entity(char* name) {
   TAG fnd= {0};
-  strcpy(fnd, name);
+  strncpy(fnd, name, sizeof(fnd));
 
   // return pointer to fixed static string
   static char result[2*4*2];
@@ -302,6 +338,8 @@ void indent() {
 //          is just a hack for now, bad
 //          explorative hack!
 #include "table.c"
+// Typically, you do not include .c-files:
+// TODO: when it'scomplete, move the code here; I want it to be one C-file.
 
 void p(int c) {
   char b= c;

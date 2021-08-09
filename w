@@ -38,12 +38,16 @@ GO="${1:-$URL}"
 
 clear
 
+git show :w.c >.w.c
+git show :table.c >.table.c
+cat .w.c .table.c >.before-all.c
+
 cat w.c table.c >.all.c
 
-(./w.x "$GO" > stdout 2>stderr && less -r -f stdout) || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
+(stdbuf -i0 -o0 -e0 ./w.x "$GO" | tee .stdout 2>.stderr && less -r -f .stdout) || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
 
 echo
-cat stderr 1>&2
+cat .stderr 1>&2
 
 # print to STDERR
 (printf "
@@ -55,11 +59,14 @@ cat stderr 1>&2
 
 - https://github.com/yesco/RetroFit -
 
+
 TOTAL   Lines: `cat .all.c | wc`
+
 w.c     - LOC: `./wcode w.c`
 table.c - LOC: `./wcode table.c`
 ---
 TOTAL   - LOC: `./wcode .all.c`
+   (old - LOC: `./wcode .before-all.c`)
 
 
 
@@ -71,5 +78,8 @@ Usage: ./w            (loads test.html)
 ) 1>&2
 
 rm .all.c
+rm .w.c
+rm .table.c
+rm .before-all.c
 
 
