@@ -12,6 +12,17 @@
 // various debug output
 int trace= 0, trace_content= 0;
 
+// TODO: configure options:
+// - use fancy unicode glpyhs (allow testing)
+// - map uncode -> ascii glyphs
+// - asni 8/16/255 colors
+// - (page/elements) color/background
+// - colorize tables
+// - ansi underline
+// - ansi italic
+// - bold
+// - paagraph indent/empty line
+
 #define TRACE(exprs...) if (trace) printf(exprs);
 
 // general formatting
