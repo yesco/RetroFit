@@ -38,6 +38,8 @@ GO="${1:-$URL}"
 
 clear
 
+cat w.c table.c >.all.c
+
 (./w.x "$GO" > stdout 2>stderr && less -r -f stdout) || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
 
 echo
@@ -53,14 +55,21 @@ cat stderr 1>&2
 
 - https://github.com/yesco/RetroFit -
 
-w.c - total: `cat w.c |wc`
-w.c -   LOC: `./wcode w.c`
+TOTAL   Lines: `cat .all.c | wc`
+w.c     - LOC: `./wcode w.c`
+table.c - LOC: `./wcode table.c`
+---
+TOTAL   - LOC: `./wcode .all.c`
 
-usage: ./w            (loads test.html)
+
+
+Usage: ./w            (loads test.html)
        ./w FILE.NAME  (tries file first)
        ./w URL        (if no file, wget)
        ./w yesco.org  (my homepage)
 "
 ) 1>&2
+
+rm .all.c
 
 
