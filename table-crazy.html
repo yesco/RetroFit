@@ -1,0 +1,65 @@
+<p>This is an example crazy table from <a href="https://www.kisphp.com/html/how-to-create-a-complex-table-in-html">kisphph.com</a>.</p>
+
+Here it is rendered with ascii (by hand):
+<pre>
++--------------------------------------------+
+|1                         |4    |           |
+|                          |     |           |
++-----------+-----+--------+-----+           |
+|1          |     |3       |4    |           |
+|-----------+     +--------+-----+5          |
+|           |2    |        |4    |           |
+|           |     |3       |     |           |
+|1          |     |        |     |           |
+|           +-----+--------+-----+-----------+
+|           |2                   |5          |
++-----------+-----+--------------+-----------+
+|1          |2    |3                         |
+|           |     |                          |
++--------------------------------------------+
+</pre>
+
+<table border ="1">
+<!-- Row A --><tr>
+    
+<td colspan="3">1</td>
+    
+<td>4</td>
+    
+<td rowspan="3">5</td></tr>
+
+<!-- Row B --><tr>
+    
+<td>1</td>
+    
+<td rowspan="2">2</td>
+    
+<td>3</td>
+    
+<td>4</td>
+</tr>
+
+<!-- Row C --><tr>
+    
+<td rowspan="2">1</td>
+    
+<td>3</td>
+    
+<td>4</td>
+</tr>
+<!-- Row D --><tr>
+    
+<td colspan="3">2</td>
+    
+<td>5</td>
+</tr>
+<!-- Row E --><tr>
+    
+<td>1</td>
+    
+<td>2</td>
+    
+<td colspan="3">3</td>
+
+</tr>
+</table>
