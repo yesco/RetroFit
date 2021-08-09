@@ -14,6 +14,13 @@ typedef struct dstr {
 //   n: -1) strlen(add), or copy N chars
 // 
 // Returns: d or newly allocated dstr
+//
+// Examples:
+//   d= dstrndup(NULL, NULL, prealloclen);
+//   d= dstrndup(d, NULL, addalloclen);
+//   d= dstrndup(d, "foo", -1); 
+//   d= dstrndup(d, "foobar", 3);
+//   d= dstrndup(d, &c, 1);
 dstr* dstrncat(dstr* d, char* add, int n) {
   int len= d ? strlen(d->s) : 0, max= d ? d->max : 0;
   n= (n<0 && add)? strlen(add) : n;
@@ -95,4 +102,37 @@ Google: "man strncat" "man strcat" to see those functions.
 This is like a combination of both, plus strdup, and even calloc in one!
 
 Things like this makes C fun. LOL.
+*/
+
+/*
+
+Tack för reviewn! Det var en bugg på en rad:
+
+  n= (n<0 && add)? strlen(add) : n;
+
+(guarden var d inte add som den ska vara)
+
+funktionen har 5 "olika" anropssätt: 
+d= dstrndup(NULL, NULL, prealloclen);
+d= dstrndup(d, NULL, addalloclen);
+d= dstrndup(d, "foo", -1); 
+d= dstrndup(d, "foobar", 3);
+d= dstrndup(d, &c, 1);
+
+(FB verkar ha givit mig nya menyer där edit inte fungerar...så fortsätter här)
+
+Den enda felsituation som kan uppstå, så vitt jag ser, är att realloc (malloc) returnerar NULL. Det trappar jag hellre på annat ställe/sätt för hela systemet, med en ersatt malloc.
+
+Jag har designat funktionen så att vid NULL pekare så hanteras det som ingen data.
+
+Förutsatt att realloc funkade så  är d alltid satt när det derefereras, add används bara (med fixen) när den är satt, samma med strncpy.
+
+Detta är per design.
+
+Man kan ha flera specialfall och  lista alla kombinationer, eller så sätter man värdena rätt så att det funkar och man har färre special-fall. 
+
+Jag började exv med två grenar med malloc och realloc,  men det finns ingent anledning egentligen då realloc(NULL, n) är malloc(n). Det kritiska är att max sätts, och att strängen null+termineras. Det funkade I det här fallet.
+
+I företagsproduktionskod skulle jag bygga mer komplicerad och generell kod. Men då blir livet lite tråkigare också...
+
 */
