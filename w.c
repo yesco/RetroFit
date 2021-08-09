@@ -284,6 +284,13 @@ void indent() {
   _ws= 1;
 }
 
+////////////////////////////////////////
+////////////////////////////////////////
+////////////////////////////////////////
+// WARNING: table handling and rendering
+//          is just a hack for now, bad
+//          explorative hack!
+
 // TODO: need a stack? <a> inside <td>?
 typedef struct tcol {
   int i, span;
@@ -400,7 +407,10 @@ void renderTable() {
   int f[MAX_COLS]= {0};
   for(int i= 0; i<MAX_COLS; i++) {
     int v= a[i];
-    if (v) f[i]= v < 3 ? 3 : v;
+    if (!v) continue;
+    f[i]= v < 3 ? 3 : v;
+    int d= (sum_w[i] - tds[i].w) / rows;
+    printf("=== %d: %d %d\n", i, f[i], d);
   }
 
   // TODO: if have more space allocate
@@ -418,15 +428,16 @@ void renderTable() {
   size_t dummyl;
   u8_to_u32(sbaseletter, strlen(sbaseletter), &baseletter, &dummyl);
   assert(dummyl==1);
-  printf("-------baseletter=%x\n", baseletter);
+  //printf("-------baseletter=%x\n", baseletter);
 
   wchar_t letter[MAX_COLS]= {0};
   
+  // init total and tcolums
   int total= 0, tcolumns= 0;
   for(int i=0; i<MAX_COLS; i++) {
     total+= f[i];
     if (f[i]) tcolumns++;
-    printf("--%d %d\n", i, f[i]);
+    //printf("--%d %d\n", i, f[i]);
   }
 
   while (total>cols-tcolumns) {
@@ -468,6 +479,7 @@ void renderTable() {
           do s++; while (*(s+1) && (*s==(char)HNL || *s==(char)SNL));
           printf("↲");
         }
+        else if (*s<32 || *s>127) ; // TODO:
         else putchar(*s);
 
           if (*s) s++;
