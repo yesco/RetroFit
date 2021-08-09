@@ -13,8 +13,14 @@
 // TODO: need a stack? <a> inside <td>?
 
 // REFERENCES:
+// First RFC (1996, old!)
+// - https://www.ietf.org/rfc/rfc1942.txt
 // W3C suggested layout (not used here)
 // - https://www.w3.org/TR/1998/REC-html40-19980424/appendix/notes.html#h-B.5.2.2
+// CSS table-layout property
+// - https://www.w3schools.com/cssref/pr_tab_table-layout.asp
+// CSS 2021 spec for tables
+// - https://html.spec.whatwg.org/multipage/rendering.html#tables-2
 
 typedef struct tcol {
   int i, span;
