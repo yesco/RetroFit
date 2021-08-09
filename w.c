@@ -287,6 +287,7 @@ void indent() {
 // TODO: need a stack? <a> inside <td>?
 typedef struct tcol {
   int i, span;
+  bool head;
   char* s;
   int w, h, len; // in chars
   char align; // l(eft) r(ight) c(enter) '.' for decimal
@@ -302,6 +303,7 @@ tcol tds[TD_MAX] = {0};
 int incell= 0;
 
 void handle_trd(int isRow, int isEndTag, TAG tag) {
+  static bool head= false;
   assert(tdn < TD_MAX);
 
   // end
@@ -316,13 +318,15 @@ void handle_trd(int isRow, int isEndTag, TAG tag) {
     t->w= strlen(t->s); // < as \n
     t->h= _cury-ty;;
     t->tag= strdup(tag);
+    t->head= head;
     //B(green); printf("[%s]", t->tag); B(white);
 
     tdi++;
-    incell= 0;
+    incell= 0; head= false;
   }
 
   if (strstr(" td th ", tag)) incell= 1;
+  head= strstr(" th ", tag);
 
   //C(blue); printf("[%s]", tag); C(black);
 
@@ -345,6 +349,8 @@ void renderTable() {
   int w[MAX_COLS]= {0}, h[MAX_COLS]= {0};
   int sum_w[MAX_COLS]= {0}, sum_h[MAX_COLS]= {0};
   int rows= 0;
+
+  // print data
   for(int i=0; i<tdn; i++) {
     tcol* t= &tds[i];
 
@@ -363,6 +369,8 @@ void renderTable() {
     printf("===%2d: i=%1d span=%1d h=%2d w=%2d l=%3d '%s' ... tag=%s\n",
            i, t->i, t->span, t->h, t->w, t->len,t->s?t->s:"(NULL)", t->tag);
   }
+
+  // print stats
   printf("\nROWS=%d\n", rows);
   printf("\niiii::::: ");
   for(int i= 0; i<MAX_COLS; i++) printf("%3d ", i);
@@ -380,7 +388,36 @@ void renderTable() {
   printf("\n---END\n", table->s);
   C(black); B(white);
 
-  // clear
+  // actually render
+  for(int i=0; i<tdn; i++) {
+    tcol* t= &tds[i];
+
+    if (!t->i) putchar('\n');
+ 
+    char* s= t->s;
+    if (s) {
+      if (t->head) underline();
+      for(int j=w[t->i]; j>0; j--) {
+        if (!*s) putchar(' ');
+        else if (*s==(char)HNL) putchar('\n');
+        else if (*s==(char)HS || *s==(char)SNL) putchar(' ');
+        else if (*s == '\n') {
+          if (*(s+1)) {
+            printf("/");
+            if (*(s+1)==(char)HNL) {
+              putchar(' '); s++;
+            }
+          } else putchar(' ');
+        }
+        else putchar(*s);
+        if (*s) s++;
+      }
+      if (t->head) end_underline();
+    }
+
+  }
+
+  // cleanup
   free(table); table= NULL;
 
   tdn= 0, tdi= 1, ty=0, tx=0, tp= 0;
