@@ -376,9 +376,15 @@ void renderTable() {
   for(int i= 0; i<MAX_COLS; i++) printf("%3d ", i);
   printf("\nWIDTH::: ");
   for(int i= 0; i<MAX_COLS; i++) printf("%3d ", w[i]);
+
+  int a[MAX_COLS]= {0};
+  for(int i= 0; i<MAX_COLS; i++)
+    a[i]= (sum_w[i]+rows/2)/rows;
+
   printf("\n   AVG:: ");
-  for(int i= 0; i<MAX_COLS; i++) printf("%3d ",  (sum_w[i]+rows/2)/rows);
-  printf("\n  A.ZIG: "); int width= 0;
+  for(int i= 0; i<MAX_COLS; i++) printf("%3d ",  a[i]);
+
+  printf("\n  A.SUM: "); int width= 0;
   for(int i= 0; i<MAX_COLS; i++) printf("%3d ",  width+=(sum_w[i]+rows/2)/rows);
 
   printf("\n\nHEIGHT:: ");
@@ -388,7 +394,58 @@ void renderTable() {
   printf("\n---END\n", table->s);
   C(black); B(white);
 
+  // init format
+  // TODO: make it max of td in column
+  //   keep td width separate
+  int f[MAX_COLS]= {0};
+  for(int i= 0; i<MAX_COLS; i++) {
+    int v= a[i];
+    if (v) f[i]= v < 3 ? 3 : v;
+  }
+
+  // TODO: if have more space allocate
+  // according to "bigger" (title?)
+  //
+  // shrink, starting with biggest columns
+  // TODO: distribute more evenly, maybe
+  //   remove 2 from biggest, 1 from next
+  int overflows= 0;
+
+  //const char* sbaseletter="𝗮";
+  const char* sbaseletter="₀";
+  //const char* sbaseletter="ₐ";
+  wchar_t baseletter;
+  size_t dummyl;
+  u8_to_u32(sbaseletter, strlen(sbaseletter), &baseletter, &dummyl);
+  assert(dummyl==1);
+  printf("-------baseletter=%x\n", baseletter);
+
+  wchar_t letter[MAX_COLS]= {0};
+  
+  int total= 0, tcolumns= 0;
+  for(int i=0; i<MAX_COLS; i++) {
+    total+= f[i];
+    if (f[i]) tcolumns++;
+    printf("--%d %d\n", i, f[i]);
+  }
+
+  while (total>cols-tcolumns) {
+    printf("\n--------MINIMIZE------ %d %d %d\n", total, cols, tcolumns);
+    // find biggest
+    int big= -1, max= 0;
+    total= 0;
+    for(int i=0; i<MAX_COLS; i++) {
+      int v= f[i];
+      total+= v;
+      if (v>max) max= v, big= i;
+    }
+    // decrease allocation
+    if (big < 0) break; // screwed
+    f[big]--;
+  }
+
   // actually render
+  int row= 0;
   for(int i=0; i<tdn; i++) {
     tcol* t= &tds[i];
 
@@ -397,25 +454,63 @@ void renderTable() {
     char* s= t->s;
     if (s) {
       if (t->head) underline();
-      for(int j=w[t->i]; j>0; j--) {
+
+      for(int j=f[t->i]; j>0; j--) {
+        //if (*s && *s!=10 && (*s<32 || *s>128)) printf("[%d]", *s);
         if (!*s) putchar(' ');
-        else if (*s==(char)HNL) putchar('\n');
-        else if (*s==(char)HS || *s==(char)SNL) putchar(' ');
+        if (!*s && t->head) end_underline();
+        else if (*s == 10) ;
+        else if (*s == 13) ;
+        else if (*s == (char)HNL) ;
+        else if (*s == (char)SNL) printf("↲");
+
         else if (*s == '\n') {
-          if (*(s+1)) {
-            printf("/");
-            if (*(s+1)==(char)HNL) {
-              putchar(' '); s++;
-            }
-          } else putchar(' ');
+          do s++; while (*(s+1) && (*s==(char)HNL || *s==(char)SNL));
+          printf("↲");
         }
         else putchar(*s);
-        if (*s) s++;
-      }
-      if (t->head) end_underline();
-    }
 
+          if (*s) s++;
+        }
+        if (t->head) end_underline();
+
+        // overflow?
+        if (!*s) { // not overflow
+          putchar(' ');
+        } else {
+          if (!t->head) {// <TD>
+            printf("↲");
+            // TODL: save s for next overflow line! print
+          } else {
+            overflows++;
+            letter[t->i]= baseletter+overflows-1;
+            putwchar(letter[t->i]);
+          } C(fg); B(bg);
+        }
+    }
+    row++;
   }
+
+  printf("\n");
+  if (overflows) {
+    underline();
+    printf("\nLegends");
+    end_underline();
+    nl();
+  }
+  // print overflow data
+  for(int i=0; i<MAX_COLS; i++) {
+    wchar_t l= letter[i];
+    if (!l) continue;
+    printf("  ");
+    putwchar(l); //putchar(' ');
+    // hmmm td[i] - lots off assumption
+    tcol* t= &tds[i];
+    assert(t->i==i); // it's header?
+    // TODO: make a function of printer above...
+    printf("%s", t->s);
+  }
+  if (overflows) printf("\n");
 
   // cleanup
   free(table); table= NULL;
@@ -747,7 +842,7 @@ void process(TAG *end) {
       // <COLGROUP align="center" span="2">
       // <COLGROUP align="center" span="3">
       if (strstr(" th ", tag)) underline();
-      if (strstr(" td th ", tag)) if (!_nl) { p('|'); p(' '); }
+      if (strstr(" td th ", tag)) if (!_nl) ; // { p('|'); p(' '); }
 
       if (strstr(" p ", tag)) {
         if (_curx>_indent) p(HNL);

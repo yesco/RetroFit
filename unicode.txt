@@ -65,8 +65,65 @@ ef bd 81 0a
 ○ ● ◯ • ◦ ‣ ⦿ ⦾ ⁃ ⁍ ▪ ◉  bullet
 ◾  ◼ ■ □ ▣ ▪ ▬   blocks
 
-font ℍ
+font ℍ ℕ Ｎ 𝕹 𝖓  Ɓ 🇳
+
+Mathematical Bold Capital Z:
+
+𝖠A-𝖹Z  1d5a0 sans-serif mathematics
+𝗔-𝗭 u1d5d4  sans serif bold
+𝗮-  u1d5ee  lower case
+𝘈 - sans serif italic
+𝘼 - sans serif bold italic
+𝙰A-𝚉Z 𝚊a-𝚣z - monspace symbols 
+
+𝐀-𝐙 u1d400 bold 𝐀𝐁𝐁𝐀  𝐉𝐨𝐧𝐚𝐬
+𝐚-𝐳 u1d48a bold
+𝐴-𝑍 u1d434 italic
+𝑎-𝑧 u1d44e "h" missing!?
+𝑨-𝒁  u1d468 bold italic
+𝒜 CD G JK NOPQ STUVWXYZ script
+a-𝓈𝓈 script missing: dgo
+𝓐  bold script
+𝓪-𝔃  bold script small
+𝔅 fraktur missing many capitals 
+𝔸-𝕎 double struck, missing some capitals
+𝕬  bold fraktur complete
+𝚨 - bold greek
+𝜜 - bold italic greek
+
+𝟎-𝟗 bold digits
+𝟘-𝟡 double struckt digits
+𝟢-𝟫 sans serif digits
+𝟬-𝟵 sans serif bold digits
+𝟶0-𝟿9 monospace digits
+𝍤 chinese counting rods
+𝍖𝌥𝍎𝌥𝌥𝌥 tetra grams
 
 U+FF00–FFEF fullwidth
 
 ⅏ - biblical editorial symbol looks like dddd/www
+
+🇨 🇦🇦🇦 🇲🇲🇲 regional letters [A] squared in unicode.
+
+𖠓𖠓𖠓𖠓𖠓𖠓  running person
+
+𖠘𖠘𖠘𖠘 foot
+
+
+⏎ ↲ ↩ ⤶ ⇙ ⤦ ⤾ / ∕ ┛ ┘  🇳 ↩ ⤦ ⼅亅┙ newline?
+¶ ⁋ paragraph
+
+📲 mobile phone
+
+
+
+┼   box
+┳   box heavy
+
+╠   box double
+
+┎ ┙
+
+┇╏ ┅ ┉ box dashed
+
+┊ 
