@@ -34,20 +34,47 @@ URL=test.html
 
 GO="${1:-$URL}"
 
-# run it!
+# less
+# - http://www.greenwoodsoftware.com/less/faq.html#tricks
+# less -F        # exit at end of file
+# less +F        # follow at end of file as it grows "tail -f"
+# less +150
+# less +/patter  # go to first pattern
+# less +G        # go to end
 
+# tail +15 | head -20
+
+###################################
+# run it!
 clear
+
+# predisplay last file
+# (will appear to be very fast!)
+# TODO: use correct cached file
+# (detect change of screen width?)
+# NOTE: diplay ok as show whole lines!
+head -$((LINES-1)) .stdout
+
+# cursor home
+printf "\e[2;1H"
+
+# less -X # scroll after last shown page
+# == no use -C = see all that scrolled
+# less -fr # (force) show raw ANSI codes
+
+(stdbuf -i0 -o0 -e0 ./w.x "$GO" > .stdout 2>.stderr && less -XFrf .stdout) || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
+
+###################################
+printf "\e[m\e[48;50m\e[38;57m"
+#clear
+
+cat .stderr 1>&2
 
 git show :w.c >.w.c
 git show :table.c >.table.c
 cat .w.c .table.c >.before-all.c
 
 cat w.c table.c >.all.c
-
-(stdbuf -i0 -o0 -e0 ./w.x "$GO" | tee .stdout 2>.stderr && less -r -f .stdout) || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
-
-echo
-cat .stderr 1>&2
 
 # print to STDERR
 (printf "
