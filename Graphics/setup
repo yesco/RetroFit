@@ -1,0 +1,5 @@
+# libraries needed on Termux to do aalib aview stuff
+
+pkg install netpbm
+pkg install aalib
+pkg install imagemagick

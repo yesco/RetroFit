@@ -536,7 +536,7 @@ typedef struct entity {
 entity* lastentity= NULL;
 
 void newTag(TAG tag) {
-  entity* e= calloc(sizeof(link), 0);
+  entity* e= calloc(sizeof(link), 1);
   memcpy(e->tag, tag, sizeof(tag));
 
   lastentity= e; // TODO: add to list/stack?
@@ -741,7 +741,7 @@ int main(int argc, char**argv) {
   printf("%s", u); nl();
 
   // get HTML
-  char* wget= calloc(strlen(url) + strlen(WGET) + 1, 0);
+  char* wget= calloc(strlen(url) + strlen(WGET) + 1, 1);
   sprintf(wget, WGET, url);
   f= fopen(url, "r");
   if (!f) // && strstr(url, "http")==url)

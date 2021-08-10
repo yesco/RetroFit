@@ -29,57 +29,101 @@ typedef intptr_t lint;
 
 typedef struct list {
   struct list* next;
-  char* key;
+  char* key; // managed: we own
   lint num;
-  void* data;
+  void* data; // owned by user
 } list;
 
+
+// Adds to *DP list a KEY string (copied) associated with NUM storing DATA ptr.
+//
 // Usage:
 //   list* d= NULL;
 //   ladd(&d, "a", 42, "FOO");
 //   ladd(&d, NULL, 42, "foo");
 //   ladd(&d, "b", 0, "foo");
 void ladd(list** dp, char* key, lint num, void* data) {
-  *dp= memcpy(malloc(sizeof(list)), &(list){ *dp, key, num, data}, sizeof(list));
+  *dp= malloc(sizeof(list));
+  **dp= (list){*dp, key?strdup(key):key, num, data};
 }
 
 // Usage:
 //   char* bar=  "BAR";
 //   list* r=  lfindkey(d, "foo");
 //   list* r=  lfindnum(d, 42);
-//   list* r=  lfindata(d, bar);
+//   list* r=  lfinddata(d, bar);
 //   list* r=  lfindhash(d, "foo", 42);
 list* lfindkey(list* d, char* key) {
-  for(; d &&(!d->key || strcmp(d->key, key)); d= d->next) ;
+  while(d &&(!d->key || strcmp(d->key, key))) d= d->next;
   return d;
 }
 
 list* lfindnum(list* d, lint num) {
-  for(; d && d->num!=num; d= d->next) ;
+  while(d && d->num!=num) d= d->next;
   return d;
 }
 
 list* lfinddata(list* d, void* data) {
-  for(; d && d->data!=data; d= d->next) ;
+  while(d && d->data!=data) d= d->next;
   return d;
 }
 
-list* lfindhash(list* d, char* key, lint num) {
-  for(; d && d->num!=num && strcmp(d->key, key); d= d->next) ;
+// Find exact using both KEY and NUM.
+//   KEY can be NULL but only matches NULL.
+//
+// Usage:
+//   ladd(&d, "foo", 42, "bar");
+//   ladd(&d, NULL, 17, "fum");
+//
+//   r= lfind(d, "foo", 42); // yes
+//   r= lfind(d, NULL, 17);  // yes
+//   r= lfind(d, "foo", 0);  // NULL
+//   r= lfind(d, "fie", 17); // NULL
+list* lfind(list* d, char* key, lint num) {
+  while(d) {
+    if (d->num==num) {
+      if (d->key==key) break; // eq/null
+      if (key && d->key && strcmp(d->key, key)) break;
+    }
+    d= d->next;
+  }
   return d;
 }
 
-// A found result can be removed
+// Finds/creates key/num entry.
+// Returns NULL or old data value (to free?)
+// Usage:
+//   char* save= lput(&d, "foo", 0, "new");
+//   FREE(lput(&d, "foo", 0, "new"));
+void* lput(list** dp, char* key, lint num, void* data) {
+  list* r= lfindhash(key, num);
+  void* dat= r ? r->data : NULL;
+  if (r) ladd(dp, key, num, data);
+  r->data= data;
+  return dat;
+}
+
+// Return the length of the list
+size_t llen(list* d) {
+  size_t n= 0;
+  while(d) d= d->next, n++;
+  return n;
+}
+
+// Return R removed from the list.
+//   NULL if not found.
+// NOTE: it's up to user to free R.
+//   (use FREE
+//
 // Usage:
 //   // free key + data if on heap
 //   free(r->key); free(r->data);
 //   lrem(&d, r);
-//   free(r);
+//   free(r); // FREE(r)
 list* lrem(list** dp, list* r) {
   if (!dp || !*dp || !r) return NULL;
   list* n= *dp;
-  while (n && n!=r)
-    n= *(dp=&n->next);
+  while(n && n!=r) n= *(dp= &n->next);
 
   if (n) {
     // unlink
@@ -91,6 +135,31 @@ list* lrem(list** dp, list* r) {
 }
 
 void* FREE(r) { if (r) free(r); return NULL; }
+#define FREEVAR(r) r= FREE(r)
+
+// Free a list (or a lrem result)
+// Returns NULL.
+//
+// Usage:
+//   list* d= NULL;
+//   ladd(&d, "foo", 17, "bar");
+//   ladd(&d, "fie", 42, "fum");
+//   list* r= lfindkey("42");
+//   r= lrem(&d, r);
+//   char* s= r->data;
+//   r= lfree(r, false); // one item NOT del data
+//   d= lfree(d); // all of the items del ALL data
+list* lfree(list* d, bool freeData) {
+  while(d) {
+    list* next= d->next;
+    FREE(d->key);
+    if (freeData) FREE(d->data);
+    FREE(d);
+    d= next;
+  }
+  return NULL;
+}
+
 char* lstring(list* d) { return d?d->data:"(NULL)"; }
 void* ldata(list* d, void* v) { return d?d->data:v; }
 
