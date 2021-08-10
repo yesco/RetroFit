@@ -61,6 +61,8 @@ printf "\e[1;1H"
 # less -X # scroll after last shown page
 # == no use -C = see all that scrolled
 # less -fr # (force) show raw ANSI codes
+# TODO: >(head ...) if it loads slowly,
+#   otherwise needs to wait till all loaded
 
 (stdbuf -i0 -o0 -e0 ./w.x "$GO" > .stdout 2>.stderr && less -XFrf .stdout) || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
 
