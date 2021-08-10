@@ -56,7 +56,7 @@ clear
 head -$((LINES-1)) .stdout
 
 # cursor home
-printf "\e[2;1H"
+printf "\e[1;1H"
 
 # less -X # scroll after last shown page
 # == no use -C = see all that scrolled
@@ -108,5 +108,3 @@ rm .all.c
 rm .w.c
 rm .table.c
 rm .before-all.c
-
-

@@ -740,6 +740,12 @@ int main(int argc, char**argv) {
     u[strlen(u)-1]=0;
   printf("%s", u); nl();
 
+  if (strstr(u, ".txt")==u+strlen(u)-4) {
+    // TODO: yesco.org/resume.txt
+    _pre= 1;
+    //_raw= 1;
+  }
+
   // get HTML
   char* wget= calloc(strlen(url) + strlen(WGET) + 1, 1);
   sprintf(wget, WGET, url);
