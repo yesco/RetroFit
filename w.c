@@ -320,9 +320,66 @@ void _pc(int c) {
   }
 }
 
+int offset= 0;
+
+int myfgetc(FILE* f) {
+  int n= ftell(f);
+  offset= n<0 ? offset+1 : n;
+  return fgetc(f);
+}
+
+void myungetc(int c, FILE* f) {
+  offset--;
+  ungetc(c, f);
+}
+
+#define fgetc myfgetc
+#define ungetc myungetc
+
+
+
+TAG link_tag;
+dstr* _url= NULL;
+
+void print_url() {
+  if (!_url) return;
+  printf("\e]:A:{%s}\e\\", _url->s);
+}
+
+void safe_print(char* s, bool space, bool quote) {
+  if (!s) return;
+  if (space) putchar(' ');
+  if (quote) putchar('"');
+  while(*s) {
+    if (*s=='"') printf("\\\"");
+    else if (*s>32) space= !putchar(*s);
+    else if (!space) space= putchar(' ');
+    s++;
+  }
+  if (quote) putchar('"');
+}
+
+void metadata(char* type, char* a, char* b, char* c) {
+  printf("\n#=%s", type);
+  safe_print(a, 1, 0);
+  safe_print(b, 1, 1);
+  putchar('\n');
+  if (c) {
+    putchar('\n');
+    putchar('#');
+    safe_print(c, 0, 0);
+    putchar('\n');
+  }
+}
+
 void nl() {
   printf("\e[K\n"); // workaround bug!
+  // hidden source file offset
+  printf("@%d:\r", offset);
   B(_bg); C(_fg); // fix "less -r" scroll up
+  printf("\e[K");
+  // indent(); print_state();
+  print_url();
   _cury++; _curx= 0; _ws= 1; _nl= 1;
 }
 
@@ -493,6 +550,9 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     // off underline links!
     if (strstr(" a ", tag)) {
       end_underline();
+      if (content && _url)
+        metadata("LINK", link_tag, content->s, _url->s);
+      if (_url) free(_url); _url= NULL;
       if (!--_capture) addContent();
     }
     if (strstr(" table ", tag)) {
@@ -542,9 +602,18 @@ void newTag(TAG tag) {
   lastentity= e; // TODO: add to list/stack?
 }
 
-void addAttr(TAG attr, dstr* val) {
+void addAttr(TAG tag, TAG attr, dstr* val) {
   entity* e= lastentity;
-  //else if (strstr(" href src ")) e->url= val;
+  if (trace) printf("\n---%s.%s=%s\n", tag, attr, val->s);
+  // embed URL as hidden message
+  if (strstr(" href src ", attr)) {
+    memcpy(link_tag, tag, sizeof(link_tag));
+    if (_url) free(_url);
+    _url= val;
+    print_url();
+    return;
+  }
+  // not used
   free(val);
 }
 
@@ -610,11 +679,14 @@ void process(TAG *end) {
           // - text-indent/text-justify/text-overflow
           // - table-layout
           while (STEP) {
+            // TODO: hmmm
+            ungetc(c, f);
             ungetc(skipspace(f), f); //hmm
             // read attribute
             TAG attr= {0};
             c= parse(f, "= >\"\'", attr);
             if (c=='>' ||c==EOF) break;
+            //printf("\n---%s.%s\n", tag, attr);
             // do we want it?
             if (strstr, ATTR, attr) {
               int q= skipspace(f);
@@ -631,7 +703,7 @@ void process(TAG *end) {
                 while (STEP && !isspace(c) && c!='>')
                   v = dstrncat(v, &c, 1);
               }
-              addAttr(attr, v);
+              addAttr(tag, attr, v);
             }
           }
         }
@@ -711,11 +783,18 @@ int main(int argc, char**argv) {
     return 0;
   }
   char* url= argv[1];
+
+  // metadata
+  printf("\n#=DATE ");
+  system("date --iso=s");
+  metadata("URL", url, NULL, NULL);
+  // TODO: metadata("BASE", 
   TRACE("URL=%s\n", url);
 
-  //cls();
+  // get width for formatting
   getsize();
 
+  // print header line
   C(white); B(black);
   printf("🌍 ");
   B(8); // gray() ??? TODO
@@ -757,8 +836,7 @@ int main(int argc, char**argv) {
   // render HTML
   C(black); B(white);
 
-  TAG dummy= {0};
-  process(&dummy);
+  process((TAG){0});
 
   p(HNL);
   C(white); B(black); p(HNL); p(HNL);

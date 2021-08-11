@@ -53,7 +53,8 @@ clear
 # TODO: use correct cached file
 # (detect change of screen width?)
 # NOTE: diplay ok as show whole lines!
-head -$((LINES-1)) .stdout
+(cat .stdout | perl -0777 -pe 's/(\n#.*?)+\n//g' | less -XFrf) \
+| head -$((LINES-1)) .stdout
 
 # cursor home
 printf "\e[1;1H"
@@ -64,7 +65,14 @@ printf "\e[1;1H"
 # TODO: >(head ...) if it loads slowly,
 #   otherwise needs to wait till all loaded
 
-(stdbuf -i0 -o0 -e0 ./w.x "$GO" > .stdout 2>.stderr && less -XFrf .stdout) || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
+(stdbuf -i0 -o0 -e0 ./w.x "$GO" > .stdout 2>.stderr \
+  && (cat .stdout | perl -0777 -pe 's/(\n#.*?)+\n//g' | less -XFrf)) \
+|| printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
+
+###################################
+# TODO: write my own "less" w commands
+# read - https://www.computerhope.com/unix/bash/read.htm
+# read -sn1 key ; echo "KEY: $key"
 
 ###################################
 printf "\e[m\e[48;50m\e[38;57m"

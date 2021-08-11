@@ -1,0 +1,13 @@
+# hide foobar
+printf "4711:\rStart of line\n"
+printf "4711:\rStart of line\n"
+printf "inline:before\e]foobar\e\\\after\n"
+printf "End Of LineA\010B\010C\n"
+printf "Here is a hyper link \e[4m\e]:A:http://google.com/\e\\\Google\e[24m, a big company.\n"
+printf "ANSI hyper link \e[4m\e]8:http://google.com/\e\\\\Google\e[24m, a big company.\n"
+
+
+
+
+
+
