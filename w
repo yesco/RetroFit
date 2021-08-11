@@ -3,7 +3,12 @@ if [[ w.c -nt w.x ]]; then
   clang -g -w -lunistring  w.c -o w.x || exit
 fi
 
-# ./spin & # how to stop!!
+if [[ Play/spin.c -nt spin.x ]]; then
+  echo "--- spin.c changed, recompiling w.x..."
+  clang -g -w Play/spin.c -o spin.x || exit
+fi
+
+# 
 # clang -g -w w.c && ((echo "run http://yesco.org/";echo "where") | gdb ./a.out )
 
 URL=https://example.com/
@@ -46,6 +51,7 @@ GO="${1:-$URL}"
 
 ###################################
 # run it!
+
 clear
 
 # predisplay last file
@@ -53,11 +59,14 @@ clear
 # TODO: use correct cached file
 # (detect change of screen width?)
 # NOTE: diplay ok as show whole lines!
-(cat .stdout | perl -0777 -pe 's/(\n#.*?)+\n//g' | less -XFrf) \
-| head -$((LINES-1)) .stdout
+
+(cat .stdout | perl -0777 -pe 's/(\n#.*?)+\n//g') \
+| head -$((LINES-1))
 
 # cursor home
-printf "\e[1;1H"
+printf "\e[1;4H\e[48;5;0m"
+
+./spin.x 2>/dev/null & spinpid=$!
 
 # less -X # scroll after last shown page
 # == no use -C = see all that scrolled
@@ -66,8 +75,14 @@ printf "\e[1;1H"
 #   otherwise needs to wait till all loaded
 
 (stdbuf -i0 -o0 -e0 ./w.x "$GO" > .stdout 2>.stderr \
-  && (cat .stdout | perl -0777 -pe 's/(\n#.*?)+\n//g' | less -XFrf)) \
+  && (kill -9 $spinpid ; \
+      cat .stdout | \
+      perl -0777 -pe 's/(\n#.*?)+\n//g' | \
+      less -XFrf)) \
 || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
+
+# just to make sure
+kill -9 $spinpid 2>/dev/null
 
 ###################################
 # TODO: write my own "less" w commands

@@ -45,8 +45,6 @@ void start_spin() {
   
   if (setitimer(ITIMER_REAL, &new, &old) < 0)
     printf("timer init failed\n");
-  else 
-    printf("timer init succeeded\n");
 }
 
 void stop_spin() {
@@ -58,11 +56,12 @@ void stop_spin() {
 int main(void) {
   start_spin();
 
-  while(spin_n < 10) ;
+  while(1);
+  //while(spin_n < 10) ;
 
-  stop_spin();
-
-  while(1) ;
+  // TODO: stop at signal
+  //stop_spin();
+  //while(1) ;
 
   return 0;
 }
