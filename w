@@ -76,9 +76,9 @@ printf "\e[1;4H\e[48;5;0m"
 
 (stdbuf -i0 -o0 -e0 ./w.x "$GO" > .stdout 2>.stderr \
   && (kill -9 $spinpid ; \
-      cat .stdout | \
-      perl -0777 -pe 's/(\n#.*?)+\n//g' | \
-      less -XFrf)) \
+      cat .stdout \
+      | perl -0777 -pe 's/(\n#.*?)+\n//g' \
+      | less -XFrf)) \
 || printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
 
 # just to make sure
