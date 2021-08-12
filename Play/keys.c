@@ -2,6 +2,8 @@
 
 // (jsk) modified from:
 // - https://stackoverflow.com/questions/448944/c-non-blocking-keyboard-input
+// Alternative:
+// - https://stackoverflow.com/questions/3962263/how-to-check-if-a-key-was-pressed-in-linux
 
 #include <stdlib.h>
 #include <string.h>

@@ -34,7 +34,7 @@ const int lmargin= 2;
 #include <string.h>
 #include <ctype.h>
 #include <sys/ioctl.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <assert.h>
 
 #include <unistr.h>
@@ -596,7 +596,7 @@ typedef struct entity {
 entity* lastentity= NULL;
 
 void newTag(TAG tag) {
-  entity* e= calloc(sizeof(link), 1);
+  entity* e= calloc(sizeof(entity), 1);
   memcpy(e->tag, tag, sizeof(tag));
 
   lastentity= e; // TODO: add to list/stack?
