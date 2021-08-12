@@ -1,11 +1,13 @@
 if [[ w.c -nt w.x ]]; then
   echo "--- w.c changed, recompiling w.x..."
-  cc -g -w -lunistring  w.c -o w.x || exit
+  rm w.x
+  cc -g -w -lunistring  w.c -o w.x || (printf "maybe need to install libunistring?\napt install libunistring\nbrew install libunistring\nyum install libunistring-devel\n" && exit 4711) || exit
 fi
 
 # compile, if fails, ignore
 if [[ Play/spin.c -nt spin.x ]]; then
   echo "--- spin.c changed, recompiling w.x..."
+  rm spin.x
   cc -g -w Play/spin.c -o spin.x # || exit
 fi
 
@@ -80,7 +82,8 @@ printf "\e[1;4H\e[48;5;0m"
       cat .stdout \
       | perl -0777 -pe 's/(\n#.*?)+\n//g' \
       | less -XFrf)) \
-|| printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m"
+|| (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
+(kill -9 $spinpid 2>/dev/null; printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run $GO";echo "where") | gdb ./w.x; exit) || exit
 
 # just to make sure
 kill -9 $spinpid 2>/dev/null

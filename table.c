@@ -24,7 +24,7 @@
 
 typedef struct tcol {
   int i, span;
-  bool head;
+  int head;
   char* s;
   int w, h, len; // in chars
   char align; // l(eft) r(ight) c(enter) '.' for decimal
@@ -40,7 +40,7 @@ tcol tds[TD_MAX] = {0};
 int incell= 0;
 
 void handle_trd(int isRow, int isEndTag, TAG tag) {
-  static bool head= false;
+  static int head= 0;
   assert(tdn < TD_MAX);
 
   // end
@@ -59,7 +59,7 @@ void handle_trd(int isRow, int isEndTag, TAG tag) {
     //B(green); printf("[%s]", t->tag); B(white);
 
     tdi++;
-    incell= 0; head= false;
+    incell= 0; head= 0;
   }
 
   if (strstr(" td th ", tag)) incell= 1;

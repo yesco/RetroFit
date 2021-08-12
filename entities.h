@@ -2231,4 +2231,4 @@ const char* ENTITIES=
 "&zwj; ‍"
 "&zwnj; ‌"
 
-"&";
+"&???????";

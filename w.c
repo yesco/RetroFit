@@ -201,8 +201,7 @@ void B(int n) { bg(n); }
 char* decode_entity(char* name) {
   TAG fnd= {0};
   strncpy(fnd, name, sizeof(fnd));
-
-  // return pointer to fixed static string
+  // return pointer to fixed static string! (safe!)
   static char result[2*4*2];
   memset(result, 0, sizeof(result));
 
@@ -212,7 +211,18 @@ char* decode_entity(char* name) {
   if (sscanf(fnd, "&#x%x;", &c) ||
       sscanf(fnd, "&#%i;", &c)) {
     size_t len=sizeof(result)-1;
-    return u32_to_u8(&c, 1, result, &len);
+    if (c<128) {
+      result[0]= c;
+      return result;
+    }
+    char *r= u32_to_u8(&c, 1, result, &len);
+    if (r==result) return result;
+    if (r==NULL) return NULL;
+    // Not getting here anymore as I catch ASCII above...
+    // for ascii it doesn't work?
+    // and what pointer does it return?
+    // => SIGSEGV segmentation fault!
+    return NULL;
   }
 
   // search for '&name; '
@@ -224,11 +234,13 @@ char* decode_entity(char* name) {
   
   // skip '&name;? '
   m+= strlen(name)+1;
+
   char* p= result;
   // copy first char at least (might be '&')
   do {
     *p++ = *m++;
-  } while ('&' != *m); // until '&...';
+  } while ('&' != *m && *m); // until '&...';
+  *p= 0;
   TRACE("{$s}", result);
   return result;
 }
@@ -346,7 +358,7 @@ void print_url() {
   printf("\e]:A:{%s}\e\\", _url->s);
 }
 
-void safe_print(char* s, bool space, bool quote) {
+void safe_print(char* s, int space, int quote) {
   if (!s) return;
   if (space) putchar(' ');
   if (quote) putchar('"');
