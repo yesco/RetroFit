@@ -3,9 +3,10 @@ if [[ w.c -nt w.x ]]; then
   cc -g -w -lunistring  w.c -o w.x || exit
 fi
 
+# compile, if fails, ignore
 if [[ Play/spin.c -nt spin.x ]]; then
   echo "--- spin.c changed, recompiling w.x..."
-  cc -g -w Play/spin.c -o spin.x || exit
+  cc -g -w Play/spin.c -o spin.x # || exit
 fi
 
 # 
