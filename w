@@ -1,15 +1,15 @@
 if [[ w.c -nt w.x ]]; then
   echo "--- w.c changed, recompiling w.x..."
-  clang -g -w -lunistring  w.c -o w.x || exit
+  cc -g -w -lunistring  w.c -o w.x || exit
 fi
 
 if [[ Play/spin.c -nt spin.x ]]; then
   echo "--- spin.c changed, recompiling w.x..."
-  clang -g -w Play/spin.c -o spin.x || exit
+  cc -g -w Play/spin.c -o spin.x || exit
 fi
 
 # 
-# clang -g -w w.c && ((echo "run http://yesco.org/";echo "where") | gdb ./a.out )
+# cc -g -w w.c && ((echo "run http://yesco.org/";echo "where") | gdb ./a.out )
 
 URL=https://example.com/
 
