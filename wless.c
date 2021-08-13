@@ -4,7 +4,7 @@
 #include <string.h>
 #include <termios.h>
 
-enum { ESC=27, META=128, UP=META+'a', DOWN, RIGHT, LEFT, TAB=9, SHIFT_TAB=META+'z' };
+enum { ESC=27, CONTROL=-64, META=128, UP=META+'a', DOWN, RIGHT, LEFT, TAB=9, SHIFT_TAB=META+'z' };
 
 int key() {
   struct termios old, tmp;
