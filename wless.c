@@ -6,43 +6,8 @@
 #include <unistd.h>
 #include <assert.h>
 
-// TOOD: move from w.c to ansi.c
-static void reset() { printf("\e[48;5;0m\e[38;5;7m\e[23m\e[24m"); }
-
-static void clear() { printf("\x1b[2J\x1b[H"); }
-static void clearend() { printf("\x1b[K"); }
-static void cleareos() { printf("\x1b[J"); } // TODO: add redraw rest of screen (from pointer)
-static void gotorc(int r, int c) { printf("\x1b[%d;%dH", r+1, c+1); }
-static void cursoroff() { printf("\x1b[?25l"); }
-static void cursoron() { printf("\x1b[?25h"); }
-static void inverse(int on) { printf(on ? "\x1b[7m" : "\x1b[m"); }
-static void fgcolor(int c) { printf("\x1b[[3%dm", c); } // 0black 1red 2green 3yellow 4blue 5magnenta 6cyan 7white 9default
-static void bgcolor(int c) { printf("\x1b[[4%dm", c); } // 0black 1red 2green 3yellow 4blue 5magnenta 6cyan 7white 9default
-static void savescreen() { printf("\x1b[?47h"); }
-static void restorescreen() { printf("\x1b[?47l"); }
-// can use insert characters/line from
-// - http://vt100.net/docs/vt102-ug/chapter5.html
-static void insertmode(int on) { printf("\x1b[4%c", on ? 'h' : 'l'); }
-
-enum { ESC=27, BS=8, DEL=127, CTRL=-64, META=128, UP=META+'a', DOWN, RIGHT, LEFT, TAB=9, SHIFT_TAB=META+'z' };
-
-int key() {
-  struct termios old, tmp;
-
-  tcgetattr(0, &old);
-
-  // modify
-  tmp= old;
-  cfmakeraw(&tmp); // ^C & ^Z !
-  tmp.c_lflag &= ~ICANON & ~ECHO;
-  tcsetattr(0, TCSANOW, &tmp);
-
-  int c= getchar();
-
-  // restore
-  tcsetattr(0, TCSANOW, &old);
-  return c;
-}
+// normally don't include .c...
+#include "jio.c"
 
 int top, right, tab;
 

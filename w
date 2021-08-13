@@ -1,7 +1,15 @@
+# --- dependencies
+if [[ jio.c -nt w.x ]]; then
+  rm w.x wless.x 2>/dev/null
+fi
+if [[ table.c -nt w.x ]]; then
+  rm w.x 2>/dev/null
+fi
+
 # --- compile w.c
 if [[ w.c -nt w.x ]]; then
   echo "--- w.c changed, recompiling w.x..."
-  rm w.x
+  rm w.x 2>/dev/null
   cc -g -w -lunistring  w.c -o w.x || (printf "maybe need to install libunistring?\napt install libunistring\nbrew install libunistring\nyum install libunistring-devel\n" && exit 4711) || exit
 fi
 
@@ -10,7 +18,7 @@ fi
 
 if [[ Play/spin.c -nt spin.x ]]; then
   echo "--- spin.c changed, recompiling w.x..."
-  rm spin.x
+  rm spin.x 2>/dev/null
   cc -g -w Play/spin.c -o spin.x # || exit
 fi
 
@@ -19,7 +27,7 @@ fi
 
 if [[ wless.c -nt wless.x ]]; then
   echo "--- wless.c changed, recompiling wless.x..."
-  rm wless.x
+  rm wless.x 2>/dev/null
   cc -g -w wless.c -o wless.x || exit
 fi
 
@@ -124,9 +132,10 @@ cat .stderr 1>&2
 
 git show :w.c >.w.c
 git show :table.c >.table.c
-cat .w.c .table.c >.before-all.c
+git show :wless.c >.wless.c
+cat .w.c .table.c .wless.c >.before-all.c
 
-cat w.c table.c >.all.c
+cat w.c table.c jio.c wless.c >.all.c
 
 # --- print stats and USAGE
 
@@ -144,7 +153,9 @@ cat w.c table.c >.all.c
 TOTAL   Lines: `cat .all.c | wc`
 
 w.c     - LOC: `./wcode w.c`
-table.c - LOC: `./wcode table.c`
+  table.c LOC: `./wcode table.c`
+wless.c - LOC: `./wcode wless.c`
+jio.c   - LOC: `./wcode jio.c`
 ---
 TOTAL   - LOC: `./wcode .all.c`
    (old - LOC: `./wcode .before-all.c`)

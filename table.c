@@ -51,7 +51,7 @@ void handle_trd(int isRow, int isEndTag, TAG tag) {
     t->i= tdi;
     t->span= 1;
     t->s= strdup(table->s+tp);
-    t->len= (_cury-ty)*cols + _curx-tx;
+    t->len= (_cury-ty)*screen_cols + _curx-tx;
     t->w= strlen(t->s); // < as \n
     t->h= _cury-ty;;
     t->tag= strdup(tag);
@@ -170,8 +170,8 @@ void renderTable() {
     //printf("--%d %d\n", i, f[i]);
   }
 
-  while (total>cols-tcolumns) {
-    printf("\n--------MINIMIZE------ %d %d %d\n", total, cols, tcolumns);
+  while (total>screen_cols-tcolumns) {
+    printf("\n--------MINIMIZE------ %d %d %d\n", total, screen_cols, tcolumns);
     // find biggest
     int big= -1, max= 0;
     total= 0;

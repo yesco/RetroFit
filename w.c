@@ -44,16 +44,8 @@ const int lmargin= 2;
 #include <uniname.h>
 #include <wchar.h>
 
-int rows= 24, cols= 80;
-
-// https://stackoverflow.com/questions/1022957/getting-terminal-width-in-c
-void getsize() {
-  struct winsize w;
-  ioctl(0, TIOCGWINSZ, &w);
-  rows = w.ws_row;
-  cols = w.ws_col;
-  TRACE(printf("\t\trows=%d cols=%d\n", rows, cols));
-}
+// normally don't include .c...
+#include "jio.c"
 
 // Dynamic STRings (see Play/dstrncat.c)
 #define DSTR_STEP 64
@@ -124,34 +116,6 @@ int decode_color(char* name, int dflt) {
   // skip ' name#'
   return parse_color(m+strlen(name)+2, dflt);
 }
-
-// ansi
-enum color{black, red, green, yellow, blue, magnenta, cyan, white, none};
-enum color _fg= black, _bg= white;
-
-void _color(c) {
-  if (c >= 0) {
-    printf("5;%dm", c);
-  } else {
-    c= -c;
-    int b= c&0xff, g= (c>>8)&0xff, r=(c>>16);
-    printf("2;%d;%d;%dm", r, g, b);
-  }
-}
-
-void fg(int c) { printf("\e[38;"); _color(c); _fg= c; }
-void bg(int c) { printf("\e[48;"); _color(c); _bg= c; }
-
-int bold(int c /* 0-7 */) { return c+8; }
-int rgb(int r, int g, int b /* 0-5 */) { return 0x10+ 36*r + 6*g + b; }
-int gray(int c /* 0-7 */) { return 0xe8+  c; }
-int RGB(int r, int g, int b /* 0-255 */) { return -(r*256+g)*256+b; }
-void underline() { printf("\e[4m"); }
-void end_underline() { printf("\e[24m"); }
-
-// adjusted colors
-void C(int n) { fg(n + 8*(n!=0 && n<8)); }
-void B(int n) { bg(n); }
 
 // hard space, hard newline
 #define HS -32
@@ -252,11 +216,11 @@ char* decode_entity(char* name) {
 int _pre= 0, _ws= 1, _nl= 1, _tb= 0, _skip= 0, _indent= lmargin;
 int _curx= 0, _cury= 0, _fullwidth= 0, _capture= 0, _table= 0;
 
-void cls() {
-  printf("\e[H[2J[3J");
-  getsize();
-  _cury= 0; _curx= 0; _ws= 1; _nl= 1;
-}
+//void cls() {
+//  cls();
+//  screen_init();
+//  _cury= 0; _curx= 0; _ws= 1; _nl= 1;
+//}
 
 void nl();
 void indent();
@@ -264,7 +228,7 @@ void indent();
 // track visible chars printed
 void inx() {
   _curx++; _nl= 0;
-  if (!_pre && _curx+rmargin == cols) nl();
+  if (!_pre && _curx+rmargin == screen_cols) nl();
 }
 
 // _pc buffers word, and word-wrap+ENTITIES
@@ -297,7 +261,7 @@ void _pc(int c) {
     //_ws= (c==' '||c=='\t'); // TODO: doesn't matter!
 
   } else if (_overflow) {
-    if (_curx+rmargin+1 >= cols) {
+    if (_curx+rmargin+1 >= screen_cols) {
       putchar('-');
       nl();
     }
@@ -319,7 +283,7 @@ void _pc(int c) {
     word[l]= c;
 
     // word too long for this line?
-    if (_curx+rmargin+1 >= cols) {
+    if (_curx+rmargin+1 >= screen_cols) {
       nl();
       indent(); // this affects <li> second line indent
       _curx+= strlen(word);
@@ -804,7 +768,7 @@ int main(int argc, char**argv) {
   TRACE("URL=%s\n", url);
 
   // get width for formatting
-  getsize();
+  screen_init();
 
   // print header line
   C(white); B(black);
