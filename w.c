@@ -25,6 +25,9 @@ int trace= 0, trace_content= 0;
 
 #define TRACE(exprs...) if (trace) printf(exprs);
 
+#define error(exp, exitcode, msg...) \
+  do if (exp) { fprintf(stderr, "%%ERROR: %s:%d in %s(...)\n", __FILE__, __LINE__, __func__); fprintf(stderr, msg); fputc('\n', stderr); exit(exitcode); } while(0)
+
 // general formatting
 const int rmargin= 1; // 1 or more (no 0)
 const int lmargin= 2;
@@ -211,20 +214,18 @@ char* decode_entity(char* name) {
   if (sscanf(fnd, "&#x%x;", &c) ||
       sscanf(fnd, "&#%i;", &c)) {
     size_t len=sizeof(result)-1;
-    if (c<128) {
-      result[0]= c;
-      return result;
-    }
+//    if (c<128) {
+//      result[0]= c;
+//      return result;
+//    }
+    // TODO: -- see tests forthis fuction:
+    // - https://github.com/coreutils/gnulib/blob/master/tests/unistr/test-u32-to-u8.c
     // TODO: use https://man7.org/linux/man-pages/man3/wctomb.3.html ???
-    char *r= u32_to_u8(&c, 1, result, &l
-en);
+    char *r= u32_to_u8(&c, 1, result, &len);
+    printf("---jsk: '%s' len=%zu\n", r, len);
     if (r==result) return result;
     if (r==NULL) return NULL;
-    // Not getting here anymore as I catch ASCII above...
-    // for ascii it doesn't work?
-    // and what pointer does it return?
-    // => SIGSEGV segmentation fault!
-    return NULL;
+    error(r!=result, 77, "BAD ptr from u32_to_u8");
   }
 
   // search for '&name; '
@@ -491,10 +492,7 @@ int parse(FILE* f, char* endchars, char* s) {
     if (s) {
       *s++= tolower(c);
       // TODO: error here for google.com
-      if (s-origs > sizeof(TAG)) {
-        printf("\n\n%%%%TAG==%s<<<\n", origs);
-        exit(7);
-      }
+      error(s-origs > sizeof(TAG), 7, "TAG too long=%s\n", origs);
     }
   }
   if (s) { *s++ = ' '; *s= 0; }

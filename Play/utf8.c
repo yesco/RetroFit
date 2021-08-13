@@ -22,6 +22,19 @@ char* u32tou8_x(uint32_t cp) {
   }
   return &result[0];
 }
+
+char* u32tou8_y(uint32_t cp) {
+  static char result[5];
+  memset(result, 0, sizeof(result));
+  int i;
+  result[ (i=3) ] = cp;
+  if (cp>=0x80)    result[ (i=3) ] = 0200 | ((cp >> 6*0) & 077);
+  if (cp>=0x80)    result[ (i=2) ] = 0200 | ((cp >> 6*1) & 077);
+  if (cp>=0x800)   result[ (i=1) ] = 0200 | ((cp >> 6*2) & 077);
+  if (cp>=0x10000) result[ (i=0) ] = 0300 | ((cp >> 6*3) & 077);
+  if (cp>=0x80) result[i] |= 0xff00 >> (5-i);
+  return &result[i];
+}
 #endif
          
 // Convert an Unicode code point to utf-8
