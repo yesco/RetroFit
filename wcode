@@ -6,6 +6,10 @@
 # - no 'else'-only lines
 # - nothing after the string  'ENDWCOUNT'
 
+# shorter lol!
+# tr -d -c ";" $* | wc | (read a b c ; echo $c)
+
+
 ls -1 $* | xargs -I% sh -c "
 cat % | \
 sed '/ENDWCOUNT/q' | \
@@ -17,7 +21,4 @@ grep -v '^\s*$' | \
 grep -vP 'TRACE\(' | \
 grep -vinP '^\s*}?\s*else\s*{?\s*(//.*)?$' | \
 wc"
-
-
-
 
