@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <termios.h>
+#include <unistd.h>
 
 // TOOD: move from w.c to ansi.c
 static void reset() { printf("\e[48;5;0m\e[38;5;7m\e[23m\e[24m"); }
@@ -74,19 +75,22 @@ int main(void) {
     if (c==ESC) c=toupper(key())+META;
     if (c==META+'[') c=tolower(key())+META;
 
+    if (c>='a' || c<='z') link(c);
+    if (c>='A' || c<='Z') link(c);
+
     // action
-    if (c=='q') break;
-    if (c=='<') top= 0;
-    if (c=='>') top= nlines-1;
+    if (c==CTRL+'C') break;
+    if (c==CTRL+'Z') kill(getpid(), SIGSTOP);
+
+    if (c=='<') top= 0; // top
+    if (c=='>') top= nlines-1; // bottom
+    if (c=='b') if ((top-= lines-2) < 0) top<0) top= 0;
+    if (c==' ') if ((top+= lines+2) > nlines) top= nlines-1;
+
     //if (c=='k') // kill
     //if (c==CTRL+'T') // new tab
     //if (c==CTRL+'N') // new window
     //if (c==
-    // paging
-    if (c=='b') top-= lines-2;
-    if (top<0) top= 0;
-    if (c==' ') top+= lines+2;
-    if (top>nlines) top= nlines-1;
 
     COUNT(top, DOWN, UP, nlines);
     COUNT_WRAP(right, RIGHT, LEFT, nright);
