@@ -1,0 +1,1 @@
+cat .stdout | grep '^#' | sed s/^#//

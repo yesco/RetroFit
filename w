@@ -1,19 +1,32 @@
+# --- compile w.c
 if [[ w.c -nt w.x ]]; then
   echo "--- w.c changed, recompiling w.x..."
   rm w.x
   cc -g -w -lunistring  w.c -o w.x || (printf "maybe need to install libunistring?\napt install libunistring\nbrew install libunistring\nyum install libunistring-devel\n" && exit 4711) || exit
 fi
 
-# compile, if fails, ignore
+# --- compile spinner.c
+# - if fails, ignore
+
 if [[ Play/spin.c -nt spin.x ]]; then
   echo "--- spin.c changed, recompiling w.x..."
   rm spin.x
   cc -g -w Play/spin.c -o spin.x # || exit
 fi
 
+# --- compile wless.c
+# - if fails, ignore
+
+if [[ wless.c -nt wless.x ]]; then
+  echo "--- wless.c changed, recompiling wless.x..."
+  rm wless.x
+  cc -g -w wless.c -o wless.x || exit
+fi
+
 # 
 # cc -g -w w.c && ((echo "run http://yesco.org/";echo "where") | gdb ./a.out )
 
+# --- URLS
 URL=https://example.com/
 
 # So ugly!
@@ -40,6 +53,7 @@ URL=http://www.columbia.edu/~fdc/sample.html
 URL=http://yesco.org/
 URL=test.html
 
+# --- Select actual URL to view
 GO="${1:-$URL}"
 
 # less
@@ -52,8 +66,7 @@ GO="${1:-$URL}"
 
 # tail +15 | head -20
 
-###################################
-# run it!
+# --- display preview
 
 clear
 
@@ -66,10 +79,17 @@ clear
 (cat .stdout | perl -0777 -pe 's/(\n#.*?)+\n//g') \
 | head -$((LINES-1))
 
-# cursor home
-printf "\e[1;4H\e[48;5;0m"
+# --- display spinning globe!
 
 ./spin.x 2>/dev/null & spinpid=$!
+
+# --- load web-page
+# - display the real thing
+# - or give error code
+# - and gdb where stacktrace!
+
+# cursor home
+printf "\e[1;4H\e[48;5;0m"
 
 # less -X # scroll after last shown page
 # == no use -C = see all that scrolled
@@ -78,32 +98,37 @@ printf "\e[1;4H\e[48;5;0m"
 #   otherwise needs to wait till all loaded
 
 (stdbuf -i0 -o0 -e0 ./w.x "$GO" > .stdout 2>.stderr \
-  && (kill -9 $spinpid ; \
+  && (kill -9 $spinpid; \
       cat .stdout \
       | perl -0777 -pe 's/(\n#.*?)+\n//g' \
       | less -XFrf)) \
 || (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
 (kill -9 $spinpid 2>/dev/null; printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run $GO";echo "where") | gdb ./w.x; exit) || exit
 
-# just to make sure
+# --- kill spinner for sure
+
 kill -9 $spinpid 2>/dev/null
 
 ###################################
-# TODO: write my own "less" w commands
-# read - https://www.computerhope.com/unix/bash/read.htm
-# read -sn1 key ; echo "KEY: $key"
 
-###################################
+# --- reset screen after text
+
 printf "\e[m\e[48;50m\e[38;57m"
 #clear
 
+# --- show any errors
+
 cat .stderr 1>&2
+
+# --- calculate LOCs
 
 git show :w.c >.w.c
 git show :table.c >.table.c
 cat .w.c .table.c >.before-all.c
 
 cat w.c table.c >.all.c
+
+# --- print stats and USAGE
 
 # print to STDERR
 (printf "
@@ -125,13 +150,14 @@ TOTAL   - LOC: `./wcode .all.c`
    (old - LOC: `./wcode .before-all.c`)
 
 
-
 Usage: ./w            (loads test.html)
        ./w FILE.NAME  (tries file first)
        ./w URL        (if no file, wget)
        ./w yesco.org  (my homepage)
 "
 ) 1>&2
+
+# -- cleanup
 
 rm .all.c
 rm .w.c

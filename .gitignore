@@ -9,7 +9,7 @@ test.c
 stderr
 stdout
 wget-log*
-w.x
+*.x
 a.out
 index.html*
 package-lock.json
