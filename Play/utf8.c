@@ -37,6 +37,7 @@ char* u32tou8(uint32_t cp) {
     *--p = cp;
   } else {
     uint8_t m = 0200;
+    // this storage bits of first byte must not overlap the 11+0 prefix (m)
     while(cp || (*p & m & ~0200)) {
       // copy six bits
       printf("%03o ", cp & 077);
