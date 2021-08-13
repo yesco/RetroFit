@@ -215,7 +215,9 @@ char* decode_entity(char* name) {
       result[0]= c;
       return result;
     }
-    char *r= u32_to_u8(&c, 1, result, &len);
+    // TODO: use https://man7.org/linux/man-pages/man3/wctomb.3.html ???
+    char *r= u32_to_u8(&c, 1, result, &l
+en);
     if (r==result) return result;
     if (r==NULL) return NULL;
     // Not getting here anymore as I catch ASCII above...

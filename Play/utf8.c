@@ -24,29 +24,29 @@ char* u32tou8_x(uint32_t cp) {
 }
 #endif
          
-// - https://en.m.wikipedia.org/wiki/UTF-8
-// convert an Unicode  code point to utf-8
+// Convert an Unicode code point to utf-8
 // Result is a pointer to static string
 char* u32tou8(uint32_t cp) {
+  // https://en.m.wikipedia.org/wiki/UTF-8
   printf("=%21o\n", cp);
   static char result[5];
+  // Build utf-8 backwards
   result[4] = 0; // zero-terminate
   char* p = &result[3]; // one from last
-  // build backwards
   if (cp<0x80) {
     *--p = cp;
   } else {
-    uint8_t m = 0200;
-    // this storage bits of first byte must not overlap the 11+0 prefix (m)
-    while(cp || (*p & m & ~0200)) {
+    int m = 0400;
+    // the storage bits of first byte must not overlap the 11+0 prefix (m)
+    while(cp || (*p & m/2 & ~0200)) {
       // copy six bits
       printf("%03o ", cp & 077);
       *--p = (cp & 077) | 0200;
       cp >>= 6;
-      m |= m >> 1;
+      m |= m >> 1; // 10->110 ...
       printf("%03o 0x%2x (%7o) m=%o\n", *p, *p, cp, m);
     }
-    *p |= m << 1;
+    *p |= m;
   }
   return p;
 }
