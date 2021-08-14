@@ -1,0 +1,1 @@
+git status | cat - | grep "^	" | tac | grep -C9999 --color=auto  -P "(new file:|modified:)" 

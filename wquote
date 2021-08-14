@@ -1,0 +1,10 @@
+# quote a string to be safe filename
+#
+# basically all "offensive" non A-Z or converted to '%xx' using URL quoting
+
+# !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+
+echo "$*" | perl -e "\$_=<>;s/([ -\+\\/;<=>\\?\@\\[\\\\\\]\\^\\'\\{\\|\\}\\~])/sprintf('%%%02x', ord(\$1))/eg;print;"
+
+
+

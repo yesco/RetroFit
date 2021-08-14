@@ -1,3 +1,18 @@
+# --- Setup cache structure
+# TODO: in the home directory?
+
+WDIR=.w
+
+[ ! -d $WDIR ] \
+  && mkdir $WDIR
+  # TODO: could be shared globally
+
+[ ! -d $WDIR/Cache ] \
+  && mkdir $WDIR/Cache
+  # TODO: could be several?
+[ ! -d $WDIR/Session ] \
+  && mkdir $WDIR/Session
+
 # --- sets LINES/COLUMNS
 stty size >/dev/null
 clear # this too!
@@ -34,6 +49,14 @@ URL=test.html
 
 # --- Select actual URL to view
 GO="${1:-$URL}"
+
+SAFE=`./wquote "$GO"`
+FILE=$WDIR/Cache/$SAFE
+[ ! -f "$GO" ] && wget -q -b -O $FILE -o $FILE.LOG "$GO" >/dev/null
+echo "`date --iso=s` #=W $GO" >> $FILE.WLOG
+exit
+
+touch $WDIR/Cache/$SAFE
 
 # --- Log it
 echo "`date --iso=s` #=W $GO" >> .wlog
@@ -76,10 +99,10 @@ printf "\e[1;4H\e[48;5;0m"
 # TODO: >(head ...) if it loads slowly,
 #   otherwise needs to wait till all loaded
 
-(stdbuf -i0 -o0 -e0 ./w.x "$GO" > .stdout 2>.stderr \
-  && (kill -9 $spinpid; \
-      ./wdisplay \
-      | less -Xrf)) \
+(stdbuf -i0 -o0 -e0 ./w.x "$GO" 2>.stderr | tee .stdout \
+  | perl -0777 -pe 's/(\n#.*?)+\n//g' \
+  | less -Xrf) \
+  && kill -9 $spinpid \
 || (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
 (kill -9 $spinpid 2>/dev/null; printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run $GO";echo "where") | gdb ./w.x; exit) || exit
 
