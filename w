@@ -1,3 +1,7 @@
+# sets LINES/COLUMNS
+stty size >/dev/null
+clear # this too!
+
 # --- dependencies
 if [[ jio.c -nt w.x ]]; then
   rm w.x wless.x 2>/dev/null
@@ -84,8 +88,7 @@ clear
 # (detect change of screen width?)
 # NOTE: diplay ok as show whole lines!
 
-(cat .stdout | perl -0777 -pe 's/(\n#.*?)+\n//g') \
-| head -$((LINES-1))
+./wdisplay .stdout 1 $((LINES-1))
 
 # --- display spinning globe!
 
@@ -107,8 +110,7 @@ printf "\e[1;4H\e[48;5;0m"
 
 (stdbuf -i0 -o0 -e0 ./w.x "$GO" > .stdout 2>.stderr \
   && (kill -9 $spinpid; \
-      cat .stdout \
-      | perl -0777 -pe 's/(\n#.*?)+\n//g' \
+      ./wdisplay \
       | less -Xrf)) \
 || (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
 (kill -9 $spinpid 2>/dev/null; printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run $GO";echo "where") | gdb ./w.x; exit) || exit

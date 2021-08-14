@@ -10,7 +10,7 @@
 #include "jio.c"
 
 // - limits
-int nlines= 200, nright= 10, ntab= 8;
+int nlines= 12000, nright= 10, ntab= 8;
 
 int rows;
 
@@ -64,7 +64,7 @@ void display(char* file, int line, int c) {
   }
       
   // build command
-  const char command[]= "cat \"%s\" | perl -0777 -pe 's/(\\n#.*?)+\\n//g' | tail +%d | head -%d";
+  const char command[]= "./wdisplay %s %d %d";
   char buf[sizeof(command)+1 + 1024]= {0};
   int len= snprintf(buf, sizeof(buf), command, file?file:".stdout", top+1, rows);
   assert(len+5 < sizeof(buf));

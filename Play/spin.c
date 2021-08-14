@@ -27,7 +27,7 @@ void spin(int sig) {
       printf("😡"),
       printf("🏠");
     else
-      printf("%s", states[spin_n % 3]);
+      printf(" %s", states[spin_n % 3]);
   } restore(); show();
   fflush(0);
 }
