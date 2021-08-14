@@ -1,1 +1,5 @@
-git status | cat - | grep "^	" | tac | grep -C9999 --color=auto  -P "(new file:|modified:)" 
+git status | cat - | grep "^	" | tac\
+| GREP_COLORS='mt=01;32' grep --color=always -P "(new file:|$)" \
+| GREP_COLORS='mt=01;33' grep --color=always -P "(modified:|$)" \
+| GREP_COLORS='mt=01;31' grep --color=always -P "(remove|delete|$)" \
+| cat -
