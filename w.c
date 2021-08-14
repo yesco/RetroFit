@@ -126,7 +126,7 @@ int decode_color(char* name, int dflt) {
 #define SKIP " script head "
 
 #define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dl dt dd table tr noscript address tbody "
-#define XNL " /ul /ol hr tbody "
+#define XNL " br /ul /ol hr tbody "
 #define HD " h1 h2 h3 h4 h5 h6 "
 //#define CENTER " center caption " // TODO
 

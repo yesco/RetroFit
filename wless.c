@@ -9,14 +9,13 @@
 // normally don't include .c...
 #include "jio.c"
 
-int top, right, tab;
-
-#define FIX(a, lo, hi) a=a<lo?lo: a>hi?hi:a
-
-// TODO:
+// - limits
 int nlines= 200, nright= 10, ntab= 8;
 
-int lines=20; // screen size
+int rows;
+
+// - state
+int top, right, tab;
 
 int incdec(int v, int c, int ikey, int dkey, int min, int max, int min2val, int max2val) {
   if (c==ikey) v++;
@@ -43,7 +42,7 @@ void deltab() {
 
 // --- Display
 
-void display(int c) {
+void display(char* file, int line, int c) {
   // home
   // (no cleear screen - no flicker)
   cursoroff();
@@ -51,6 +50,7 @@ void display(int c) {
   reset();
 
   // pretty print state & key
+  // TODO: remove
   if (1) { // debug
     printf("%3d %3d %3d ", top, right, tab);
     clearend();
@@ -64,9 +64,9 @@ void display(int c) {
   }
       
   // build command
-  const char command[]= "cat .stdout | perl -0777 -pe 's/(\\n#.*?)+\\n//g' | tail +%d | head -%d";
-  char buf[sizeof(command)+1 + 3*15]= {0};
-  int len= snprintf(buf, sizeof(buf), command, top+1, lines-2);
+  const char command[]= "cat \"%s\" | perl -0777 -pe 's/(\\n#.*?)+\\n//g' | tail +%d | head -%d";
+  char buf[sizeof(command)+1 + 1024]= {0};
+  int len= snprintf(buf, sizeof(buf), command, file?file:".stdout", top+1, rows);
   assert(len+5 < sizeof(buf));
 
   clearend(); putchar('\n');
@@ -79,14 +79,21 @@ void display(int c) {
   cursoron();
 }
 
+void help() {
+  system("./w wless.html");
+}
 
 int main(void) {
+  screen_init();
+  rows = screen_rows-5;
   clear();
+
+  char* file= ".stdout";
 
   int c= 0, q=0;
   while(1) {
 
-    display(c);
+    display(file, top, c);
 
     // read key
     c= key();
@@ -94,20 +101,21 @@ int main(void) {
     if (c==META+'[') c=tolower(key())+META;
 
     // action
-    if (c==CTRL+'C') break;
+    //if (c==CTRL+'H') help();
+    if (c==CTRL+'C' ||c=='q') break;
     if (c==CTRL+'Z') kill(getpid(), SIGSTOP);
     // navigation
     if (c=='<') top= 0; // top
     if (c=='>') top= nlines-1; // bottom
-    if (c==META+'V' || c==BS || c==DEL) if ((top-= lines-2) < 0) top= 0;
-    if (c==CTRL+'V' || c==' ') if ((top+= lines+2) > nlines) top= nlines-1;
+    if (c==META+'V' || c==DELETE || c==DEL) if ((top-= rows) < 0) top= 0;
+    if (c==CTRL+'V' || c==' ') if ((top+= rows) > nlines) top= nlines-1;
 
     // tab mgt
     if (c>='a' && c<='z') click(c);
     if (c>='A' && c<='Z') click(c);
 
     if (c==CTRL+'W' || c==CTRL+'K') deltab();
-    if (c==CTRL+'N' || c==CTRL+'T') newtab();
+    if (c==CTRL+'T') newtab();
     //if (c==CTRL+'T') // new tab
     //if (c==CTRL+'N') // new window
     //if (c==

@@ -65,7 +65,7 @@ void B(int n) { bg(n); }
 ////////////////////////////////////////
 // - keyboard
 
-enum { ESC=27, BS=8, DEL=127, CTRL=-64, META=128, UP=META+'a', DOWN, RIGHT, LEFT, TAB=9, SHIFT_TAB=META+'z' };
+enum { ESC=27, DEL=127, CTRL=-64, META=128, UP=META+'a', DOWN, RIGHT, LEFT, TAB=9, SHIFT_TAB=META+'z', DELETE=META+'3', };
 
 int key() {
   struct termios old, tmp;

@@ -109,7 +109,7 @@ printf "\e[1;4H\e[48;5;0m"
   && (kill -9 $spinpid; \
       cat .stdout \
       | perl -0777 -pe 's/(\n#.*?)+\n//g' \
-      | less -XFrf)) \
+      | less -Xrf)) \
 || (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
 (kill -9 $spinpid 2>/dev/null; printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run $GO";echo "where") | gdb ./w.x; exit) || exit
 
