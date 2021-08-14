@@ -35,6 +35,20 @@ dstr* dstrncat(dstr* d, char* add, int n) {
   return d;
 }
 
+dstr* dstrprintf(dstr* d, char* fmt, ...) {
+  va_list argp;
+  char dummy[1024];
+  va_start(argp, fmt);
+  printf("111111111\n");
+  // TODO:crashes her
+  int n= vsnprintf(&dummy, 1024, fmt, argp);
+  if (!d || strlen(d->s)+n+1 > d->max)
+    d= dstrncat(d, NULL, n+1);
+  vsnprintf(d->s+strlen(d->s), n, fmt, argp);
+  va_end(argp);
+  return d;
+}
+
 #ifndef MAIN
 #define MAIN __FILE__
 int main(void) {
@@ -59,7 +73,26 @@ int main(void) {
     char c= 'x';
     d= dstrncat(d, &c, 1);
   }
-  printf("\nlen=%d max=%d\n", strlen(d->s), d->max);
+  printf("\nlen=%lu max=%d\n", strlen(d->s), d->max);
+
+  printf("---------------\n");
+  char buf[1024];
+  int n= printf("char=%c str=%s int=%d float=%f\n", 65, "foobar", 4711, 3.141592654);
+  printf("n=%d\n", n);
+
+  printf("---------------\n");
+  // dstrnprintf()
+  dstr* s= dstrncat(NULL, "prefix:", -1);
+  printf("\nlen=%lu max=%d str=%s\n", strlen(s->s), s->max, s->s);
+
+  s= dstrncat(s, "foo", -1);
+  printf("\nlen=%lu max=%d str=%s\n", strlen(s->s), s->max, s->s);
+
+  s= dstrprintf(s, "char=%c str=%s int=%d float=%f\n", 65, "foobar", 4711, 3.141592654);
+  printf("\nlen=%lu max=%d str=%s\n", strlen(s->s), s->max, s->s);
+
+  s= dstrprintf(s, "char=%c str=%s int=%d float=%f\n", 65, "foobar", 4711, 3.141592654);
+  printf("\nlen=%lu max=%d str=%s\n", strlen(s->s), s->max, s->s);
 }
 #endif
 

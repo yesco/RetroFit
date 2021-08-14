@@ -73,7 +73,24 @@ dstr* dstrncat(dstr* d, char* add, int n) {
   return d;
 }
 
-
+// Dynamic string D printf using FORMAT with ARGUMENTS (...)
+//
+// Usage: d= dstrprintf(d, format, ...)
+//     d= dstrprintf(d, "c=%c s=%s i=%d f=%f\n", 65, "foobar", 4711, 3.1415);
+// Returns: d or newly allocated dstr
+dstr* dstrprintf(dstr* d, char* fmt, ...) {
+  va_list argp;
+  char dummy[1024];
+  va_start(argp, fmt);
+  printf("111111111\n");
+  // TODO:crashes her
+  int n= vsnprintf(&dummy, 1024, fmt, argp);
+  if (!d || strlen(d->s)+n+1 > d->max)
+    d= dstrncat(d, NULL, n+1);
+  vsnprintf(d->s+strlen(d->s), n, fmt, argp);
+  va_end(argp);
+  return d;
+}
 
 // generally used for parse() of symbols
 typedef char TAG[32];
