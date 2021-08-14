@@ -1,0 +1,43 @@
+<h1>./wless browser</h1>
+
+<p><tt>./wless</tt> is a tiny <tt>less</tt>-style pager for <tt>./w</tt> browser.</p>
+
+<po>It is meant to be easily extensible, as much as <em>C</em> can be, haha! Many command are implemented by calling external <tt>shell</tt>-scripts.</p>
+
+<h2>Key Commands</h2>
+<p>The browser try to be compatible with both <tt>less</tt> and <tt>chrome, firefox, opera</tt> while still providing textual (non-mouse) navigatable <em>enhanced</em> experience!</p>
+<br><br>
+<h3>Paging</h3>
+<pre>
+^V SPC         - page down
+M-V DEL(ETE)   - page up
+UP ^P          - up one line
+DN ^N          - down one line
+&lt;              - top
+&gt;              - bottom
+</pre>
+
+<h3>Navigation</h3>
+
+<pre>
+a-z            - follow link in tab
+A-Z            - follow in NEW tab
+</pre>
+
+<h3>Tabs</h3>
+
+<pre>
+^T             - open <i>NEW</i> TAB
+^W             - close tab
+A-Z            - follow link in <i>NEW</i> TAB
+^F RIGHT       - forward tab (next)
+^B LEFT        - backward tab (prev)
+^H             - help
+</pre>
+
+<h3>Forms</h3>
+
+<pre>
+TAB            - move next input field
+SHIFT-TAB      - move previous fie.d
+</pre>

@@ -1,7 +1,17 @@
+# Display an preformatted ANSI-file
+# starting at opt LINE (1) showing 
+# LINES (99999).
+#
+# Usage:
+#  ./wdisplay [ansi.f [line [lines]]]
+
+echo "`date --iso=s` #=WDISPLAY $@" >> .wlog
+
 # sets LINES/COLUMNS
 stty size >/dev/null
 
 (cat ${1:-.stdout} | perl -0777 -pe 's/(\n#.*?)+\n//g') \
-| tail +${2:-1} | head -${3:-99999}
+| tail +${2:-1} | head -${3:-$((LINES-2))}
 
-#| tail +${2:-1} | head -${3:-$((LINES-1))}
+#| tail +${2:-1} | head -${3:-99999}
+

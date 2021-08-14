@@ -1,0 +1,23 @@
+# Show log (last first)
+# 
+# Log line format::
+#   #=<event> <data> ...
+#
+#   (the format is compatible with
+#    inline metadata of ANSI files)
+#
+# Examples:
+#   #=W <URL>
+#   #=WDISPLAY <URL> <first> <lines>
+
+
+# Usage:
+#   ./wlog [lines]
+
+# get lines
+stty size >/dev/null
+
+# show log entries in reverse order
+
+tac .wlog | tail -${1:-$((LINES-3))}
+

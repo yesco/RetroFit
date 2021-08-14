@@ -84,6 +84,7 @@ void help() {
 }
 
 int main(void) {
+  system("echo '`date --iso=ns` #=WLESS`' >> .wlog");
   screen_init();
   rows = screen_rows-5;
   clear();

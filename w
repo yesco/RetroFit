@@ -1,44 +1,11 @@
-# sets LINES/COLUMNS
+# --- sets LINES/COLUMNS
 stty size >/dev/null
 clear # this too!
 
-# --- dependencies
-if [[ jio.c -nt w.x ]]; then
-  rm w.x wless.x 2>/dev/null
-fi
-if [[ table.c -nt w.x ]]; then
-  rm w.x 2>/dev/null
-fi
+./wbuild
 
-# --- compile w.c
-if [[ w.c -nt w.x ]]; then
-  echo "--- w.c changed, recompiling w.x..."
-  rm w.x 2>/dev/null
-  cc -g -w -lunistring  w.c -o w.x || (printf "maybe need to install libunistring?\napt install libunistring\nbrew install libunistring\nyum install libunistring-devel\n" && exit 4711) || exit
-fi
+# --- URLs
 
-# --- compile spinner.c
-# - if fails, ignore
-
-if [[ Play/spin.c -nt spin.x ]]; then
-  echo "--- spin.c changed, recompiling w.x..."
-  rm spin.x 2>/dev/null
-  cc -g -w Play/spin.c -o spin.x # || exit
-fi
-
-# --- compile wless.c
-# - if fails, ignore
-
-if [[ wless.c -nt wless.x ]]; then
-  echo "--- wless.c changed, recompiling wless.x..."
-  rm wless.x 2>/dev/null
-  cc -g -w wless.c -o wless.x || exit
-fi
-
-# 
-# cc -g -w w.c && ((echo "run http://yesco.org/";echo "where") | gdb ./a.out )
-
-# --- URLS
 URL=https://example.com/
 
 # So ugly!
@@ -68,7 +35,10 @@ URL=test.html
 # --- Select actual URL to view
 GO="${1:-$URL}"
 
-# less
+# --- Log it
+echo "`date --iso=s` #=W $GO" >> .wlog
+
+# --- less options help
 # - http://www.greenwoodsoftware.com/less/faq.html#tricks
 # less -F        # exit at end of file
 # less +F        # follow at end of file as it grows "tail -f"
@@ -82,13 +52,11 @@ GO="${1:-$URL}"
 
 clear
 
-# predisplay last file
-# (will appear to be very fast!)
 # TODO: use correct cached file
 # (detect change of screen width?)
-# NOTE: diplay ok as show whole lines!
 
-./wdisplay .stdout 1 $((LINES-1))
+# show a page-ful of last page viewed
+./wdisplay .stdout 0 $((LINES-2))
 
 # --- display spinning globe!
 

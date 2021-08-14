@@ -1,0 +1,7 @@
+# Usage:
+#   ./whistory [lines]
+
+# get lines
+stty size >/dev/null
+
+tac .wlog | grep ' #=W ' .wlog | tail -${1:-$((LINES-3))}
