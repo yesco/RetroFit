@@ -1,0 +1,72 @@
+Code Name              ACP OEM Win Win Win
+                 W   W
+                  i   i
+                   n   n
+                    d   d
+                     o   o
+C                     w   w
+ o                     s   s
+  d                     
+   e                     N   N
+    -                 O   T   T
+     P                 E   
+      a                 M   3   3
+       g                 C   .
+        e                 P   1
+
+
+                               NT 3.1
+                               s s NT 3.51
+                               w w ws NT 95
+-Page ID                   P   o o o
+e                          C   d d d
+d                          M   n n n
+o                          E   i i i
+C    Name              ACP O   W W W
+
+                                     s
+                                    w  1   
+                               P   o  . o  
+   e                          C   d  3 d   
+  d                          M   n   n     
+ o                          E   i T i      
+C I  Name              ACP O   W N W
+
+
+CODE Name              ACP OEM Windows:
+ID                         CP  3  3.51 95
+
+CODE Name              ACP OEM Win Win Win
+ID                         CP  dow dow dow
+                               s 3 s 3 s 9
+                               .1  .51 5
+
+CODE ID                ACP OEMCP
+     Name                     Windows NT 3.1
+                                   Windows NT 3.51
+                                       Windows NT 95
+
+*1* Code-Page/ID
+*2* OEMCP
+*3* Windows/NT 3.1
+*4* Windows/NT 3.51
+*5* Windows/NT NT
+
+*1                         *2  *3  *4  *5
+Code Name              ACP OEM Win Win Win
+-------------------------------------------
+1200 Unicode (BMP of IS         X   X   *
+1250 Windows 3.1 Easter X       X   X   X
+1251 Windows 3.1 Cyrill X       X   X   X
+1252 Windows 3.1 US (AN X       X   X   X
+1253 Windows 3.1 Greek  X       X   X   X
+1254 Windows 3.1 Turkis X       X   X   X
+1255 Hebrew             X               X
+1256 Arabic             X               X
+1257 Baltic             X               X
+1361 Korean (Johab)     X           **  X
+437  MS-DOS United Stat     X   X   X   X
+708  Arabic (ASMO 708)      X           X
+709  Arabic (ASMO 449+,     X           X
+710  Arabic (Transparen     X           X
+720  Arabic (Transparen     X           X

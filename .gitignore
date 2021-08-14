@@ -9,9 +9,27 @@ test.c
 stderr
 stdout
 wget-log*
-*.x
-a.out
 index.html*
 package-lock.json
 node_modules
 
+# - binaries
+*.x
+a.out
+Graphics/font8x8/render
+
+# - copyrighted can't checkin
+Tests/yesco.org
+Tests/tables-advanced.moz
+Tests/runeberg.org
+Tests/lysator.liu.se
+Tests/ibm.com
+Tests/html.com.tables
+Tests/google.com
+Tests/forth.org
+
+# - data files
+.wlog
+.*.c
+.stdout
+.stderr

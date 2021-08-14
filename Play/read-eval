@@ -1,0 +1,89 @@
+#
+
+# read - https://www.computerhope.com/unix/bash/read.htm
+
+# read special keys in bash *GOOD!*
+# - https://unix.stackexchange.com/questions/294908/read-special-keys-in-bash
+# showkey -a
+# vtshowkeys (pkg install vtutils)
+
+# TUI dialog modal boxes
+# - https://invisible-island.net/dialog/dialog.html
+
+# ANSI command sequences
+# - http://ascii-table.com/ansi-escape-sequences-vt-100.php
+
+# read-eval-loop (see inline function on page)
+# - https://unix.stackexchange.com/questions/3842/how-can-i-scroll-within-the-output-of-my-watch-command
+
+# fn_console_size_change()...
+#trap "fn_console_size_change" SIGWINCH # https://en.wikipedia.org/wiki/Signal_(IPC)#SIGWINCH
+#trap "fn_quit" INT TERM EXIT
+
+timeout_watch=1
+
+while true ; do
+  fn_print_file
+  read -rsn1 -t $timeout_watch k
+  printf "."
+  case "$k" in
+    [[:graph:]])
+    # Normal input handling
+    ;;
+    $'\x09') # TAB
+    # Routine for selecting current item
+    ;;
+    $'\x7f') # Back-Space
+    # Routine for back-space
+    ;;
+    $'\x01') # Ctrl+A
+    # Routine for ctrl+a
+    ;;
+    $'\x1b') # ESC
+      read -rsn1 k # char 2
+      [[ "$k" == ""  ]] && return  Esc-Key
+      [[ "$k" == "[" ]] && read -rsn1 -t $timeout_read k # char 3
+      [[ "$k" == "O" ]] && read -rsn1 -t $timeout_read k # char 3
+      case "$k" in
+        A)  # Arrow-Up-Key
+            (( "$first" > "1" )) &&\
+              first=$(($first-1))
+            ;;
+        B)  # Arrow-Down-Key
+            (( "$first" < "$line_last" )) &&\
+              first=$(($first+1))
+            ;;
+        H)  # Pos1-Key
+            first=1
+            ;;
+        F)  # End-Key
+            first=$line_last
+            ;;
+        5)  # PgUp-Key
+            read -rsn1 -t $timeout_read k # char 4
+            if [[ "$k" == "~" ]] &&\
+               (( "$first" > "$(($lines-2))" )) ; then
+              first=$(($first-$lines-2))
+            else
+              first=1
+            fi
+            ;;
+        6)  # PgDown-Key
+            read -rsn1 -t $timeout_read k # char 4
+            if [[ "$k" == "~" ]] &&\
+               (( "$first" < "$(($line_last-$lines-2))" )) ; then
+              first=$(($first+$console_lines-2))
+            else
+              first=$line_last
+            fi
+            ;;
+        esac
+        # fix oo-bounds
+        [[ "$first" < 0 ]] && first=1
+        [[ "$first" > $line_last ]] && first=$(($line_last-$lines-2))
+
+        # Try to flush out other sequences ...
+        read -rsn4 -t $timeout_read    
+        ;;
+    esac
+done
