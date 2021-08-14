@@ -1,7 +1,9 @@
 # Show log (last first)
 # 
 # Log line format::
-#   #=<event> <data> ...
+#
+#   2021-08-15T02:56:10+0700  #=<event> <data> ...   (from C: strftime:%FT%T%z)
+#   2021-08-15T02:56:14+07:00 #=<event> <data> ...   (from unix: date --iso==s)
 #
 #   (the format is compatible with
 #    inline metadata of ANSI files)

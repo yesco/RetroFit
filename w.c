@@ -822,7 +822,8 @@ int main(int argc, char**argv) {
   char* wget= calloc(strlen(url) + strlen(WGET) + 1, 1);
   sprintf(wget, WGET, url);
   f= fopen(url, "r");
-  if (!f) // && strstr(url, "http")==url)
+  // TODO: remove? make pure renderer?
+  if (!f)
     f= popen(wget, "r");
   if (!f) return 404; // TODO: better error
 

@@ -54,9 +54,6 @@ SAFE=`./wquote "$GO"`
 FILE=$WDIR/Cache/$SAFE
 [ ! -f "$GO" ] && wget -q -b -O $FILE -o $FILE.LOG "$GO" >/dev/null
 echo "`date --iso=s` #=W $GO" >> $FILE.WLOG
-exit
-
-touch $WDIR/Cache/$SAFE
 
 # --- Log it
 echo "`date --iso=s` #=W $GO" >> .wlog
