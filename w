@@ -40,7 +40,6 @@ URL=http://runeberg.org
 
 URL=https://github.com/fractalide/copernica
 
-
 # code/pre
 URL=http://www.columbia.edu/~fdc/sample.html
 
@@ -52,11 +51,37 @@ GO="${1:-$URL}"
 
 SAFE=`./wquote "$GO"`
 FILE=$WDIR/Cache/$SAFE
-[ ! -f "$GO" ] && wget -q -b -O $FILE -o $FILE.LOG "$GO" >/dev/null
-echo "`date --iso=s` #=W $GO" >> $FILE.WLOG
+
+# --- display preview
+
+clear
+
+# TODO: use correct cached file
+# (detect change of screen width?)
+
+[ ! -f $FILE.ansi ] && (./w.x $FILE > $FILE.ansi)
+
+# show a page-ful of last page viewed
+
+./wdisplay $FILE.ansi 0 $((LINES-2))
 
 # --- Log it
 echo "`date --iso=s` #=W $GO" >> .wlog
+
+# --- WGET in background
+# Exit:
+#   1   Generic error code.
+#   2   Parse error (options).
+#   3   File I/O error.
+#   4   Network failure.
+#   5   SSL verification failure.
+#   6   Username/password auth fail.
+#   7   Protocol errors.
+#   8   Server gave error.
+
+# TODO: always update?
+[ ! -f "$GO" ] && (wget --backups=3 -q -O $FILE -a $FILE.LOG "$GO" >/dev/null) &
+echo "`date --iso=s` #=W $GO" >> $FILE.WLOG
 
 # --- less options help
 # - http://www.greenwoodsoftware.com/less/faq.html#tricks
@@ -67,16 +92,6 @@ echo "`date --iso=s` #=W $GO" >> .wlog
 # less +G        # go to end
 
 # tail +15 | head -20
-
-# --- display preview
-
-clear
-
-# TODO: use correct cached file
-# (detect change of screen width?)
-
-# show a page-ful of last page viewed
-./wdisplay .stdout 0 $((LINES-2))
 
 # --- display spinning globe!
 

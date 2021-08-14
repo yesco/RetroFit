@@ -778,7 +778,7 @@ int main(int argc, char**argv) {
   char* url= argv[1];
 
   // metadata
-  printf("\n#=DATE ");
+  printf("\n#=DATE "); fflush(stdout);
   system("date --iso=s");
   metadata("URL", url, NULL, NULL);
   // TODO: metadata("BASE", 
