@@ -1,3 +1,16 @@
+#
+#     ./w - mini web-browser
+#
+#
+#
+# (>) CC-BY 2021 Jonas S Karlsson
+#
+#           jsk@yesco.org
+#
+
+# Usage:
+#  ./w URL
+
 # --- Setup cache structure
 # TODO: in the home directory?
 
