@@ -1,3 +1,7 @@
+// TODO: keep rereading file to displaY?
+// tail -f source:
+// - http://git.savannah.gnu.org/cgit/coreutils.git/tree/src/tail.c
+
 // partly from old imacs.c
 #include <stdlib.h>
 #include <ctype.h>
@@ -46,36 +50,47 @@ void display(char* file, int line, int c) {
   // home
   // (no cleear screen - no flicker)
   cursoroff();
-  gotorc(0, 0);
   reset();
+  gotorc(1, 0);
+  fflush(stdout);
+
+  // build command
+  const char command[]= "./wdisplay %s %d %d";
+  char buf[sizeof(command)+1 + 1024]= {0};
+  int len= snprintf(buf, sizeof(buf), command, file?file:".stdout", top+2, rows);
+  assert(len+5 < sizeof(buf));
+
+  fgcolor(0); bgcolor(7);
+
+  system(buf);
+  
+//  reset();
+  clearend(); C(7); B(0); clearend();
+  cleareos();
+
+  gotorc(rows, 0);
+//  cleareos();
+
+//  reset();
+
+  return;
+
+  gotorc(screen_rows-1, 0);
 
   // pretty print state & key
   // TODO: remove
   if (1) { // debug
     printf("%3d %3d %3d ", top, right, tab);
-    clearend();
+    //clearend();
     if (c<32)
       printf(" ^%c", c+64);
     else if (c>127)
       printf(" M-%c", c-META);
     else
       putchar(c);
-    putchar('\n');
+    fflush(stdout);
   }
       
-  // build command
-  const char command[]= "./wdisplay %s %d %d";
-  char buf[sizeof(command)+1 + 1024]= {0};
-  int len= snprintf(buf, sizeof(buf), command, file?file:".stdout", top+1, rows);
-  assert(len+5 < sizeof(buf));
-
-  clearend(); putchar('\n');
-  fgcolor(0); bgcolor(7); clearend();
-
-  system(buf);
-
-  reset();
-  cleareos();
   cursoron();
 }
 
@@ -86,8 +101,7 @@ void help() {
 int main(void) {
   system("echo '`date --iso=ns` #=WLESS`' >> .wlog");
   screen_init();
-  rows = screen_rows-5;
-  clear();
+  rows = screen_rows-2;
 
   char* file= ".stdout";
 

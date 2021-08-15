@@ -17,7 +17,7 @@ WDIR=.w
 stty size >/dev/null
 clear # this too!
 
-./wbuild
+./wbuild || exit $?
 
 # --- URLs
 
@@ -68,6 +68,10 @@ clear
 # --- Log it
 echo "`date --iso=s` #=W $GO" >> .wlog
 
+# --- display spinning globe!
+
+./spin.x 1>/dev/null 2>/dev/null & spinpid=$!
+
 # --- WGET in background
 # Exit:
 #   1   Generic error code.
@@ -80,7 +84,7 @@ echo "`date --iso=s` #=W $GO" >> .wlog
 #   8   Server gave error.
 
 # TODO: always update?
-[ ! -f "$GO" ] && (wget --backups=3 -q -O $FILE -a $FILE.LOG "$GO" >/dev/null) &
+[ ! -f "$GO" ] && (wget -q -O $FILE.TMP -a $FILE.LOG "$GO" >/dev/null ; {  kill $foo_pid && wait $foo_pid; } 2>/dev/null 1>&2 ; cat $FILE.TMP > $FILE) &
 echo "`date --iso=s` #=W $GO" >> $FILE.WLOG
 
 # --- less options help
@@ -93,23 +97,39 @@ echo "`date --iso=s` #=W $GO" >> $FILE.WLOG
 
 # tail +15 | head -20
 
-# --- display spinning globe!
-
-./spin.x 2>/dev/null & spinpid=$!
-
 # --- load web-page
 # - display the real thing
 # - or give error code
 # - and gdb where stacktrace!
-
-# cursor home
-printf "\e[1;4H\e[48;5;0m"
 
 # less -X # scroll after last shown page
 # == no use -C = see all that scrolled
 # less -fr # (force) show raw ANSI codes
 # TODO: >(head ...) if it loads slowly,
 #   otherwise needs to wait till all loaded
+
+# --- reset screen after text
+
+printf "\e[m\e[48;50m\e[38;57m"
+
+# --- wait for HTML downloaded
+
+while [ $FILE.ansi -nt $FILE ]; do
+      printf ">"
+      sleep 1
+done
+
+./w.x $FILE > $FILE.ansi
+
+# TODO: fix
+cp $FILE.ansi .stdout
+
+./wless.x
+
+exit
+
+# --- cursor home
+#printf "\e[1;4H\e[48;5;0m"
 
 (stdbuf -i0 -o0 -e0 ./w.x "$GO" 2>.stderr | tee .stdout \
   | perl -0777 -pe 's/(\n#.*?)+\n//g' \
@@ -120,7 +140,7 @@ printf "\e[1;4H\e[48;5;0m"
 
 # --- kill spinner for sure
 
-kill -9 $spinpid 2>/dev/null
+#kill -9 $spinpid 2>/dev/null
 
 ###################################
 
