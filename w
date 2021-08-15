@@ -57,13 +57,20 @@ URL=https://github.com/fractalide/copernica
 URL=http://www.columbia.edu/~fdc/sample.html
 
 URL=http://yesco.org/
-URL=test.html
+URL=Tests/test.html
 
 # --- Select actual URL to view
 GO="${1:-$URL}"
 
-SAFE=`./wquote "$GO"`
-FILE=$WDIR/Cache/$SAFE
+if [[ -f $GO ]]; then
+  SAFE=`./wquote "$GO"`
+  FILE=$GO
+  CFILE=$WDIR/Cache/$SAFE
+else
+  SAFE=`./wquote "$GO"`
+  FILE=$WDIR/Cache/$SAFE
+  CFILE=$WDIR/Cache/$SAFE
+fi
 
 # --- display preview
 
@@ -72,14 +79,15 @@ clear
 # TODO: use correct cached file
 # (detect change of screen width?)
 
-[ ! -f $FILE.ansi ] && (./w.x $FILE > $FILE.ansi)
+[ ! -f $CFILE.ansi ] && (./w.x $FILE > $CFILE.ansi)
 
 # show a page-ful of last page viewed
 
-./wdisplay $FILE.ansi 0 $((LINES-2))
+./wdisplay $CFILE.ansi 0 $((LINES-3))
 
 # --- Log it
-echo "`date --iso=s` #=W $GO" >> .wlog
+echo "`date --iso=s` #=W $GO" \
+| tee .wlog >> .whistory
 
 # --- display spinning globe!
 
@@ -127,15 +135,16 @@ printf "\e[m\e[48;50m\e[38;57m"
 
 # --- wait for HTML downloaded
 
-while [ $FILE.ansi -nt $FILE ]; do
+[ "$CFILE" == "$FILE" ] && \
+while [ $CFILE.ansi -nt $FILE ]; do
       printf ">"
       sleep 1
 done
 
-./w.x $FILE > $FILE.ansi
+./w.x $FILE > $CFILE.ansi
 
 # TODO: fix
-cp $FILE.ansi .stdout
+cp $CFILE.ansi .stdout
 
 ./wless.x
 
