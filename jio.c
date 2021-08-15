@@ -59,7 +59,10 @@ void underline() { printf("\e[4m"); }
 void end_underline() { printf("\e[24m"); }
 
 // adjusted colors
-void C(int n) { fg(n + 8*(n!=0 && n<8)); }
+void C(int n) {
+  if (n==blue) fg(rgb(0, 0, 1));
+  fg(n + 8*(n!=0 && n<8));
+}
 void B(int n) { bg(n); }
 
 ////////////////////////////////////////

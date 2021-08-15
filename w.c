@@ -349,15 +349,16 @@ void safe_print(char* s, int space, int quote) {
   if (quote) putchar('"');
 }
 
-void metadata(char* type, char* a, char* b, char* c) {
+void metadata(char* type, char* a, char* b, char* c, char* d) {
   printf("\n#=%s", type);
   safe_print(a, 1, 0);
   safe_print(b, 1, 1);
+  safe_print(c, 1, 1);
   putchar('\n');
   if (c) {
     putchar('\n');
     putchar('#');
-    safe_print(c, 0, 0);
+    safe_print(d, 0, 0);
     putchar('\n');
   }
 }
@@ -474,6 +475,19 @@ int parse(FILE* f, char* endchars, char* s) {
   return c<0? 0: c;
 }
 
+char _keys[15]= {0};
+int _nkeys= 0;
+
+void step_key() {
+  int i= 0, v= _nkeys++;
+  do {
+    _keys[i++]= (v % 25) + 'a';
+    v /= 25;
+  } while (v);
+  _keys[i]= 0;
+}
+
+
 void addContent();
 
 void process(TAG *end);
@@ -538,7 +552,7 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (strstr(" a ", tag)) {
       end_underline();
       if (content && _url)
-        metadata("LINK", link_tag, content->s, _url->s);
+        metadata("LINK", link_tag, &_keys[0], content->s, _url->s);
       if (_url) free(_url); _url= NULL;
       if (!--_capture) addContent();
     }
@@ -598,6 +612,20 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
     if (_url) free(_url);
     _url= val;
     print_url();
+
+    indent();
+    int fg=_fg, bg=_bg; {
+      B(rgb(1,2,4)); C(white);
+      //B(blue); C(white);
+      //B(red); C(white); // retro!
+      step_key();
+      _fullwidth++;
+      char* k= (char*)_keys;
+      while (*k) p(*k++);
+      _fullwidth--;
+    } C(fg), B(bg);
+    p(' ');
+    
     return;
   }
   // not used
@@ -774,7 +802,7 @@ int main(int argc, char**argv) {
   // metadata
   printf("\n#=DATE "); fflush(stdout);
   system("date --iso=s");
-  metadata("URL", url, NULL, NULL);
+  metadata("URL", url, NULL, NULL, NULL);
   // TODO: metadata("BASE", 
   TRACE("URL=%s\n", url);
 
