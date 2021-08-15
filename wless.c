@@ -36,6 +36,7 @@ int incdec(int v, int k, int ikey, int dkey, int min, int max, int min2val, int 
 
 // --- Display
 
+// TODO: cleanup
 #define LINKS_MAX 25*25
 int nlinks= 0;
 char* links[LINKS_MAX] = {0};
@@ -62,6 +63,7 @@ if (tab==-6) exit(7);
 
   system(buf);
 
+  // TODO: cleanup
   const char CMD[]= "./wlinks %s";
   char cmd[sizeof(CMD)+1 + 1024]= {0};
   int lcmd= snprintf(cmd, sizeof(cmd), CMD, file);
@@ -69,17 +71,15 @@ if (tab==-6) exit(7);
   //FILE* flinks= popen(cmd, "r");
   FILE* flinks= fopen(".wlinks", "r");
   char* lk;
-  printf("\n\n\n\n\n\n\n\n\n\n\n\n----------------------%s\n", cmd);
-  printf("flinks= %lu\n", flinks);
-  int c;
 
-  // TODO: this doesn't work with popen
+  // free old links
   while(nlinks) {
     char* l= links[--nlinks];
     if (l) free(l);
     links[nlinks]= NULL;
   }
 
+  // TODO: this doesn't work with popen
   while (lk=fgetline(flinks))
     if (nlinks<LINKS_MAX)
       links[nlinks++]= lk;
@@ -88,6 +88,9 @@ if (tab==-6) exit(7);
 
   fclose(flinks);
   
+
+
+
 //  reset();
   clearend(); C(7); B(0); clearend();
   cleareos();
@@ -119,6 +122,27 @@ void help() {
 // --- ACTIONS
 
 void click(int k) {
+  for(int i=0; i<nlinks; i++) {
+     if (k==links[i][0]) {
+       // one key match found!
+       printf("===========FOUND match key=%c for '%s'\n", k, links[i]);
+
+       assert(!strchr(links[i], '\\'));
+       assert(!strchr(links[i], '"'));
+       assert(!strchr(links[i], '\''));
+       assert(!strchr(links[i], '\n'));
+
+       // TODO: not safe...
+       const char CMD[]="./wdownload \"%s\" &";
+       char cmd[sizeof(CMD)+1+strlen(links[i])];
+       snprintf(cmd, sizeof(cmd), CMD, &(links[i][2]));
+       system(cmd);
+
+       ntab++;
+       tab++;
+       return;
+     }
+  }
 }
 
 int newtab() {

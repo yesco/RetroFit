@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include  <stdio.h>
 #include <time.h>
 #include <locale.h>
  
@@ -27,7 +26,16 @@ int main(void) {
  
     // > date --iso=s
     // 2021-08-15T02:50:58+07:00
-    if (strftime(buff, sizeof buff, "%FT%T%z", &my_time)) {
+    if (1 && strftime(buff, sizeof buff, "%FT%T%z", &my_time)) {
+      puts(buff);
+    } else {
+      puts("strftime failed");
+    }
+
+    struct tm xxx;
+    time_t t= time(NULL);
+    xxx= *localtime(&t);
+    if (strftime(buff, sizeof(buff), "%FT%T%z", &xxx)) {
       puts(buff);
     } else {
       puts("strftime failed");

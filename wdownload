@@ -1,0 +1,73 @@
+WDIR=.w
+
+[ ! -d $WDIR ] \
+  && mkdir $WDIR
+  # TODO: could be shared globally
+
+[ ! -d $WDIR/Cache ] \
+  && mkdir $WDIR/Cache
+  # TODO: could be several?
+[ ! -d $WDIR/Session ] \
+  && mkdir $WDIR/Session
+
+# --- sets LINES/COLUMNS
+stty size >/dev/null
+
+# --- Select actual URL to download
+GO=$1
+
+if [[ -f $GO ]]; then
+  SAFE=`./wquote "$GO"`
+  FILE=$GO
+  CFILE=$WDIR/Cache/$SAFE
+else
+  SAFE=`./wquote "$GO"`
+  FILE=$WDIR/Cache/$SAFE
+  CFILE=$WDIR/Cache/$SAFE
+fi
+
+# --- Log it
+echo "`date --iso=s` #=W $GO $CFILE.ansi" \
+  | tee -a .wlog \
+  | tee -a $CFILE.WLOG \
+  >> .whistory
+
+# --- Do we already have it?
+# (detect change of screen width?)
+
+[ -f $CFILE.ansi ] && exit 0
+
+# --- download
+echo "`date --iso=s` #=DOWN $GO $CFILE.ansi" \
+  | tee -a .wlog \
+  >> $CFILE.WLOG
+
+# --- WGET
+# Exit:
+#   1   Generic error code.
+#   2   Parse error (options).
+#   3   File I/O error.
+#   4   Network failure.
+#   5   SSL verification failure.
+#   6   Username/password auth fail.
+#   7   Protocol errors.
+#   8   Server gave error.
+
+# TODO: always update?
+if [[ ! -f "$GO" ]]; then
+   # - display spinning globe!
+   ./spin.x & foo_pid=$!
+
+   # - download
+   wget -q -O $FILE.TMP -a $FILE.LOG "$GO" >/dev/null
+
+   # - kill the globe
+   ( kill $foo_pid && wait $foo_pid ) 2>/dev/null 1>&2
+
+   # - cat so get new inode? HMMM?
+   # TODO: mv???
+   cat $FILE.TMP > $FILE
+
+fi
+
+./w.x $FILE > $CFILE.ansi

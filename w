@@ -87,11 +87,11 @@ clear
 
 # --- Log it
 echo "`date --iso=s` #=W $GO $CFILE.ansi" \
-| tee .wlog >> .whistory
+| tee -a .wlog >> .whistory
 
 # --- display spinning globe!
 
-{ kill $foo_pid && wait $foo_pid; } 2>/dev/null 1>&2
+./spin.x & foo_pid=$!
 
 # --- WGET in background
 # Exit:
@@ -151,7 +151,7 @@ cp $CFILE.ansi .stdout
 ./wless.x || (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
 ( printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run ";echo "where") | gdb ./wless.x; exit 7) || exit 7
 
-#(stdbuf -i0 -o0 -e0 ./w.x "$GO" 2>.stderr | tee .stdout \
+#(stdbuf -i0 -o0 -e0 ./w.x "$GO" 2>.stderr | tee -a .stdout \
 #  | perl -0777 -pe 's/(\n#.*?)+\n//g' \
 #  | less -Xrf) \
 #  && kill -9 $spinpid \
