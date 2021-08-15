@@ -36,13 +36,17 @@ int incdec(int v, int k, int ikey, int dkey, int min, int max, int min2val, int 
 
 // --- Display
 
+#define LINKS_MAX 25*25
+int nlinks= 0;
+char* links[LINKS_MAX] = {0};
+
 void display(char* file, int line, int k) {
   // home
   // (no cleear screen - no flicker)
   cursoroff();
   reset();
   gotorc(0, 0); clearend();
-  printf("\r[%3d %3d] %s", start_tab+tab, line, file?file:"(null)");
+  printf("\r[%3d %3d] %s", start_tab+tab, line, file);
   clearend(); printf("\n");
 if (tab==-6) exit(7);
   gotorc(1, 0);
@@ -51,12 +55,38 @@ if (tab==-6) exit(7);
   // build command
   const char command[]= "./wdisplay %s %d %d";
   char buf[sizeof(command)+1 + 1024]= {0};
-  int len= snprintf(buf, sizeof(buf), command, file?file:".stdout", top+2, rows);
-  assert(len+5 < sizeof(buf));
+  int lbuf= snprintf(buf, sizeof(buf), command, file, top+2, rows);
+  assert(lbuf+5 < sizeof(buf));
 
   fgcolor(0); bgcolor(7);
 
   system(buf);
+
+  const char CMD[]= "./wlinks %s";
+  char cmd[sizeof(CMD)+1 + 1024]= {0};
+  int lcmd= snprintf(cmd, sizeof(cmd), CMD, file);
+  assert(lcmd+5 < sizeof(cmd));
+  //FILE* flinks= popen(cmd, "r");
+  FILE* flinks= fopen(".wlinks", "r");
+  char* lk;
+  printf("\n\n\n\n\n\n\n\n\n\n\n\n----------------------%s\n", cmd);
+  printf("flinks= %lu\n", flinks);
+  int c;
+
+  // TODO: this doesn't work with popen
+  while(nlinks) {
+    char* l= links[--nlinks];
+    if (l) free(l);
+    links[nlinks]= NULL;
+  }
+
+  while (lk=fgetline(flinks))
+    if (nlinks<LINKS_MAX)
+      links[nlinks++]= lk;
+    else
+      error(LINKS_MAX>=nlinks, 77, "Getmore links!");
+
+  fclose(flinks);
   
 //  reset();
   clearend(); C(7); B(0); clearend();
@@ -168,7 +198,7 @@ int main(void) {
     }
     //error(!hit, 10, "history log entry not found: %d", t);
 
-    display(file, top, k);
+    display(file?file:".stdout", top, k);
     visited();
 
     // - read key & decode

@@ -326,14 +326,25 @@ void myungetc(int c, FILE* f) {
 #define fgetc myfgetc
 #define ungetc myungetc
 
+char _keys[15]= {0};
+int _nkeys= 0;
 
+void step_key() {
+  int i= 0, v= _nkeys++;
+  do {
+    _keys[i++]= (v % 25) + 'a';
+    v /= 25;
+  } while (v);
+  _keys[i]= 0;
+}
 
 TAG link_tag;
 dstr* _url= NULL;
 
 void print_url() {
   if (!_url) return;
-  printf("\e]:A:{%s}\e\\", _url->s);
+  step_key();
+  printf("\e]:A:{%s %s}\e\\", _keys, _url->s);
 }
 
 void safe_print(char* s, int space, int quote) {
@@ -475,19 +486,6 @@ int parse(FILE* f, char* endchars, char* s) {
   return c<0? 0: c;
 }
 
-char _keys[15]= {0};
-int _nkeys= 0;
-
-void step_key() {
-  int i= 0, v= _nkeys++;
-  do {
-    _keys[i++]= (v % 25) + 'a';
-    v /= 25;
-  } while (v);
-  _keys[i]= 0;
-}
-
-
 void addContent();
 
 void process(TAG *end);
@@ -618,7 +616,6 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
       B(rgb(1,2,4)); C(white);
       //B(blue); C(white);
       //B(red); C(white); // retro!
-      step_key();
       _fullwidth++;
       char* k= (char*)_keys;
       while (*k) p(*k++);

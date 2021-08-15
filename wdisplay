@@ -8,13 +8,17 @@
 HLINE=${4:--1}
 TOP=${2:-1}
 LINES=${3:-$$((LINES-2))}
-FILE=${1:-.stdout}
+ANSI=${1:-.stdout}
 
-echo "`date --iso=s` #=WDISPLAY $HLINE $TOP $LINES $FILE" >> .wlog
+echo "`date --iso=s` #=WDISPLAY $HLINE $TOP $LINES $ANSI" >> .wlog
 
 # sets LINES/COLUMNS
 stty size >/dev/null
 
-(cat $FILE | perl -0777 -pe 's/(\n#.*?)+\n//g') \
+echo "./wlinks $ANSI > .wlinks"
+
+./wlinks $ANSI > .wlinks
+
+(cat $ANSI | perl -0777 -pe 's/(\n#.*?)+\n//g') \
 | tail +$TOP | head -$LINES
 
