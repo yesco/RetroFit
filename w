@@ -91,7 +91,7 @@ echo "`date --iso=s` #=W $GO" \
 
 # --- display spinning globe!
 
-./spin.x 1>/dev/null 2>/dev/null & spinpid=$!
+{ kill $foo_pid && wait $foo_pid; } 2>/dev/null 1>&2
 
 # --- WGET in background
 # Exit:
@@ -105,7 +105,7 @@ echo "`date --iso=s` #=W $GO" \
 #   8   Server gave error.
 
 # TODO: always update?
-[ ! -f "$GO" ] && (wget -q -O $FILE.TMP -a $FILE.LOG "$GO" >/dev/null ; {  kill $foo_pid && wait $foo_pid; } 2>/dev/null 1>&2 ; cat $FILE.TMP > $FILE) &
+[ ! -f "$GO" ] && (wget -q -O $FILE.TMP -a $FILE.LOG "$GO" >/dev/null ; { kill $foo_pid && wait $foo_pid; } 2>/dev/null 1>&2 ; cat $FILE.TMP > $FILE) &
 echo "`date --iso=s` #=W $GO" >> $FILE.WLOG
 
 # --- less options help
@@ -141,28 +141,21 @@ while [ $CFILE.ansi -nt $FILE ]; do
       sleep 1
 done
 
-./w.x $FILE > $CFILE.ansi
+./w.x $FILE > $CFILE.ansi \
+  || (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
+  (printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run $GO";echo "where") | gdb ./w.x; exit) || exit
 
 # TODO: fix
 cp $CFILE.ansi .stdout
 
 ./wless.x
 
-exit
-
-# --- cursor home
-#printf "\e[1;4H\e[48;5;0m"
-
-(stdbuf -i0 -o0 -e0 ./w.x "$GO" 2>.stderr | tee .stdout \
-  | perl -0777 -pe 's/(\n#.*?)+\n//g' \
-  | less -Xrf) \
-  && kill -9 $spinpid \
-|| (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
-(kill -9 $spinpid 2>/dev/null; printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run $GO";echo "where") | gdb ./w.x; exit) || exit
-
-# --- kill spinner for sure
-
-#kill -9 $spinpid 2>/dev/null
+#(stdbuf -i0 -o0 -e0 ./w.x "$GO" 2>.stderr | tee .stdout \
+#  | perl -0777 -pe 's/(\n#.*?)+\n//g' \
+#  | less -Xrf) \
+#  && kill -9 $spinpid \
+#|| (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
+#(kill -9 $spinpid 2>/dev/null; printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run $GO";echo "where") | gdb ./w.x; exit) || exit
 
 ###################################
 
