@@ -82,13 +82,7 @@ void display(char* file, int line, int c) {
   if (1) { // debug
     printf("%3d %3d %3d ", top, right, tab);
     //clearend();
-    if (c<32)
-      printf(" ^%c", c+64);
-    else if (c>127)
-      printf(" M-%c", c-META);
-    else
-      putchar(c);
-    fflush(stdout);
+    print_key(c);
   }
       
   cursoron();
@@ -110,10 +104,8 @@ int main(void) {
 
     display(file, top, c);
 
-    // read key
+    // - read key & decode
     c= key();
-    if (c==ESC) c=toupper(key())+META;
-    if (c==META+'[') c=tolower(key())+META;
 
     // action
     //if (c==CTRL+'H') help();
@@ -122,7 +114,7 @@ int main(void) {
     // navigation
     if (c=='<') top= 0; // top
     if (c=='>') top= nlines-1; // bottom
-    if (c==META+'V' || c==DELETE || c==DEL) if ((top-= rows) < 0) top= 0;
+    if (c==META+'V' || c==BACKSPACE || c==DEL) if ((top-= rows) < 0) top= 0;
     if (c==CTRL+'V' || c==' ') if ((top+= rows) > nlines) top= nlines-1;
 
     // tab mgt
@@ -141,7 +133,7 @@ int main(void) {
     COUNT_WRAP(right, RIGHT, LEFT, nright);
     COUNT(top, CTRL+'F', CTRL+'B', nlines);
 
-    COUNT_WRAP(tab, TAB, SHIFT_TAB, ntab);
+    COUNT_WRAP(tab, TAB, S_TAB, ntab);
 
     // quit?
     q= c<33 ? 0 : q*2 + c;

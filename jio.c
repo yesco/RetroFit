@@ -65,7 +65,22 @@ void B(int n) { bg(n); }
 ////////////////////////////////////////
 // - keyboard
 
-enum { ESC=27, DEL=127, CTRL=-64, META=128, UP=META+'a', DOWN, RIGHT, LEFT, TAB=9, SHIFT_TAB=META+'z', DELETE=META+'3', };
+// 'A' CTRL+'A' META+'A' FUNCTION+7
+//    0- 31  :  ^@ ^A...
+//   32-126  :  ' ' .. 'Z{|}~'
+//  127      :  BACKSPACE
+// -- Hi bit set == META
+//    1- 12  :  F1 .. F12
+//   32- 64  : (special keys)
+//     M-3     : DEL
+//   65- 96  :  M-A .. M-Z
+//   97- 126 : (special keys)
+//     M-a     : UP
+//     M-b     : DOWN
+//     M-c     : RIGHT
+//     M-d     : LEFT
+
+enum { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127, CTRL=-64, META=128, FUNCTION=META, UP=META+'a', DOWN, RIGHT, LEFT, S_TAB=META+'z', DEL=META+'3'};
 
 int key() {
   struct termios old, tmp;
@@ -82,5 +97,35 @@ int key() {
 
   // restore
   tcsetattr(0, TCSANOW, &old);
+
+  // TODO: fix ESC (by itself)
+  // fix multi-char key-encodings
+  if (c==ESC) c=toupper(key())+META;
+  if (c==META+'[') c=tolower(key())+META;
+  if (c==META+'3') c=key(), c= DEL;
+  // function keys
+  if (c==META+'O') c=key()-'P'+1+META;
+  if (c==META+'1') c=key()-'0'+META, key(), c= c==5+META?c:c-1;
+  if (c==META+'2') c=key()-'0'+9+META, key(), c= c>10+META?c-1:c;
+
   return c;
+}
+
+void print_key(int c) {
+  if (0) ;
+  else if (c==TAB) printf(" TAB");
+  else if (c==RETURN) printf(" RETURN");
+  else if (c<32) printf(" ^%c", c+64);
+  else if (c<127) putchar(c);
+  else if (c==BACKSPACE) printf(" BACKSPACE");
+  else if (c==DEL) printf(" DEL");
+  else if (c==S_TAB) printf(" S_TAB");
+  else if (c==META+'a') printf(" UP");
+  else if (c==META+'b') printf(" DOWN");
+  else if (c==META+'c') printf(" RIGHT");
+  else if (c==META+'d') printf(" LEFT");
+  else if (c>=META+' ') printf(" M-%c", c-META);
+  else if (c>=META)
+    printf(" F-%d", c-META);
+  fflush(stdout);
 }
