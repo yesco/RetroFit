@@ -5,13 +5,16 @@
 # Usage:
 #  ./wdisplay [ansi.f [line [lines]]]
 
-echo "`date --iso=s` #=WDISPLAY $@" >> .wlog
+HLINE=${4:--1}
+TOP=${2:-1}
+LINES=${3:-$$((LINES-2))}
+FILE=${1:-.stdout}
+
+echo "`date --iso=s` #=WDISPLAY $HLINE $TOP $LINES $FILE" >> .wlog
 
 # sets LINES/COLUMNS
 stty size >/dev/null
 
-(cat ${1:-.stdout} | perl -0777 -pe 's/(\n#.*?)+\n//g') \
-| tail +${2:-1} | head -${3:-$((LINES-2))}
-
-#| tail +${2:-1} | head -${3:-99999}
+(cat $FILE | perl -0777 -pe 's/(\n#.*?)+\n//g') \
+| tail +$TOP | head -$LINES
 

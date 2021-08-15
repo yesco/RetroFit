@@ -9,6 +9,12 @@
 //         jsk@yesco.org
 //
 
+// misc system IO
+
+#define TRACE(exprs...) if (trace) printf(exprs);
+
+#define error(exp, exitcode, msg...) \
+  do if (exp) { fprintf(stderr, "%%ERROR: %s:%d in %s(...)\n", __FILE__, __LINE__, __func__); fprintf(stderr, msg); fputc('\n', stderr); exit(exitcode); } while(0)
 
 ////////////////////////////////////////
 // - ansi screen

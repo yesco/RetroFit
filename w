@@ -86,7 +86,7 @@ clear
 ./wdisplay $CFILE.ansi 0 $((LINES-3))
 
 # --- Log it
-echo "`date --iso=s` #=W $GO" \
+echo "`date --iso=s` #=W $GO $CFILE.ansi" \
 | tee .wlog >> .whistory
 
 # --- display spinning globe!
@@ -148,7 +148,8 @@ done
 # TODO: fix
 cp $CFILE.ansi .stdout
 
-./wless.x
+./wless.x || (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
+( printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run ";echo "where") | gdb ./wless.x; exit 7) || exit 7
 
 #(stdbuf -i0 -o0 -e0 ./w.x "$GO" 2>.stderr | tee .stdout \
 #  | perl -0777 -pe 's/(\n#.*?)+\n//g' \

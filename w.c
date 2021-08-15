@@ -23,11 +23,6 @@ int trace= 0, trace_content= 0;
 // - bold
 // - paagraph indent/empty line
 
-#define TRACE(exprs...) if (trace) printf(exprs);
-
-#define error(exp, exitcode, msg...) \
-  do if (exp) { fprintf(stderr, "%%ERROR: %s:%d in %s(...)\n", __FILE__, __LINE__, __func__); fprintf(stderr, msg); fputc('\n', stderr); exit(exitcode); } while(0)
-
 // general formatting
 const int rmargin= 1; // 1 or more (no 0)
 const int lmargin= 2;
