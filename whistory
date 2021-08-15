@@ -4,4 +4,4 @@
 # get lines
 stty size >/dev/null
 
-tac .wlog | grep ' #=W ' | head -${1:-$((LINES-3))}
+tac .whistory | grep ' #=W ' | head -${1:-$((LINES-3))}

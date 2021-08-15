@@ -22,12 +22,12 @@ while(<STDIN>) {
         next unless s/$m\s+//;
     }
     
-    if (/^(\d+-\d+-\d+)T(\d+:\d+:\d+)\S+ (.*)/) {
-        my ($date, $time, $log) = ($1, $2, $3);
+    if (/^(\d+-\d+-\d+)T(\d+:\d+:\d+)\S+ (\S+)\s+(.*)$/) {
+        my ($date, $time, $url, $ansi) = ($1, $2, $3, $4);
         unless ($date eq $lastdate) {
             print "$date\n";
             $lastdate= $date;
         }
-        print "- $time $log\n";
+        print "- $time $url\n";
     }
 }

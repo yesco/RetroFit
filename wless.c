@@ -13,7 +13,9 @@
 #include "jio.h"
 
 // - limits
-int nlines= 12000, nright= 10, ntab= 0;
+int nlines= 12000, nright= 10;
+
+int ntab= 1; // number of newly openeed tabs + last
 
 int rows;
 
@@ -39,8 +41,10 @@ void display(char* file, int line, int k) {
   // (no cleear screen - no flicker)
   cursoroff();
   reset();
-  gotorc(0, 0);
-  printf("\t%3d %3d %s", start_tab+tab, line, file?file:"(null)");
+  gotorc(0, 0); clearend();
+  printf("\r[%3d %3d] %s", start_tab+tab, line, file?file:"(null)");
+  clearend(); printf("\n");
+if (tab==-6) exit(7);
   gotorc(1, 0);
   fflush(stdout);
 
@@ -135,17 +139,18 @@ int main(void) {
   char* history= fopen(".whistory", "r");
   start_tab= flines(history);
 
-  char* file= NULL;
+  char* hit= NULL; // FREE!
+  char* file= NULL; // DONT free
 
   int k= 0, q=0, last_tab;
   while(1) {
 
     // load right page data
     int t= start_tab+tab;
-    char* hit= fgetlinenum(history, t);
+    if (hit) free(hit);
+    hit= fgetlinenum(history, t);
 
     if (hit) {
-      if (tab!=last_tab) free(file), file= NULL;
       const char* W= "#=W ";
       // extract file
       file= strstr(hit, W);
@@ -161,7 +166,7 @@ int main(void) {
       }
       error(!file, 10, "history log entry bad: '%s'\n", hit);
     }
-    error(!hit, 10, "history log entry not found: %d", t);
+    //error(!hit, 10, "history log entry not found: %d", t);
 
     display(file, top, k);
     visited();
@@ -281,6 +286,8 @@ int main(void) {
 
     if (k==LEFT) tab--;
     if (k==RIGHT) tab++;
+    if (start_tab+tab<=1) tab= -start_tab+1;
+    if (tab>=ntab) tab= ntab-1;
     //COUNT_WRAP(right, RIGHT, LEFT, nright);
 
     //TODO: field?
