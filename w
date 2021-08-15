@@ -106,7 +106,7 @@ echo "`date --iso=s` #=W $GO" \
 
 # TODO: always update?
 [ ! -f "$GO" ] && (wget -q -O $FILE.TMP -a $FILE.LOG "$GO" >/dev/null ; { kill $foo_pid && wait $foo_pid; } 2>/dev/null 1>&2 ; cat $FILE.TMP > $FILE) &
-echo "`date --iso=s` #=W $GO" >> $FILE.WLOG
+echo "`date --iso=s` #=W $GO" >> $CFILE.WLOG
 
 # --- less options help
 # - http://www.greenwoodsoftware.com/less/faq.html#tricks

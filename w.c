@@ -44,8 +44,7 @@ const int lmargin= 2;
 #include <uniname.h>
 #include <wchar.h>
 
-// normally don't include .c...
-#include "jio.c"
+#include "jio.h"
 
 // Dynamic STRings (see Play/dstrncat.c)
 #define DSTR_STEP 64

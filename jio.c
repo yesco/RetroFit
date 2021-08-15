@@ -1,8 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <termios.h>
 
-static int screen_rows= 24, screen_cols= 80;
+#include "jio.h"
 
+extern int screen_rows= 24, screen_cols= 80;
 // https://stackoverflow.com/questions/1022957/getting-terminal-width-in-c
 void screen_init() {
   struct winsize w;
@@ -12,33 +14,29 @@ void screen_init() {
 }
 
 ////////////////////////////////////////
-// - keyboard
+// - ansi screen
 
-static void reset() { printf("\e[48;5;0m\e[38;5;7m\e[23m\e[24m"); }
+void reset() { printf("\e[48;5;0m\e[38;5;7m\e[23m\e[24m"); }
 
-//static void cls() { printf("\e[H[2J[3J"); }
+//void cls() { printf("\e[H[2J[3J"); }
 
-static void clear() { printf("\x1b[2J\x1b[H"); }
-static void clearend() { printf("\x1b[K"); }
-static void cleareos() { printf("\x1b[J"); }
+void clear() { printf("\x1b[2J\x1b[H"); }
+void clearend() { printf("\x1b[K"); }
+void cleareos() { printf("\x1b[J"); }
 
-static void gotorc(int r, int c) { printf("\x1b[%d;%dH", r+1, c+1); }
-static void cursoroff() { printf("\x1b[?25l"); }
-static void cursoron() { printf("\x1b[?25h"); }
-static void inverse(int on) { printf(on ? "\x1b[7m" : "\x1b[m"); }
-static void fgcolor(int c) { printf("\x1b[[3%dm", c); } // 0black 1red 2green 3yellow 4blue 5magnenta 6cyan 7white 9default
-static void bgcolor(int c) { printf("\x1b[[4%dm", c); } // 0black 1red 2green 3yellow 4blue 5magnenta 6cyan 7white 9default
-static void savescreen() { printf("\x1b[?47h"); }
-static void restorescreen() { printf("\x1b[?47l"); }
+void gotorc(int r, int c) { printf("\x1b[%d;%dH", r+1, c+1); }
+void cursoroff() { printf("\x1b[?25l"); }
+void cursoron() { printf("\x1b[?25h"); }
+void inverse(int on) { printf(on ? "\x1b[7m" : "\x1b[m"); }
+void fgcolor(int c) { printf("\x1b[[3%dm", c); } // 0black 1red 2green 3yellow 4blue 5magnenta 6cyan 7white 9default
+void bgcolor(int c) { printf("\x1b[[4%dm", c); } // 0black 1red 2green 3yellow 4blue 5magnenta 6cyan 7white 9default
+void savescreen() { printf("\x1b[?47h"); }
+void restorescreen() { printf("\x1b[?47l"); }
 // can use insert characters/line from
 // - http://vt100.net/docs/vt102-ug/chapter5.html
-static void insertmode(int on) { printf("\x1b[4%c", on ? 'h' : 'l'); }
+void insertmode(int on) { printf("\x1b[4%c", on ? 'h' : 'l'); }
 
-// - higher level colors
-enum color{black, red, green, yellow, blue, magnenta, cyan, white, none};
-enum color _fg= black, _bg= white;
-
-void _color(c) {
+void _color(int c) {
   if (c >= 0) {
     printf("5;%dm", c);
   } else {
@@ -47,6 +45,8 @@ void _color(c) {
     printf("2;%d;%d;%dm", r, g, b);
   }
 }
+
+enum color _fg= black, _bg= white;
 
 void fg(int c) { printf("\e[38;"); _color(c); _fg= c; }
 void bg(int c) { printf("\e[48;"); _color(c); _bg= c; }
@@ -65,26 +65,8 @@ void B(int n) { bg(n); }
 ////////////////////////////////////////
 // - keyboard
 
-// 'A' CTRL+'A' META+'A' FUNCTION+7
-//    0- 31  :  ^@ ^A...
-//   32-126  :  ' ' .. 'Z{|}~'
-//  127      :  BACKSPACE
-// -- Hi bit set == META
-//    1- 12  :  F1 .. F12
-//   32- 64  : (special keys)
-//     M-3     : DEL
-//   65- 96  :  M-A .. M-Z
-//   97- 126 : (special keys)
-//     M-a     : UP
-//     M-b     : DOWN
-//     M-c     : RIGHT
-//     M-d     : LEFT
-
-enum { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127, CTRL=-64, META=128, FUNCTION=META, UP=META+'a', DOWN, RIGHT, LEFT, S_TAB=META+'z', DEL=META+'3'};
-
 int key() {
   struct termios old, tmp;
-
   tcgetattr(0, &old);
 
   // modify
@@ -128,4 +110,39 @@ void print_key(int c) {
   else if (c>=META)
     printf(" F-%d", c-META);
   fflush(stdout);
+}
+
+int flines(FILE* f) {
+  fseek(f, 0, SEEK_SET);
+  int n= 0, c;
+  while((c= fgetc(f)) != EOF)
+    if (c=='\n') n++;
+  return n++;
+}
+
+// Read full line from FILE
+// Return NULL, if none, or malloced line without '\n'
+char* fgetline(FILE* f) {
+  // save pos, figure out how long line
+  long p= ftell(f), len= 2, c;
+  while((c= fgetc(f)) != EOF && c!='\n')
+    len++;
+  // reset, allocate and read
+  fseek(f, p, SEEK_SET);
+  char* r= calloc(len, 1);
+  if (!fgets(r, len, f)) free(r), r= NULL;
+  if (r && r[strlen(r)-1]=='\n')
+    r[strlen(r)-1]= 0;
+  return r;
+}
+
+// In FILE Find and return numbered LINE.
+// Result: see fgetline()
+char* fgetlinenum(FILE* f, long line) {
+  fseek(f, 0, SEEK_SET);
+  int c;
+  while(line > 1 && (c= fgetc(f)) != EOF)
+    if (c=='\n') line--;
+  if (line > 1) return NULL;
+  return fgetline(f);
 }

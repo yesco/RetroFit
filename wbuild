@@ -2,6 +2,9 @@
 if [[ jio.c -nt w.x ]]; then
   rm w.x wless.x 2>/dev/null
 fi
+if [[ jio.h -nt w.x ]]; then
+  rm w.x wless.x 2>/dev/null
+fi
 if [[ table.c -nt w.x ]]; then
   rm w.x 2>/dev/null
 fi
@@ -11,7 +14,7 @@ if [[ w.c -nt w.x ]]; then
   echo "--- w.c changed, recompiling w.x..."
   echo "`date --iso=s` #=CC w.c" >> .wlog
   rm w.x 2>/dev/null
-  cc -g -w -lunistring  w.c -o w.x || (printf "maybe need to install libunistring?\napt install libunistring\nbrew install libunistring\nyum install libunistring-devel\n" && exit 4711) || exit
+  cc -g -w -lunistring jio.c w.c -o w.x || (printf "maybe need to install libunistring?\napt install libunistring\nbrew install libunistring\nyum install libunistring-devel\n" && exit 4711) || exit
 fi
 
 # --- compile spinner.c
@@ -31,7 +34,7 @@ if [[ wless.c -nt wless.x ]]; then
   echo "--- wless.c changed, recompiling wless.x..."
   echo "`date --iso=s` #=CC wless.c" >> .wlog
   rm wless.x 2>/dev/null
-  cc -g -w wless.c -o wless.x || exit 4711
+  cc -g -w jio.c wless.c -o wless.x || exit 4711
 fi
 
 # 

@@ -10,8 +10,7 @@
 #include <unistd.h>
 #include <assert.h>
 
-// normally don't include .c...
-#include "jio.c"
+#include "jio.h"
 
 // - limits
 int nlines= 12000, nright= 10, ntab= 8;
