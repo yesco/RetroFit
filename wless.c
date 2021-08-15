@@ -73,7 +73,7 @@ void display(char* file, int line, int c) {
 
 //  reset();
 
-  return;
+//cursoron();return;
 
   gotorc(screen_rows-1, 0);
 
