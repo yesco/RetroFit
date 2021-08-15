@@ -476,10 +476,12 @@ int parse(FILE* f, char* endchars, char* s) {
   int c; char* origs= s;
   if (s) *s++ = ' ';
   while (STEP && (!strchr(endchars, c))) {
+    //fputc(c, stderr);
     if (s) {
       *s++= tolower(c);
       // TODO: error here for google.com
-      error(s-origs > sizeof(TAG), 7, "TAG too long=%s\n", origs);
+      if (s-origs>sizeof(TAG)) s--;
+      //error(s-origs > sizeof(TAG), 7, "TAG waiting for >>>%s<<< too long=%s\n", endchars, origs);
     }
   }
   if (s) { *s++ = ' '; *s= 0; }
@@ -550,7 +552,7 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (strstr(" a ", tag)) {
       end_underline();
       if (content && _url)
-        metadata("LINK", link_tag, &_keys[0], content->s, _url->s);
+        //metadata("LINK", link_tag, &_keys[0], content->s, _url->s);
       if (_url) free(_url); _url= NULL;
       if (!--_capture) addContent();
     }

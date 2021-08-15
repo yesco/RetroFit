@@ -1,0 +1,1 @@
+./w.x Tests/guardian.com | perl -0777 -pe 's/(\n#.*?)+\n//g'
