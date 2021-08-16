@@ -42,26 +42,30 @@ int nlinks= 0;
 char* links[LINKS_MAX] = {0};
 
 void display(char* file, int line, int k) {
-  // home
-  // (no cleear screen - no flicker)
-  cursoroff();
+  // header
   reset();
   gotorc(0, 0); clearend();
-  printf("\r[%3d %3d] %s", start_tab+tab, line, file);
-  clearend(); printf("\n");
-if (tab==-6) exit(7);
+  if (0) {
+    // TODO: app header reserved for tab-info?
+    printf("\r[%3d %3d] %s", start_tab+tab, line, file);
+  }
+  clearend();
+
+  // 
   gotorc(1, 0);
   fflush(stdout);
 
   // build command
   const char command[]= "./wdisplay %s %d %d";
   char buf[sizeof(command)+1 + 1024]= {0};
+  // top+2 because skips the header line
   int lbuf= snprintf(buf, sizeof(buf), command, file, top+2, rows);
   assert(lbuf+5 < sizeof(buf));
 
   fgcolor(0); bgcolor(7);
 
   system(buf);
+
 
   // TODO: cleanup
   const char CMD[]= "./wlinks %s";
@@ -89,19 +93,18 @@ if (tab==-6) exit(7);
   fclose(flinks);
   
 
-
-
 //  reset();
-  clearend(); C(7); B(0); clearend();
+  clearend(); C(white); B(black); clearend();
   cleareos();
 
   gotorc(rows, 0);
 //  cleareos();
 
-//  reset();
+  reset();
 
 //cursoron();return;
 
+  // last line
   gotorc(screen_rows-1, 0);
 
   // pretty print state & key
@@ -110,9 +113,8 @@ if (tab==-6) exit(7);
     printf("%3d %3d %3d ", top, right, tab);
     //clearend();
     print_key(k);
+    clearend();
   }
-      
-  cursoron();
 }
 
 void help() {
@@ -186,6 +188,8 @@ void reload() {
 // --- MAIN LOOP
 
 int main(void) {
+exit(0);
+  cursoroff();
   system("echo '`date --iso=ns` #=WLESS`' >> .wlog");
   screen_init();
   rows = screen_rows-2;
@@ -355,5 +359,6 @@ int main(void) {
 
   gotorc(9999,9999);
   printf("\nExiting...\n");
+  cursoron();
   return 0;
 }

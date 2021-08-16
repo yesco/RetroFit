@@ -13,9 +13,7 @@ ANSI=${1:-.stdout}
 echo "`date --iso=s` #=WDISPLAY $HLINE $TOP $LINES $ANSI" >> .wlog
 
 # sets LINES/COLUMNS
-stty size >/dev/null
-
-echo "./wlinks $ANSI > .wlinks"
+stty size >/dev/null 2>/dev/null
 
 ./wlinks $ANSI > .wlinks
 

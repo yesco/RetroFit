@@ -1,0 +1,3 @@
+# display error message in red on mode-line
+
+./wmessage "\e[31;1m$@"

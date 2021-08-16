@@ -83,7 +83,8 @@ clear
 
 # show a page-ful of last page viewed
 
-./wdisplay $CFILE.ansi 0 $((LINES-3))
+#TODO: Bug, skips first line?
+./wdisplay $CFILE.ansi 1 $((LINES-3))
 
 # --- Log it
 echo "`date --iso=s` #=W $GO $CFILE.ansi" \
@@ -115,8 +116,6 @@ echo "`date --iso=s` #=W $GO" >> $CFILE.WLOG
 # less +150
 # less +/patter  # go to first pattern
 # less +G        # go to end
-
-# tail +15 | head -20
 
 # --- load web-page
 # - display the real thing

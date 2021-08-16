@@ -16,7 +16,7 @@ void screen_init() {
 ////////////////////////////////////////
 // - ansi screen
 
-void reset() { printf("\e[48;5;0m\e[38;5;7m\e[23m\e[24m"); }
+void reset() { printf("\e[48;5;0m\e[38;5;7m\e[23m\e[24m\e[0m"); }
 
 //void cls() { printf("\e[H[2J[3J"); }
 
@@ -25,13 +25,23 @@ void clearend() { printf("\x1b[K"); }
 void cleareos() { printf("\x1b[J"); }
 
 void gotorc(int r, int c) { printf("\x1b[%d;%dH", r+1, c+1); }
-void cursoroff() { printf("\x1b[?25l"); }
-void cursoron() { printf("\x1b[?25h"); }
+
 void inverse(int on) { printf(on ? "\x1b[7m" : "\x1b[m"); }
 void fgcolor(int c) { printf("\x1b[[3%dm", c); } // 0black 1red 2green 3yellow 4blue 5magnenta 6cyan 7white 9default
 void bgcolor(int c) { printf("\x1b[[4%dm", c); } // 0black 1red 2green 3yellow 4blue 5magnenta 6cyan 7white 9default
+
 void savescreen() { printf("\x1b[?47h"); }
 void restorescreen() { printf("\x1b[?47l"); }
+// cursor
+void hide() { printf("\e[?25l"); }
+void show() { printf("\e[?25h"); }
+void save() { printf("\e7"); }
+void restore() { printf("\e8"); }
+
+void cursoroff() { printf("\x1b[?25l"); }
+void cursoron() { printf("\x1b[?25h"); }
+
+
 // can use insert characters/line from
 // - http://vt100.net/docs/vt102-ug/chapter5.html
 void insertmode(int on) { printf("\x1b[4%c", on ? 'h' : 'l'); }

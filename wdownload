@@ -35,7 +35,9 @@ echo "`date --iso=s` #=W $GO $CFILE.ansi" \
 # --- Do we already have it?
 # (detect change of screen width?)
 
-[ -f $CFILE.ansi ] && exit 0
+[ -f $CFILE.ansi ] \
+  && ./wmessage "./wdownload already have $GO" \
+  && exit 0
 
 # --- download
 echo "`date --iso=s` #=DOWN $GO $CFILE.ansi" \
@@ -58,8 +60,13 @@ if [[ ! -f "$GO" ]]; then
    # - display spinning globe!
    ./spin.x & foo_pid=$!
 
+   ./wmessage "./wdownload $GO"
+
    # - download
-   wget -q -O $FILE.TMP -a $FILE.LOG "$GO" >/dev/null
+   wget -q -O $FILE.TMP -a $FILE.LOG "$GO" >/dev/null \
+     || ./werror "./wdownload error: $GO"
+
+   ./wmessage "./wdownload done: $GO"
 
    # - kill the globe
    ( kill $foo_pid && wait $foo_pid ) 2>/dev/null 1>&2
