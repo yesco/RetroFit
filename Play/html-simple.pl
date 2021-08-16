@@ -23,7 +23,8 @@ print $_;
 
 sub tag {
     my ($s) = @_;
-    $s =~ s:\s+: :smg;
+    # DEBUG: <foo ...>FOO:
+    #$s =~ s/^<(\w+)(.*)>$/<$1$2>$1:/g;
     return $s if $s =~ m:<a:i;
     return $s if $s =~ m:<img:i;
     #return $s;

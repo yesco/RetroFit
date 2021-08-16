@@ -254,18 +254,17 @@ int main(void) {
     if (k==CTRL+'C' ||k=='q') break;
     if (k==CTRL+'Z') kill(getpid(), SIGSTOP);
     // navigation
-    if (k=='<' || k==',') top= 0; // top
-    if (k=='>' || k=='.') top= nlines-1; // bottom
+    if (k=='<' || k&0x7f==',') top= 0; // top
+    if (k=='>' || k&0x7f=='.') top= nlines-1; // bottom
     if (k==META+'V' || k==BACKSPACE || k==DEL) if ((top-= rows) < 0) top= 0;
     if (k==CTRL+'V' || k==' ') if ((top+= rows) > nlines) top= nlines-1;
 
+    // clicking (new tab)
     if (k>='a' && k<='z') {
       push(tab);
       tab= newtab();
       click(k);
     }
-
-    // tab mgt
     if (k>='A' && k<='Z') {
       push(tab);
       int t= newtab();

@@ -197,7 +197,7 @@ char* decode_entity(char* name) {
     // - https://github.com/coreutils/gnulib/blob/master/tests/unistr/test-u32-to-u8.c
     // TODO: use https://man7.org/linux/man-pages/man3/wctomb.3.html ???
     char *r= u32_to_u8(&c, 1, result, &len);
-    printf("---jsk: '%s' len=%zu\n", r, len);
+    //printf("---jsk: '%s' len=%zu\n", r, len);
     if (r==result) return result;
     if (r==NULL) return NULL;
     error(r!=result, 77, "BAD ptr from u32_to_u8");
@@ -777,7 +777,10 @@ void process(TAG *end) {
 
       HI(HL, magnenta, none);
 
-      HI(FM, yellow, black);
+      //TODO: <input/> not handled
+      // HI expects end-tag: </...
+      //HI(FM, yellow, black);
+      
       HI(PR, green, black);
       HI(TT, black, rgb(3,3,3));
 

@@ -1,0 +1,320 @@
+w3m command line arguments
+
++45
+-t 8 tab
+-T document type html, txt, ...?
+-S queeze empty lines
+-o option=value
+-num show linenumber
+-dump formatted text to output
+-col width   
+-ppc count   pixels per character
+-dump_source
+-dump_head
+-post file
+-header HEAD
+-no-proxy
+-no-graph (in tables)
+-no-mouse
+-config FILE
+
+keyboard
+^ beginning of file
+$ end of line
+C-a first line
+C-e end (== last line)
+C-g show current page position
+ESC-g 
+G go to specified line
+TAB move to next hyperlink
+C-U, ESC-TAB move previous link
+[ first link
+] last link
+
+hyperlinks:
+g, U  open URL
+V view new file
+@ execute shell command and load
+# execute shell command and browse
+! execute shell
+
+
+TAB, C-n, down arrow = next link
+ESC TAB, C-p, Up arrow = prev link
+RET follow
+a, ESC RET save link to file
+u peek link URI
+i peek image URI
+I view inline image
+ESC I save image
+: mark URL-like strings <-------------!
+
+buffers:
+B C-b, left arrow previous buffer
+\ - view html
+s, C-h select buffer
+E edit buffer source
+C-l,C-W redraw (C-w????)
+R, C-r reload
+S, p save buffer
+ESC s save source
+ESC e edit buffer image
+
+Buffer select:
+k, C-p select prev buffer
+j, C-n select next buffer
+D delete current buffer 
+RET go selected buffer
+
+bookmark:
+v load bookmark, ESc b
+a, ESC a add current bookmark
+
+/, C-s search forward
+n  next
+w toggle wrap search
+
+mark:
+C-spc set/unset mark
+P  prev mark
+N  next mark
+" mark by regular expr
+
+H ? show help page
+C-k show cookies
+C-c stop
+C-z suspend
+q quit
+Q quit no confirm
+
+----------------------------------------
+elinks Features:
+
+
+Below the most noteworthy features are listed.
+
+Lots of protocols (local files, finger, http, https, ftp, smb, ipv4, ipv6)
+Authentication (HTTP authentication, Proxy authentication)
+Persistent cookies
+Cute menus and dialogs (screenshot available)
+Tabbed browsing
+Support for browser scripting (Perl, Lua, Guile)
+Tables and frames rendering (screenshot available)
+Colors (screenshot available)
+Background (non-blocking) downloads (screenshot available)
+
+-- search
+/ search forward
+? search backward
+# start incremental link text search
+#/ incremental document search
+n N next prev match
+TAB next = show next inc match
+
+
+-- bookmarks
+2.7.3. XBEL Bookmarks (CONFIG_XBEL_BOOKMARKS)
+ELinks also supports universal XML bookmarks format called XBEL, also supported by e.g. Galeon, various "always-have-my-bookmarks" websites and number of universal bookmark converters.
+
+Frequently, you know you will not need it, then you can of course happily forcibly remove support for it and save few bytes.
+
+Default: enabled if libexpat is found and bookmarks are enabled
+
+URL Shortcuts in ELinks
+One extremely useful and convenient feature in ELinks, which may not be very well known, is so-called URL rewriting. If you give ELinks a URL (by passing it on the command line, through the -remote magic device or, most frequently, by typing it to the Goto URL dialog), it has the ability to mangle it in certain ways before processing it. This mangling is called URI rewriting.
+
+8.1. What it does
+The URI rewriting can expand certain URL shortcuts to complete URLs. For example, if you type sd to the Goto URL dialog, it will be rewritten to:
+
+http://www.slashdot.org/
+first, and then loaded. /.'s front page will be displayed.
+
+Further, if you type g elinks to the Goto URL dialog, it will be rewritten to:
+
+http://www.google.com/search?q=elinks&amp;btnG=Google+Search
+and then loaded, therefore, a Google search for the keyword elinks will be performed. Note that you can separate the g by either a space or a colon, so g:elinks will do the exact same thing.
+
+A large number of those shortcuts are already defined for you. You can browse Protocols :: URI Rewriting :: Dumb/Smart prefixes in the Options Manager for a complete listing of already defined shortcuts (press the [Info] button on a shortcut to see what it will be rewritten to). See below for details on how to enable or disable this rewriting and how to define your own shortcuts.
+
+8.2. How it works
+All the URI rewriting can be controlled by options in the protocol.rewrite option tree.
+
+In the case of sd, a URI rewriting mechanism called dumb prefixes is used. If protocol.rewrite.enable-dumb is true, ELinks looks at the contents of the protocol.rewrite.dumb.* tree, and if it finds option protocol.rewrite.dumb.sd, it will use its value as the target URI.
+
+Therefore, more generally speaking, if ELinks looks at protocol.rewrite.dumb.<typed_string>, and if it exists, will replace the entered URI with it. These dumb prefixes can be used as a kind of alternative bookmark systen - if you want to have fast access to a certain site and you don't want to spend a while navigating the bookmarks manager, you can just fire up the Goto URL dialog, type the shortcut and there you go.
+
+A dumb prefix can contain %c, which will be replaced by the URI of the current document. This is used, for example, in the arc dumb-prefix, which provides a shortcut to the Wayback machine at archive.org.
+
+In the case of g, a slightly different URI rewriting mechanism called smart prefixes is used. If protocol.rewrite.enable-smart is true, ELinks looks at the contents of the protocol.rewrite.smart tree and, if it finds option protocol.rewrite.smart.g, it will use its value as the target URI.
+
+The difference is that the smart prefixes can take arguments and reference them in the target URI. As with dumb prefixes, %c in the URI means the current address. Additionally, %s will be substituted by the whole string following the prefix (elinks in the g example above; %s is by far the most frequently used expansion), while you can reference individual space-separated arguments with the codes %0 thru %9. Finally, if you want a plain % to the resulting URI, use %%.
+
+Note that the prefix searched in the protocol.rewrite.smart tree is everything in the typed address up to the first space or colon (so bug:123 and bug 123 are identical). These prefixes are generally useful for searching anything very fast - be it Google (g:foo, gi:foo, gr:foo, …), ELinks Bugzilla bugs (bug:1234), the RFC database (cr:foo), or the Czech-English dictionary (czen:foo). The only limit is your imagination.
+
+8.3. Alternative URI rewriting mechanisms
+In the past, before this was implemented, Lua scripting did the job. And you still have complete control over the URI in the internal scripting goto-url hook. The advantages are clear - you get complete control over the URI and you can do many more interesting things with it. For example, there are some very advanced CVSweb and Debian package database URI prefixes implemented in the sample Lua hooks file. The one disadvantage to this is that you must have Lua scripting enabled in order to make use of it, and many users don't have Lua installed.
+
+------------------
+elinks
+
+15.3.3. Hooks
+The following hooks are available.
+
+goto_url_hook (url, current_url)
+This hook is called when the user enters a string into the "Go to URL" dialog box. It is given the string entered, and the current URL (which may be nil). It should return a string, which is the URL that ELinks should follow, or nil to cancel the operation.
+follow_url_hook (url)
+This hook is passed the URL that ELinks is about to follow. It should return a string (the URL modified or unmodified), or nil to stop ELinks following the URL
+pre_format_html_hook (url, html)
+This hook gets called just before the final time an HTML document is formatted, i.e. it only gets called once, after the entire document is downloaded. It will be passed the URL and HTML text as strings, and should return the modified HTML text, or nil if there were no modifications.
+proxy_for_hook (url)
+This hook is called when ELinks is about to load a resource from a URL. It should return "PROXY:PORT" (e.g. "localhost:8080") to use the specified proxy, "" to contact the origin server directly, or nil to use the default proxy of the protocol.
+lua_console_hook (string)
+This hook is passed the string that the user entered into the "Lua Console" dialog box. It should return two values: the type of action to take (run, eval, goto-url or nil), and a second argument, which is the shell command to run or the Lua expression to evaluate. Examples:
+return "run", "someprogram" will attempt to run the program someprogram.
+return "eval", "somefunction(1+2)" will attempt to call the Lua function somefunction with an argument, 3.
+return "goto_url", "http://www.bogus.com" will ask ELinks to visit the URL "http://www.bogus.com".
+return nil will do nothing.
+quit_hook ()
+This hook is run just before ELinks quits. It is useful for cleaning up things, such as temporary files you have created.
+15.3.4. Functions
+As well as providing hooks, ELinks provides some functions in addition to the standard Lua functions.
+
+Note
+The standard Lua function os.setlocale affects ELinks' idea of the system locale, which ELinks uses for the "System" charset, for the "System" language, and for formatting dates. This may however have to be changed in a future version of ELinks, in order to properly support terminal-specific system locales.
+current_url ()
+Returns the URL of the current page being shown (in the ELinks session that invoked the function).
+current_link ()
+Returns the URL of the currently selected link, or nil if none is selected.
+current_title ()
+Returns the title of the current page, or nil if none.
+current_document ()
+Returns the current document as a string, unformatted.
+current_document_formatted ([width])
+Returns the current document, formatted for the specified screen width. If the width is not specified, then the document is formatted for the current screen width (i.e. what you see on screen). Note that this function does not guarantee all lines will be shorter than width, just as some lines may be wider than the screen when viewing documents online.
+pipe_read (command)
+Executes command and reads in all the data from stdout, until there is no more. This is a hack, because for some reason the standard Lua function file:read seems to crash ELinks when used in pipe-reading mode.
+execute (string)
+Executes shell commands string without waiting for it to exit. Beware that you must not read or write to stdin and stdout. And unlike the standard Lua function os.execute, the return value is meaningless.
+tmpname ()
+Returns a unique name for a temporary file, or nil if no such name is available. The returned string includes the directory name. Unlike the standard Lua function os.tmpname, this one generates ELinks-related names (currently with "elinks" at the beginning of the name).
+Warning
+The tmpname function does not create the file and does not guarantee exclusive access to it: the caller must handle the possibility that another process creates the file and begins using it while this function is returning. Failing to do this may expose you to symlink attacks by other users. To avoid the risk, use io.tmpfile instead; unfortunately, it does not tell you the name of the file.
+bind_key (keymap, keystroke, function)
+Currently, keymap must be the string "main". Keystroke is a keystroke as you would write it in the ELinks config file ~/.elinks/elinks.conf. The function function should take no arguments, and should return the same values as lua_console_hook.
+edit_bookmark_dialog (cat, name, url, function)
+Displays a dialog for editing a bookmark, and returns without waiting for the user to close the dialog. The return value is 1 if successful, nil if arguments are invalid, or nothing at all if out of memory. The first three arguments must be strings, and the user can then edit them in input fields. There are also OK and Cancel buttons in the dialog. If the user presses OK, ELinks calls function with the three edited strings as arguments, and it should return similar values as in lua_console_hook.
+xdialog (string [, more strings…], function)
+
+Displays a generic dialog for editing multiple strings, and returns without waiting for the user to close the dialog. The return value is 1 if successful, nil if arguments are invalid, or nothing at all if out of memory. All arguments except the last one must be strings, and ELinks places them in input fields in the dialog. There can be at most 5 such strings. There are also OK and Cancel buttons in the dialog. If the user presses OK, ELinks calls function with the edited strings as arguments, and it should return similar values as in lua_console_hook.
+
+set_option (option, value)
+
+Sets an ELinks option. The first argument option must be the name of the option as a string. ELinks then tries to convert the second argument value to match the type of the option. If successful, set_option returns value, else nil.
+
+get_option (option)
+
+Returns the value of an ELinks option. The argument option must be the name of the option as a string. If the option does not exist, get_option returns nil.
+
+15.3.5. Variables
+
+elinks_home
+
+The name of the ELinks home directory, as a string. Typically this is the .elinks subdirectory of the user's home directory.
+
+15.3.6. User protocol
+
+There is one more little thing which Links-Lua adds, which will not be described in detail here. It is the fake "user:" protocol, which can be used when writing your own addons. It allows you to generate web pages containing links to "user://blahblah", which can be intercepted by the follow_url_hook (among other things) to perform unusual actions. For a concrete example, see the bookmark addon.
+
+15.4. Example recipes
+
+This chapter contains some example scripts that you can use. All of them come from contrib/lua/hooks.lua. I really recommend you to see it directly instead of copying code out of this document. Also, not everything in there is covered here.
+
+If you would like to contribute scripts, that would be great! Please send them to me at tjaden@users.sourceforge.net. Cliff and I plan to start a script repository, provided we get some contributions. As for script ideas, you'll just have to be a little creative :-)
+
+Also take a look at the contrib/lua/ directory in the ELinks distribution. Note that Peter and Cliff don't maintain the Lua support intensively anymore, thus it would be probably nice to Cc me (pasky@ucw.cz) if you want to contribute some patch, so that I would be able to add it to the ELinks distribution.
+
+15.4.1. Go to URL on steroids
+
+There are some web sites that I visit often. Bookmarks are okay, but they are separate from the "Go to URL" dialog box, so I keep forgetting to use them. Also, when I visit a search engine home page, all I really want to do is enter a search term.
+
+The following script allows me to type certain strings into the "Go to URL" dialog box, and it will convert them to the URL I actually want to visit. As a bonus, it allows me perform some searches on sites like Google without loading up the front page first.
+
+Tip
+The “URI rewriting” feature of ELinks handles many of the same tasks as the Lua hook shown here, and you can conveniently configure it via the option manager. It is not quite as versatile, though.
+function match (prefix, url)
+    return string.sub (url, 1, string.len (prefix)) == prefix
+end
+
+function strip (str)
+    return string.gsub (str, "^%s*(.-)%s*$", "%1")
+end
+
+function plusify (str)
+    return string.gsub (str, "%s", "+")
+end
+
+function goto_url_hook (url, current_url)
+    -- Google search (e.g. ,gg unix browsers).
+    if match (",gg", url) then
+        url = plusify (strip (string.sub (url, 4)))
+        return "http://www.google.com/search?q="..url.."&btnG=Google+Search"
+
+    -- Freshmeat search.
+    elseif match (",fm", url) then
+        url = plusify (strip (string.sub (url, 4)))
+        return "http://www.freshmeat.net/search/?q="..url
+
+    -- Dictionary.com search (e.g. ,dict congenial).
+    elseif match (",dict", url) then
+        url = plusify (strip (string.sub (url, 6)))
+        return "http://www.dictionary.com/cgi-bin/dict.pl?db=%2A&term="..url
+
+    -- RPM search (e.g. ,rpm links).
+    elseif match (",rpm", url) then
+        url = plusify (strip (string.sub (url, 5)))
+        return "http://www.rpmfind.net/linux/rpm2html/search.php?query="
+                ..url.."&submit=Search+..."
+
+    -- Netcraft.com search (e.g. ,whatis www.google.com).
+    elseif match (",whatis", url) then
+        url = plusify (strip (string.sub (url, 8)))
+        return "http://uptime.netcraft.com/up/graph/?host="..url
+
+    -- LinuxToday home page.
+    elseif match (",lt", url) then
+        return "http://linuxtoday.com/"
+
+    -- Weather forecast for Melbourne, Australia.
+    elseif match (",forecast", url) then
+        return "http://www.bom.gov.au/cgi-bin/wrap_fwo.pl?IDV10450.txt"
+
+    -- Unmatched
+    else
+        return url
+    end
+end
+15.4.2. Expanding ~ (tilde)
+By adding an extra snippet of code to the previous example, we can make ELinks expand pathnames such as ~/foo/bar and ~user/zappo, like in the shell and other Unix programs.
+
+function goto_url_hook (url, current_url)
+                .
+                .
+
+    -- Expand ~ to home directories.
+    elseif match ("~", url) then
+        if string.sub(url, 2, 2) == "/" then    -- ~/foo
+            return os.getenv ("HOME")..string.sub(url, 2)
+        else                                    -- ~foo/bar
+            return "/home/"..string.sub(url, 2)
+        end
+
+                .
+                .
+
+
+-------------------
+Cut and paste
+
+Cliff Cunnington had a neat idea of clipping text that you see in web pages (you enter a regexp that will match the start and end of the text you want to clip), and saving the text to disk, along with the URL and timestamp. This would help if you find that you can't ever remember where you had seen a piece of text, or if you want to keep a piece of information but don't need to save the entire page.
+
+People who use download management programs could write a function to send the current link to their favourite downloading program.
