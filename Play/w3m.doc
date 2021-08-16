@@ -1,3 +1,37 @@
+H	Show hot keys
+B	Get out of hot keys menu
+arrows/hjkl	Navigation
+(S_)TAB	Navigate through links
+v	View the source
+/	Forward search
+?	Backward search
+n	Go to next search
+N	Go to previous search
+B	Go previous page
+s	Go forward page
+gg	Go to top of page
+G	Go to end of page
+T	Open a tab
+⌃q	Close a tab
+U	Go to a url
+{}	Switch between tabs
+M	Copy a link of current page
+Esc-m	Copy a link that cursor is on it
+⌃h	Show history
+B	Exit history
+I	View image
+Esc-i	Save image
+c	Show which page you are on
+u	View a URL of a link
+Esc-b	View bookmarks
+Esc-a	To bookmark
+<>	Scroll left and right
+o	Open options/preferences
+[number	Go to link number
+L	List all links in page with urls
+ESC-l	List all links pop up⇧h	Show hot keys
+B	Get out of hot keys menu
+
 w3m command line arguments
 
 +45

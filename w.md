@@ -28,9 +28,11 @@ This may also be used as input buffer. That will clear any message.
 
 C-c              - exit ./w
 C-z              - suspend ./w (fg cont)
+
 ! cmd            - run command in shell
 | cmd            - pipe webpage to cmd
 " '              - quote page
+(in cmd %f=file %u=url %l=%linksfile)
 
 (: eval command   - hmmm?)
 (; ???                   )
@@ -55,6 +57,7 @@ C-b, arrow left  - history backward
 
 --- tabs/reading flow
 C-t              - open new (empty) tab
+
 C-l, C-u         - open/edit/goto URL
 C-g              - goto line, tab, 
 C-o              - open file?
