@@ -254,8 +254,8 @@ int main(void) {
     if (k==CTRL+'C' ||k=='q') break;
     if (k==CTRL+'Z') kill(getpid(), SIGSTOP);
     // navigation
-    if (k=='<') top= 0; // top
-    if (k=='>') top= nlines-1; // bottom
+    if (k=='<' || k==',') top= 0; // top
+    if (k=='>' || k=='.') top= nlines-1; // bottom
     if (k==META+'V' || k==BACKSPACE || k==DEL) if ((top-= rows) < 0) top= 0;
     if (k==CTRL+'V' || k==' ') if ((top+= rows) > nlines) top= nlines-1;
 

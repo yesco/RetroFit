@@ -204,7 +204,7 @@ cat w.c table.c jio.c wless.c >.all.c
 TOTAL   Lines: `cat .all.c | wc`
 
 w.c     - LOC: `./wcode w.c`
-  table.c LOC: `./wcode table.c`
+ +table.c LOC: `./wcode table.c`
 wless.c - LOC: `./wcode wless.c`
 jio.c   - LOC: `./wcode jio.c`
 ---
