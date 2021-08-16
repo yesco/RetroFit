@@ -32,7 +32,7 @@ clear # this too!
 
 ./wbuild || exit $?
 
-# --- URLs
+# --- URLs TROUBLES!!!
 
 URL=https://example.com/
 
@@ -84,7 +84,7 @@ clear
 # show a page-ful of last page viewed
 
 #TODO: Bug, skips first line?
-./wdisplay $CFILE.ansi 1 $((LINES-3))
+./wdisplay $CFILE.ansi
 
 # --- Log it
 echo "`date --iso=s` #=W $GO $CFILE.ansi" \
@@ -106,6 +106,11 @@ echo "`date --iso=s` #=W $GO $CFILE.ansi" \
 #   8   Server gave error.
 
 # TODO: always update?
+
+# TODO:
+# TODO:      use ./wdownload
+# TODO:
+
 [ ! -f "$GO" ] && (wget -q -O $FILE.TMP -a $FILE.LOG "$GO" >/dev/null ; { kill $foo_pid && wait $foo_pid; } 2>/dev/null 1>&2 ; cat $FILE.TMP > $FILE) &
 echo "`date --iso=s` #=W $GO" >> $CFILE.WLOG
 

@@ -44,18 +44,18 @@ char* links[LINKS_MAX] = {0};
 void display(char* file, int line, int k) {
   // header
   reset();
-  gotorc(0, 0); clearend();
+  gotorc(0, 0);
   if (0) {
+    clearend();
     // TODO: app header reserved for tab-info?
     printf("\r[%3d %3d] %s", start_tab+tab, line, file);
   }
-  clearend();
 
-  // 
+  // main content
   gotorc(1, 0);
   fflush(stdout);
 
-  // build command
+  // build ./wdisplay command
   const char command[]= "./wdisplay %s %d %d";
   char buf[sizeof(command)+1 + 1024]= {0};
   // top+2 because skips the header line
@@ -188,7 +188,6 @@ void reload() {
 // --- MAIN LOOP
 
 int main(void) {
-exit(0);
   cursoroff();
   system("echo '`date --iso=ns` #=WLESS`' >> .wlog");
   screen_init();

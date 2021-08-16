@@ -5,18 +5,18 @@
 # Usage:
 #  ./wdisplay [ansi.f [line [lines]]]
 
-HLINE=${4:--1}
-TOP=${2:-1}
-LINES=${3:-$$((LINES-2))}
-ANSI=${1:-.stdout}
-
-echo "`date --iso=s` #=WDISPLAY $HLINE $TOP $LINES $ANSI" >> .wlog
-
 # sets LINES/COLUMNS
 stty size >/dev/null 2>/dev/null
+
+HISTLINE=${4:--1}
+TOP=${2:-1}
+SHOWLINES=${3:-$((LINES-2))}
+ANSI=${1:-.stdout}
+
+echo "`date --iso=s` #=WDISPLAY $HISTLINE $TOP $LINES $ANSI" >> .wlog
 
 ./wlinks $ANSI > .wlinks
 
 (cat $ANSI | perl -0777 -pe 's/(\n#.*?)+\n//g') \
-| tail +$TOP | head -$LINES
+| tail +$TOP | head -$SHOWLINES
 
