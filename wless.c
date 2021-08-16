@@ -41,14 +41,27 @@ int incdec(int v, int k, int ikey, int dkey, int min, int max, int min2val, int 
 int nlinks= 0;
 char* links[LINKS_MAX] = {0};
 
-void display(char* file, int line, int k) {
+// DONT free (partof hit)
+char *file= NULL;
+char *url= NULL;
+
+void display(int line, int k) {
   // header
   reset();
   gotorc(0, 0);
-  if (0) {
+  if (url) {
     clearend();
     // TODO: app header reserved for tab-info?
-    printf("\r[%3d %3d] %s", start_tab+tab, line, file);
+    char* u= url, col;
+    col= printf("./w ");
+    gotorc(0, col);
+    // nprintf !!!
+    while (*u) {
+      putchar(*u++);
+      col++;
+      if (col+1 >= screen_cols) break;
+    }
+    clearend();
   }
 
   // main content
@@ -59,7 +72,7 @@ void display(char* file, int line, int k) {
   const char command[]= "./wdisplay %s %d %d";
   char buf[sizeof(command)+1 + 1024]= {0};
   // top+2 because skips the header line
-  int lbuf= snprintf(buf, sizeof(buf), command, file, top+2, rows);
+  int lbuf= snprintf(buf, sizeof(buf), command, file?file:".stdout", top+2, rows);
   assert(lbuf+5 < sizeof(buf));
 
   fgcolor(0); bgcolor(7);
@@ -197,14 +210,15 @@ int main(void) {
   start_tab= flines(history);
 
   char* hit= NULL; // FREE!
-  char* file= NULL; // DONT free
-
   int k= 0, q=0, last_tab;
   while(1) {
 
     // load right page data
     int t= start_tab+tab;
-    if (hit) free(hit);
+    if (hit) {
+      free(hit);
+      file= url= hit= NULL;
+    }
     hit= fgetlinenum(history, t);
 
     if (hit) {
@@ -216,8 +230,12 @@ int main(void) {
         file+= strlen(W);
         // skip spaces
         while(*file==' ') file++;
-        // skip URL (TODO: extract)
-        while(*file!=' ' && *file!=EOF) file++;
+
+        url= file;
+        // skip URL
+        while(*file && *file!=' ') file++;
+        if (*file) *file++= 0;
+
         // skip spaces
         while(*file==' ') file++;
       }
@@ -225,7 +243,7 @@ int main(void) {
     }
     //error(!hit, 10, "history log entry not found: %d", t);
 
-    display(file?file:".stdout", top, k);
+    display(top, k);
     visited();
 
     // - read key & decode

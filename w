@@ -114,6 +114,8 @@ echo "`date --iso=s` #=W $GO $CFILE.ansi" \
 [ ! -f "$GO" ] && (wget -q -O $FILE.TMP -a $FILE.LOG "$GO" >/dev/null ; { kill $foo_pid && wait $foo_pid; } 2>/dev/null 1>&2 ; cat $FILE.TMP > $FILE) &
 echo "`date --iso=s` #=W $GO" >> $CFILE.WLOG
 
+[ -f "$GO" ] && ( kill $foo_pid && wait $foo_pid; ) 2>/dev/null 1>&2
+
 # --- less options help
 # - http://www.greenwoodsoftware.com/less/faq.html#tricks
 # less -F        # exit at end of file
@@ -155,12 +157,16 @@ cp $CFILE.ansi .stdout
 ./wless.x || (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
 ( printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run ";echo "where") | gdb ./wless.x; exit 7) || exit 7
 
+( kill $foo_pid && wait $foo_pid; ) 2>/dev/null 1>&2
+
 #(stdbuf -i0 -o0 -e0 ./w.x "$GO" 2>.stderr | tee -a .stdout \
 #  | perl -0777 -pe 's/(\n#.*?)+\n//g' \
 #  | less -Xrf) \
 #  && kill -9 $spinpid \
 #|| (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
 #(kill -9 $spinpid 2>/dev/null; printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run $GO";echo "where") | gdb ./w.x; exit) || exit
+
+killall spin.x 2>/dev/null
 
 ###################################
 
