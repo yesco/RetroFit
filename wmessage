@@ -1,24 +1,26 @@
 # display message on mode-line
 stty size >/dev/null 2>&1
 
-MSG=$*
+MSG=$1
+# these can be overridden
+ROWS=${2:-$LINES}
+COLS=${3:-$COLUMNS}
 
 printf "\e7" # save
 
-printf "\e[$((LINES-2));0H" # gotorc
+printf "\e[$((ROWS-1));0H" # gotorc
 
 printf "\e[42;30m\e[K";
 printf "./w "
 
 printf "\e[0m" # restore color
 
-printf "\e[$((LINES-1));0H" # gotorc
+printf "\e[$((ROWS-0));0H" # gotorc
 
 #printf "\e[32m" # green
 printf "\e[37m" # green
 
-printf "${MSG:0:$((COLUMNS-1))}" # print message
-#TODO: limit length
+printf "${MSG:0:$((COLS-2))}" # print message
 
 printf "\e[K" # clear end of line
 

@@ -163,6 +163,7 @@ void display(int line, int k) {
 }
 
 void help() {
+  // TODO: fix
   system("./w wless.html");
 }
 
@@ -199,8 +200,12 @@ int click(int k) {
       cmd[0]= 0;
       strcat(cmd, "./wdownload \"");
       strncat(cmd, u, llen);
-      strcat(cmd, "\" &");
+      sprintf(cmd+strlen(cmd), "\" %d %d &", screen_rows, screen_cols);
       system(cmd);
+
+      //sleep(3); // testing
+      // TODO: write log entry here!
+      // wait enough for .whistory to be updated...
       usleep(100*1000);
 
       // open new tab, go to
@@ -320,7 +325,8 @@ int main(void) {
       }
       error(!file, 10, "history log entry bad: '%s'\n", hit);
     } else {
-      // TODO: show blank page!!!!
+      // TODO: add a way to reload or signal when done!
+      file= "loading.html";
 
       //error(!hit, 10, "history log entry not found: %d", t);
     }
@@ -361,7 +367,6 @@ int main(void) {
     }
     if (k>=META+'A' && k<=META+'Z') {
       push(tab);
-      fprintf(stderr, "\n\nKEY===%x kc=%c => %c\n", k, kc, kc);
       click(kc);
       //tab= pop();
       tab= ntab-1;

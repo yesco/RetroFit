@@ -229,7 +229,6 @@ int _curx= 0, _cury= 0, _fullwidth= 0, _capture= 0, _table= 0;
 
 //void cls() {
 //  cls();
-//  screen_init();
 //  _cury= 0; _curx= 0; _ws= 1; _nl= 1;
 //}
 
@@ -795,11 +794,17 @@ void process(TAG *end) {
 }
 
 int main(int argc, char**argv) {
+  // get width for formatting
+  screen_init();
+
   if (argc<2 || !strlen(argv[1])) {
-    fprintf(stderr, "Usage:\n  ./w URL\n");
+    fprintf(stderr, "Usage:\n  ./w [FIL] URL [COLS] # cols must be 3rd arg\n");
     return 0;
   }
-  char* url= argv[1];
+  char* file= argv[1];
+  char* url= argc>2 ? argv[2] : file;
+  // override if run from script
+  if (argc>3) screen_cols= atoi(argv[3]);
 
   // metadata
   printf("\n#=DATE "); fflush(stdout);
@@ -807,9 +812,6 @@ int main(int argc, char**argv) {
   metadata("URL", url, NULL, NULL, NULL);
   // TODO: metadata("BASE", 
   TRACE("URL=%s\n", url);
-
-  // get width for formatting
-  screen_init();
 
   // print header line
   C(white); B(black);
@@ -845,7 +847,7 @@ int main(int argc, char**argv) {
   // get HTML
   char* wget= calloc(strlen(url) + strlen(WGET) + 1, 1);
   sprintf(wget, WGET, url);
-  f= fopen(url, "r");
+  f= fopen(file, "r");
   // TODO: remove? make pure renderer?
   if (!f)
     f= popen(wget, "r");

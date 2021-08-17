@@ -13,6 +13,9 @@ TOP=${2:-1}
 SHOWLINES=${3:-$((LINES-2))}
 ANSI=${1:-.stdout}
 
+echo `expr "$ANSI" : '\(.*ansi\)'`
+
+
 # - log the view
 
 # TODO: log to $FILE.WLOG ?
@@ -25,4 +28,3 @@ echo "`date --iso=s` #=WDISPLAY $HISTLINE $TOP $LINES $ANSI" >> .wlog
 
 (cat $ANSI | perl -0777 -pe 's/(\n#.*?)+\n//g') \
 | tail +$TOP | head -$SHOWLINES
-

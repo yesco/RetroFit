@@ -1,20 +1,12 @@
 WDIR=.w
 
-[ ! -d $WDIR ] \
-  && mkdir $WDIR
-  # TODO: could be shared globally
+mkdir -p $WDIR/Cache $WDIR/Session
 
-[ ! -d $WDIR/Cache ] \
-  && mkdir $WDIR/Cache
-  # TODO: could be several?
-[ ! -d $WDIR/Session ] \
-  && mkdir $WDIR/Session
+# --- sets COLS
 
-# --- sets LINES/COLUMNS
-stty size >/dev/null
-
-# --- Select actual URL to download
 GO=$1
+ROWS=${2:-}
+COLS=${3:-}
 
 if [[ -f $GO ]]; then
   SAFE=`./wquote "$GO"`
@@ -36,7 +28,7 @@ echo "`date --iso=s` #=W $GO $CFILE.ansi" \
 # (detect change of screen width?)
 
 [ -f $CFILE.ansi ] \
-  && ./wmessage "./wdownload already have $GO" \
+  && ./wmessage "./wdownload already have $GO" $ROWS $COLS \
   && exit 0
 
 # --- download
@@ -60,13 +52,13 @@ if [[ ! -f "$GO" ]]; then
    # - display spinning globe!
    ./spin.x & foo_pid=$!
 
-   ./wmessage "./wdownload $GO"
+   ./wmessage "./wdownload $GO" $ROWS $COLS
 
    # - download
    wget -q -O $FILE.TMP -a $FILE.LOG "$GO" >/dev/null \
-     || ./werror "./wdownload error: $GO"
+     || ./werror "./wdownload error: $GO" $ROWS $COLS
 
-   ./wmessage "./wdownload done: $GO"
+   ./wmessage "./wdownload done: $GO" $ROWS $COLS
 
    # - kill the globe
    ( kill $foo_pid && wait $foo_pid ) 2>/dev/null 1>&2
@@ -77,4 +69,20 @@ if [[ ! -f "$GO" ]]; then
 
 fi
 
-./w.x $FILE > $CFILE.ansi
+./w.x $FILE $GO $COLS > $CFILE.ansi
+
+# - Signal app that requested
+# TODO: 
+# kill:
+# - https://en.m.wikipedia.org/wiki/Signal_(IPC)#Handling_signals
+# - https://en.m.wikipedia.org/wiki/C_signal_handling
+#  0   SIGNULL
+#  -1  SIGHUP
+#  -2  SIGINT
+#  -5  SIGPOLL
+#  -16 SIGUSR1
+#  -17 SIGUSR2
+#  -20 SIGCHLD
+#  -23 SIGIO
+#  -28 SIGWINCH
+#  -38 SIGDCE
