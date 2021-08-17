@@ -34,16 +34,70 @@ int incdec(int v, int k, int ikey, int dkey, int min, int max, int min2val, int 
 #define COUNT(var, ikey, dkey, limit) var= incdec(var, k, ikey, dkey, 0, limit-1, 0, limit-1)
 #define COUNT_WRAP(var, ikey, dkey, limit) var= incdec(var, k, ikey, dkey, 0, limit-1, limit-1, 0)
 
-// --- Display
-
 // TODO: cleanup
-#define LINKS_MAX 25*25
+// TODO: dynamic array? or read from file and match!
+#define LINKS_MAX 25*25*25
 int nlinks= 0;
-char* links[LINKS_MAX] = {0};
+char *links[LINKS_MAX] = {0};
+
+void trunclinks(int n) {
+  // free old links
+  while(nlinks > n) {
+    char *l= links[--nlinks];
+    if (l) free(l);
+    links[nlinks]= NULL;
+  }
+}
+
+// Load bookmarks/keyboards from FILE
+// Returns number of items added
+int loadbookmarks(char *file) {
+  FILE *flinks;
+
+  // .ansi file - extract links
+  if (endswith(file, ".ansi")) {
+    //const char CMD[]= "./wlinks %s";
+    //char cmd[sizeof(CMD)+1 + 1024]= {0};
+    //int lcmd= snprintf(cmd, sizeof(cmd), CMD, file);
+    //assert(lcmd+5 < sizeof(cmd));
+    //system(cmd);
+    // TODO: use popen instead, but it doesn't work with fgetline
+    //FILE* flinks= popen(cmd, "r");
+
+    // TODO: murky...
+    // ./wdisplay already wrote it...
+    file= ".wlinks";
+  }
+
+  flinks= fopen(file, "r");
+  // TODO: display error message?
+  if (!flinks) return 0;
+
+  // TODO: this doesn't work with popen
+  char *lk;
+  while (lk=fgetline(flinks)) {
+    if (nlinks<LINKS_MAX)
+      links[nlinks++]= lk;
+    else
+      error(LINKS_MAX>=nlinks, 77, "Getmore links! %d");
+  }
+  fclose(flinks);
+}
+
+void displaybookmarks() {
+  clear();
+  printf("\n=== BOOKMARKS ===\n\n");
+  for(int i=0; i<nlinks; i++) 
+    printf("%s\n", links[i]);
+  printf("\n===Press key to continue\n");
+  key();
+}
 
 // DONT free (partof hit)
 char *file= NULL;
 char *url= NULL;
+
+// --- Display
 
 void display(int line, int k) {
   // header
@@ -52,7 +106,7 @@ void display(int line, int k) {
   if (url) {
     clearend();
     // TODO: app header reserved for tab-info?
-    char* u= url, col;
+    char *u= url, col;
     col= printf("./w ");
     gotorc(0, col);
     // nprintf !!!
@@ -79,32 +133,10 @@ void display(int line, int k) {
 
   system(buf);
 
-
-  // TODO: cleanup
-  const char CMD[]= "./wlinks %s";
-  char cmd[sizeof(CMD)+1 + 1024]= {0};
-  int lcmd= snprintf(cmd, sizeof(cmd), CMD, file);
-  assert(lcmd+5 < sizeof(cmd));
-  //FILE* flinks= popen(cmd, "r");
-  FILE* flinks= fopen(".wlinks", "r");
-  char* lk;
-
-  // free old links
-  while(nlinks) {
-    char* l= links[--nlinks];
-    if (l) free(l);
-    links[nlinks]= NULL;
-  }
-
-  // TODO: this doesn't work with popen
-  while (lk=fgetline(flinks))
-    if (nlinks<LINKS_MAX)
-      links[nlinks++]= lk;
-    else
-      error(LINKS_MAX>=nlinks, 77, "Getmore links!");
-
-  fclose(flinks);
-  
+  trunclinks(0);
+  loadbookmarks(".wkeys");
+  loadbookmarks(".wlinks");
+  //loadbookmarks(file?file:".wlinks");
 
 //  reset();
   clearend(); C(white); B(black); clearend();
@@ -123,7 +155,7 @@ void display(int line, int k) {
   // pretty print state & key
   // TODO: remove
   if (1) { // debug
-    printf("%3d %3d %3d ", top, right, tab);
+    printf("%3d %3d %3d/%d ", top, right, tab, ntab-1);
     //clearend();
     print_key(k);
     clearend();
@@ -136,28 +168,46 @@ void help() {
 
 // --- ACTIONS
 
-void click(int k) {
+// Find match to key INPUT extract link and ./wdonwload it in, allocate new tab.
+//
+// Return 0 if no match
+//        N the new tab number
+//
+// TODO: make it match a string!
+int click(int k) {
   for(int i=0; i<nlinks; i++) {
-     if (k==links[i][0]) {
-       // one key match found!
-       printf("===========FOUND match key=%c for '%s'\n", k, links[i]);
+    char *u = links[i];
+    if (*u++==k) {
+      // one key match found!
+      //fprintf(stderr, "\n===========FOUND match key='%c' for:\n'%s'\n", k, links[i]);
 
-       assert(!strchr(links[i], '\\'));
-       assert(!strchr(links[i], '"'));
-       assert(!strchr(links[i], '\''));
-       assert(!strchr(links[i], '\n'));
+      // TODO: make a safe system/popen
+      // TODO: handle gracefully
+      assert(!strchr(links[i], '\\'));
+      assert(!strchr(links[i], '"'));
+      assert(!strchr(links[i], '\''));
+      assert(!strchr(links[i], '\`'));
+      assert(!strchr(links[i], '\n'));
 
-       // TODO: not safe...
-       const char CMD[]="./wdownload \"%s\" &";
-       char cmd[sizeof(CMD)+1+strlen(links[i])];
-       snprintf(cmd, sizeof(cmd), CMD, &(links[i][2]));
-       system(cmd);
+      // skip spaces
+      while(*u && (*u==' ' || *u=='\t')) u++;
+      
+      // start download in background
+      char *end= strchr(u, ' ');
+      int llen= end? end-u : strlen(u);
+      char cmd[30+llen];
+      cmd[0]= 0;
+      strcat(cmd, "./wdownload \"");
+      strncat(cmd, u, llen);
+      strcat(cmd, "\" &");
+      system(cmd);
+      usleep(100*1000);
 
-       ntab++;
-       tab++;
-       return;
-     }
+      // open new tab, go to
+      return ++ntab;
+    }
   }
+  return 0;
 }
 
 int newtab() {
@@ -192,10 +242,39 @@ void read_next() { // till end
 void queue_read() {
 }
 
-void bookmark() {
+void reload() {
 }
 
-void reload() {
+
+void logbookmark(int k, char *s) {
+  //log(bms, k, url, cpos, top, s);
+  printf("\n=== ./wbookmark %c %s %d %d %s\n", k, url, -1, top, s?s:"");
+  key();
+}
+
+void bookmark(int k) {
+  int cpos= -1; // TODO
+
+  if (k=='*' || k==CTRL+'D') {
+    logbookmark('*', "");
+    return;
+  }
+
+  char prompt[2]= {k, 0};
+  //char *s= readline((char*)prompt);
+  char buf[256]= {0};
+  char *s= fgets(buf, sizeof(buf), stdin);
+  if (!s) return;
+
+  // search
+  if (s=='=') {
+    // TODO: seach/grep
+    return;
+  }
+
+  // add bookmark data
+  logbookmark(k, s);
+  free(s);
 }
 
 // --- MAIN LOOP
@@ -206,10 +285,10 @@ int main(void) {
   screen_init();
   rows = screen_rows-2;
 
-  char* history= fopen(".whistory", "r");
+  char *history= fopen(".whistory", "r");
   start_tab= flines(history);
 
-  char* hit= NULL; // FREE!
+  char *hit= NULL; // FREE!
   int k= 0, q=0, last_tab;
   while(1) {
 
@@ -222,7 +301,7 @@ int main(void) {
     hit= fgetlinenum(history, t);
 
     if (hit) {
-      const char* W= "#=W ";
+      const char *W= "#=W ";
       // extract file
       file= strstr(hit, W);
       if (file) {
@@ -240,45 +319,54 @@ int main(void) {
         while(*file==' ') file++;
       }
       error(!file, 10, "history log entry bad: '%s'\n", hit);
+    } else {
+      // TODO: show blank page!!!!
+
+      //error(!hit, 10, "history log entry not found: %d", t);
     }
-    //error(!hit, 10, "history log entry not found: %d", t);
 
     display(top, k);
     visited();
 
     // - read key & decode
     k= key();
+    int kc= k & 0x7f; // only char
 
     // action
-    //if (c==CTRL+'H') help();
-    if (k==CTRL+'C' ||k=='q') break;
+    if (k=='?' || k==CTRL+'H') help();
+
+    if (k==CTRL+'D' || strchr("=*#$", k)) bookmark(k);
+    if (k==CTRL+'X') displaybookmarks();
+
+    // navigation
+    if (k==CTRL+'C') break;
     if (k==CTRL+'Z') kill(getpid(), SIGSTOP);
     // navigation
-    if (k=='<' || k&0x7f==',') top= 0; // top
-    if (k=='>' || k&0x7f=='.') top= nlines-1; // bottom
+    if (k=='<' || kc==',') top= 0; // top
+    if (k=='>' || kc=='.') top= nlines-1; // bottom
     if (k==META+'V' || k==BACKSPACE || k==DEL) if ((top-= rows) < 0) top= 0;
     if (k==CTRL+'V' || k==' ') if ((top+= rows) > nlines) top= nlines-1;
 
     // clicking (new tab)
     if (k>='a' && k<='z') {
       push(tab);
-      tab= newtab();
-      click(k);
+      //tab= newtab();
+      tab= click(k);
     }
     if (k>='A' && k<='Z') {
       push(tab);
       int t= newtab();
       click(k+32);
-      tab= pop();
+      //tab= pop();
     }
     if (k>=META+'A' && k<=META+'Z') {
       push(tab);
-      tab= newtab();
-      click(k-META);
-      tab= pop();
+      fprintf(stderr, "\n\nKEY===%x kc=%c => %c\n", k, kc, kc);
+      click(kc);
+      //tab= pop();
+      tab= ntab-1;
     }
 
-    if (k==CTRL+'D') bookmark();
     if (k==CTRL+'R') reload();
 
     // Up/Down LOL?
@@ -364,8 +452,9 @@ int main(void) {
     if (tab>=ntab) tab= ntab-1;
     //COUNT_WRAP(right, RIGHT, LEFT, nright);
 
-    //TODO: field?
-    //COUNT_WRAP(tab, TAB, S_TAB, ntab);
+    //TODO: field? nfield
+    // remove "right"
+    //COUNT_WRAP(field, TAB, S_TAB, nfield);
 
     // quit?
     q= k<33 ? 0 : q*2 + k;

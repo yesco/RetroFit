@@ -79,9 +79,19 @@ enum { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127, CTRL=-64, META=128, FUN
 int key();
 void print_key(int c);
 
+////////////////////////////////////////
+// - files
+
 int flines(FILE* f);
 char* fgetline(FILE* f);
 char* fgetlinenum(FILE* f, long line);
+
+
+
+////////////////////////////////////////
+// - strings
+
+int endswith(char* s, char* end);
 
 
 

@@ -1,5 +1,7 @@
 $_= join('', <>);
 
 while (m/\e\]:A:\{(.*?)\}\e\\/g) {
-    print "$1\n";
+    # TODO: fill in and then extract
+    $text= 'LINKTEXT';
+    print "$1 $text\n";
 }

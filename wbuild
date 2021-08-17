@@ -1,3 +1,6 @@
+# opt?
+OPT=-O3
+
 # --- dependencies
 if [[ jio.c -nt w.x ]]; then
   rm w.x wless.x 2>/dev/null
@@ -14,7 +17,7 @@ if [[ w.c -nt w.x ]]; then
   echo "--- w.c changed, recompiling w.x..."
   echo "`date --iso=s` #=CC w.c" >> .wlog
   rm w.x 2>/dev/null
-  cc -g -w -lunistring jio.c w.c -o w.x || (printf "maybe need to install libunistring?\napt install libunistring\nbrew install libunistring\nyum install libunistring-devel\n" && exit 4711) || exit
+  cc $OPT -g -w -lunistring jio.c w.c -o w.x || (printf "maybe need to install libunistring?\napt install libunistring\nbrew install libunistring\nyum install libunistring-devel\n" && exit 4711) || exit
 fi
 
 # --- compile spinner.c
@@ -24,7 +27,7 @@ if [[ Play/spin.c -nt spin.x ]]; then
   echo "--- spin.c changed, recompiling w.x..."
   echo "`date --iso=s` #=CC spin.c" >> .wlog
   rm spin.x 2>/dev/null
-  cc -g -w Play/spin.c -o spin.x # || exit 4711
+  cc $OPT -g -w Play/spin.c -o spin.x # || exit 4711
 fi
 
 # --- compile wless.c
@@ -34,7 +37,7 @@ if [[ wless.c -nt wless.x ]]; then
   echo "--- wless.c changed, recompiling wless.x..."
   echo "`date --iso=s` #=CC wless.c" >> .wlog
   rm wless.x 2>/dev/null
-  cc -g -w jio.c wless.c -o wless.x || exit 4711
+  cc $OPT -g -w jio.c wless.c -o wless.x || exit 4711
 fi
 
 # 

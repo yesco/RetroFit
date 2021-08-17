@@ -159,3 +159,11 @@ char* fgetlinenum(FILE* f, long line) {
   if (line > 1) return NULL;
   return fgetline(f);
 }
+
+// Return true if S (!null) ends with END
+// NULL is considered same as ""
+int endswith(char* s, char* end) {
+  if (!s || !end) return !end && s;
+  int i = strlen(s)-strlen(end);
+  return i<0 ? 0 : strcmp(s+i, end)==0;
+}

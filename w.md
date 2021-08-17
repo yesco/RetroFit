@@ -93,18 +93,28 @@ C-a beginning (tab 0, start tab)
 C-e end (last tab)
 
 C-q quit
-C-v view
 C-x exit extra
 
 C-l clear urL
 C-u Url undo
-
-
-
-
-
 </pre>
 
+# Identifiers
+
+<pre>
+*               - star
+#cool           - hashtab
+#4711           - line in history
+#-3             - line from current
+#+3             - tab 3 (forward)
+
+#2021-07-15     - match this tag date
+#1629202308     - tag time in s
+#1.629.202.308  - tag time in s
+#1 629 202 308  - tag time in s
+#Ae73Qrs        - timestamp s
+
+</pre>
 
 # History
 
