@@ -464,7 +464,6 @@ int parse(FILE* f, char* endchars, char* s, int size) {
   int c; char* origs= s;
   if (s) *s++ = ' ';
   while (STEP && (!strchr(endchars, c))) {
-    //fputc(c, stderr);
     if (s && --size>2) {
       *s++= tolower(c);
       // TODO: error here for google.com
@@ -648,11 +647,8 @@ void process(TAG *end) {
         *e++= tolower(c);
         // check if start of entity
         if (entity[1]!='#' && !strcasestr(ENTITIES, entity)) break;
-        fprintf(stderr, "{%c}", c);
       } while (e-s+2<sizeof(entity) && STEP && (isalnum(c) || c=='#'));
-      fprintf(stderr, "{%c}", c);
       if (c==';') *e++= c; else ungetc(c, f);
-fprintf(stderr, "\nENTITY: %s\n", entity);
       char* d= decode_entity(entity);
       s= d ? d : s;
       // print - it's all printables

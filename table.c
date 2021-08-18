@@ -80,8 +80,8 @@ void handle_trd(int isRow, int isEndTag, TAG tag) {
 
 void renderTable() {
   C(green); B(black);
-  printf("\n----------TABLE----------\n");
-  //printf("%s\n<<<---STRING\n", table->s);
+  TRACE("\n----------TABLE----------\n");
+  //TRACE("%s\n<<<---STRING\n", table->s);
 #define MAX_COLS 11
   int w[MAX_COLS]= {0}, h[MAX_COLS]= {0};
   int sum_w[MAX_COLS]= {0}, sum_h[MAX_COLS]= {0};
@@ -103,32 +103,32 @@ void renderTable() {
       h[t->i] = a > b ? a: b;
     }
  
-    printf("===%2d: i=%1d span=%1d h=%2d w=%2d l=%3d '%s' ... tag=%s\n",
+    TRACE("===%2d: i=%1d span=%1d h=%2d w=%2d l=%3d '%s' ... tag=%s\n",
            i, t->i, t->span, t->h, t->w, t->len,t->s?t->s:"(NULL)", t->tag);
   }
 
   // print stats
-  printf("\nROWS=%d\n", rows);
-  printf("\niiii::::: ");
-  for(int i= 0; i<MAX_COLS; i++) printf("%3d ", i);
-  printf("\nWIDTH::: ");
-  for(int i= 0; i<MAX_COLS; i++) printf("%3d ", w[i]);
+  TRACE("\nROWS=%d\n", rows);
+  TRACE("\niiii::::: ");
+  for(int i= 0; i<MAX_COLS; i++) TRACE("%3d ", i);
+  TRACE("\nWIDTH::: ");
+  for(int i= 0; i<MAX_COLS; i++) TRACE("%3d ", w[i]);
 
   int a[MAX_COLS]= {0};
   for(int i= 0; i<MAX_COLS; i++)
     a[i]= (sum_w[i]+rows/2)/rows;
 
-  printf("\n   AVG:: ");
-  for(int i= 0; i<MAX_COLS; i++) printf("%3d ",  a[i]);
+  TRACE("\n   AVG:: ");
+  for(int i= 0; i<MAX_COLS; i++) TRACE("%3d ",  a[i]);
 
-  printf("\n  A.SUM: "); int width= 0;
-  for(int i= 0; i<MAX_COLS; i++) printf("%3d ",  width+=(sum_w[i]+rows/2)/rows);
+  TRACE("\n  A.SUM: "); int width= 0;
+  for(int i= 0; i<MAX_COLS; i++) TRACE("%3d ",  width+=(sum_w[i]+rows/2)/rows);
 
-  printf("\n\nHEIGHT:: ");
-  for(int i= 0; i<MAX_COLS; i++) printf("%3d ", h[i]);
-  printf("\n   AVG:: ");
-  for(int i= 0; i<MAX_COLS; i++) printf("%3d ", (sum_h[i]+rows/2)/rows);
-  printf("\n---END\n", table->s);
+  TRACE("\n\nHEIGHT:: ");
+  for(int i= 0; i<MAX_COLS; i++) TRACE("%3d ", h[i]);
+  TRACE("\n   AVG:: ");
+  for(int i= 0; i<MAX_COLS; i++) TRACE("%3d ", (sum_h[i]+rows/2)/rows);
+  TRACE("\n---END\n", table->s);
   C(black); B(white);
 
   // init format
@@ -140,7 +140,7 @@ void renderTable() {
     if (!v) continue;
     f[i]= v < 3 ? 3 : v;
     int d= (sum_w[i] - tds[i].w) / rows;
-    printf("=== %d: %d %d\n", i, f[i], d);
+    TRACE("=== %d: %d %d\n", i, f[i], d);
   }
 
   // TODO: if have more space allocate
@@ -158,7 +158,7 @@ void renderTable() {
   size_t dummyl;
   u8_to_u32(sbaseletter, strlen(sbaseletter), &baseletter, &dummyl);
   assert(dummyl==1);
-  //printf("-------baseletter=%x\n", baseletter);
+  //TRACE("-------baseletter=%x\n", baseletter);
 
   wchar_t letter[MAX_COLS]= {0};
   
@@ -167,11 +167,11 @@ void renderTable() {
   for(int i=0; i<MAX_COLS; i++) {
     total+= f[i];
     if (f[i]) tcolumns++;
-    //printf("--%d %d\n", i, f[i]);
+    //TRACE("--%d %d\n", i, f[i]);
   }
 
   while (total>screen_cols-tcolumns) {
-    printf("\n--------MINIMIZE------ %d %d %d\n", total, screen_cols, tcolumns);
+    TRACE("\n--------MINIMIZE------ %d %d %d\n", total, screen_cols, tcolumns);
     // find biggest
     int big= -1, max= 0;
     total= 0;
@@ -197,7 +197,7 @@ void renderTable() {
       if (t->head) underline();
 
       for(int j=f[t->i]; j>0; j--) {
-        //if (*s && *s!=10 && (*s<32 || *s>128)) printf("[%d]", *s);
+        //if (*s && *s!=10 && (*s<32 || *s>128)) TRACE("[%d]", *s);
         if (!*s) putchar(' ');
         if (!*s && t->head) end_underline();
         else if (*s == 10) ;
