@@ -196,3 +196,4 @@ void testkey() {
   for(int k= 0; k!=CTRL+'C'; k= key())
     fprintf(stderr, "%s ", key_string(k));
 }
+

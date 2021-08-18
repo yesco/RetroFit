@@ -246,29 +246,26 @@ void inx() {
 char word[WORDLEN+1] = {0};
 int _overflow= 0;
 
+#define FLUSH_WORD -1
+
+int isdelimiter(int c) {
+  if (c==FLUSH_WORD || c==NL || c==SNL || c==HS) return 1;
+  if (c >= 128) return 0; // utf8
+  if (strchr(".,:;", c)) return 0; // keept with
+  return c<33 || isspace(c);
+  return c<'0' || (c>'9' && c<'A') || strchr("[\\\{|}`~", c);
+}
+
 void _pc(int c) {
   // TODO: break on '&' this doesn't work:
   //if (strlen(word) && (c<=' ' || c==';' || c=='\n' || c=='\r' || c=='\t' || c=='&')) {
 
   // output word (if at break char)
-  if (c<=' ' || c==';' || isspace(c)) {
-    // html entity?
-    char* e_result= NULL;
-    if (word[0]=='&') {
-      if (c==';') word[strlen(word)]= c;
-      e_result= decode_entity(word);
-    }
-    if (e_result) {
-      printf("%s", e_result);
-      //if (c!=';') putchar(c);
-    } else {
-      // no entity, just output word
-      printf("%s", word);
-      if (c>=0) putchar(c);
-    }
+  if (c==FLUSH_WORD || isdelimiter(c)) {
+    printf("%s", word);
+    if (c>=0) putchar(c);
     memset(word, 0, sizeof(word));
     _overflow= 0;
-    //_ws= (c==' '||c=='\t'); // TODO: doesn't matter!
 
   } else if (_overflow) {
     if (_curx+rmargin+1 >= screen_cols) {
@@ -297,14 +294,6 @@ void _pc(int c) {
       nl();
       indent(); // this affects <li> second line indent
       _curx+= strlen(word);
-    }
-
-    // html entity?
-    //   TODO: this isn't correct
-    //   complex: &amp followed by ';' or NOT!
-    if (0 && word[0]=='&') {
-      char* e= decode_entity(word);
-      printf(" { %s } ", e);
     }
   }
 }
@@ -434,7 +423,7 @@ void p(int c) {
     return;
   }
 
-  if (_fullwidth) _pc(-1);
+  if (_fullwidth) _pc(FLUSH_WORD);
   // collapse whitespace
   int tb= (c=='\t'); // TODO: table?
   int ws= (c==' '||tb||c=='\n'||c=='\r');
@@ -653,14 +642,17 @@ void process(TAG *end) {
       p(c);
 
     } else if (c=='&') { // &amp;
-      TAG entity= {'&', 0};
-      char *e= &entity[0], *s= p;
+      TAG entity= {0};
+      char *e= &entity[0], *s= e;
       do {
         *e++= tolower(c);
         // check if start of entity
-        if (!strcasestr(ENTITIES, entity)) break;
+        if (entity[1]!='#' && !strcasestr(ENTITIES, entity)) break;
+        fprintf(stderr, "{%c}", c);
       } while (e-s+2<sizeof(entity) && STEP && (isalnum(c) || c=='#'));
+      fprintf(stderr, "{%c}", c);
       if (c==';') *e++= c; else ungetc(c, f);
+fprintf(stderr, "\nENTITY: %s\n", entity);
       char* d= decode_entity(entity);
       s= d ? d : s;
       // print - it's all printables
@@ -668,7 +660,7 @@ void process(TAG *end) {
 
     } else { // '<' tag start
       TAG tag= {0};
-      _pc(-1); // flush word
+      _pc(FLUSH_WORD);
 
       // parse tag
       c= parse(f, "> \n\r", tag, sizeof(tag));

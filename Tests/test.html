@@ -8,9 +8,9 @@ This is a test of the <i>minimalist</i> <tt>./w</tt> web-brower written in C. It
 In the morning of August 4th, 2021, in the morning: it was a total 370 lines. <b>pre/code</b> added 10 lines, <b>word-wrap</b> 40, misc formatting improvements &mdash; 10 lines. I added 36 for handling <b>HTML entities</b>. Now, I didn't want to count pure comment lines &amp; nor empty lines; so changed my counting script; Adding <b>numbered entities</b>: Hex and deciaml; there are <b>345 lines</b> of <i>C</i>; Adding parsing of <b>attributes</b> added a whole lot: 70 lines. But then I did a general cleanup of most code, and got it down to 30ish lines!
 </p>
 
-<P>As you saw above; it supports <b>named entities</b> (caveat inline without surrounded by space, see bug below). Did you know that the list of HTML entties is <b>2234</b> elements long! &amp; <tt> &amp; amp;</tt> &lt; <tt> &amp; lt;</tt>  &gt; <tt>&amp; gt;</tt> are just few examples.</p>
+<P>As you saw above; it supports <b>named entities</b> (caveat inline without surrounded by space, see bug below). Did you know that the list of HTML entties is <b>2234</b> elements long! &amp; <tt> &amp;amp;</tt> &lt; <tt> &amp;lt;</tt>  &gt; <tt>&amp;gt;</tt> are just few examples.</p>
 
-<p>It supports <b>numbered entities</b> on the form: This is decimal 'A': &#65; <tt> &amp; #4711;</tt>, and fullwidth 'Ａ': &#xff21; <tt> &amp; #xff21</tt>.</p>
+<p>It supports <b>numbered entities</b> on the form: This is decimal 'A': &#65; <tt> &amp;#4711;</tt>, and fullwidth 'Ａ': &#xff21; <tt> &amp;#xff21</tt>.</p>
 
 <p><b>Links</b> are rendered <a href="http://google.com/">Google</a> but there is no navigation or paging.</p>
 
@@ -78,6 +78,14 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 <h6>Header 6</h6>
 <h6>Header 6</h6>
 <p>Blah blahbalhbal albhablab ablahblabhalbla blabhalbahbla bahbl ablhaba</p>
+<h1>Fixed bugs</h1>
+
+<ul>
+<li>A text with inline&amp;code with no spaces ( &amp; ) (&amp;).</li>
+<li>&amp; tokens currently takes up as much space as the code is long, need to not count those characters... When to finish? ';' is not enough.</li>
+<li>Some code are &amp-without the ";" or just a single & or illegal &foobar <tt> &amp;amp</tt> without the ';' &mdash; this is a parsing problem.</li>
+</ul>
+
 <h1>Current Bugs</h1>
 
 <h2>Terminal issues:</h2>
@@ -91,18 +99,12 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 <ul>
 <li>Not really a bug, but a matter of resilience of missing end tags. For example of the end li-tag is missing, indentation becomes messed up.</li>
 <li>Handle image tag, show alt. Image maps too.</li>
-<li>Extract a-links href:s and allow to list them</li>
-<li>Be able to choose link by letter/number, and go to it.</li>
-<li>Be able to choose link by letter/number, and go to it.</li>
-<li>Paging, up/down - may require cashing. Unless keep in memory. (disk is fast!)</li>
 <li>Navigate to links by cursor movements.</li>
+<li> &lt; ordered lists!</li>
 </ul>
 
 <h2>My Code Bugs in ./w</h2>
 <ul>
-<li>A text with inline&amp;code with no spaces ( &amp; ) (&amp;).</li>
-<li>&amp; tokens currently takes up as much space as the code is long, need to not count those characters... When to finish? ';' is not enough.</li>
-<li>Some code are <tt> &amp;amp</tt> without the ';' &mdash; this is a parsing problem.</li>
 <li>After &lt; h2 &lt; if there is no text following the h2 takes 2 lines (with same background color)</li>
 </ul>
 

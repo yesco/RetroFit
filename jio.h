@@ -93,5 +93,3 @@ char* fgetlinenum(FILE* f, long line);
 
 int endswith(char* s, char* end);
 
-
-
