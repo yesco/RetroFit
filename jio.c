@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h>
+#include <assert.h>
 
 #include "jio.h"
 
@@ -78,7 +79,11 @@ void B(int n) { bg(n); }
 ////////////////////////////////////////
 // - keyboard
 
+// Note: NOT thread-safe
 int key() {
+  static int b= 0;
+  static char buf[32]= {0};
+
   struct termios old, tmp;
   tcgetattr(0, &old);
 
@@ -88,41 +93,60 @@ int key() {
   tmp.c_lflag &= ~ICANON & ~ECHO;
   tcsetattr(0, TCSANOW, &tmp);
 
-  int c= getchar();
+  // get next c
+  // hacky code, set c by shifting bytes
+  if (b>0) {
+    memcpy(&buf[0], &buf[1], b--);
+  } else {
+    // read as many as available, as we're blocking=>at least one char
+    // terminals return several character for one key (^[A == M-A  arrows etc)
+    b= read(0, &buf[0], sizeof(buf)) - 1;
+  }
+  int k= buf[0];
 
   // restore
   tcsetattr(0, TCSANOW, &old);
 
-  // TODO: fix ESC (by itself)
-  // fix multi-char key-encodings
-  if (c==ESC) c=toupper(key())+META;
-  if (c==META+'[') c=tolower(key())+META;
-  if (c==META+'3') c=key(), c= DEL;
-  // function keys
-  if (c==META+'O') c=key()-'P'+1+META;
-  if (c==META+'1') c=key()-'0'+META, key(), c= c==5+META?c:c-1;
-  if (c==META+'2') c=key()-'0'+9+META, key(), c= c>10+META?c-1:c;
+  // simple character, or error
+  if (b<=0) return b<0? b+1 : k;
 
-  return c;
+  // fixing multi-char key-encodings
+  if (k==ESC) k=toupper(key())+META;
+  if (k==META+'[') k=tolower(key())+META;
+  if (k==META+'3') key(), k= DEL;
+  if (!b) return k;
+
+  // function keys (special encoding)
+  if (k==META+'O') k=key()-'P'+1+META;
+  if (k==META+'1') k=key()-'0'+META, key(), k= k==5+META?k:k-1;
+  if (k==META+'2') k=key()-'0'+9+META, key(), k= k>10+META?k-1:k;
+
+  return k;
 }
 
-void print_key(int c) {
+// Returns a static string describing KEY
+// Note: next call may change previous returned value, NOT thread-safe
+char* key_string(int c) {
+  static char s[10];
+  memset(&s[0], 0, sizeof(s));
+
   if (0) ;
-  else if (c==TAB) printf(" TAB");
-  else if (c==RETURN) printf(" RETURN");
-  else if (c<32) printf(" ^%c", c+64);
-  else if (c<127) putchar(c);
-  else if (c==BACKSPACE) printf(" BACKSPACE");
-  else if (c==DEL) printf(" DEL");
-  else if (c==S_TAB) printf(" S_TAB");
-  else if (c==META+'a') printf(" UP");
-  else if (c==META+'b') printf(" DOWN");
-  else if (c==META+'c') printf(" RIGHT");
-  else if (c==META+'d') printf(" LEFT");
-  else if (c>=META+' ') printf(" M-%c", c-META);
-  else if (c>=META)
-    printf(" F-%d", c-META);
-  fflush(stdout);
+  else if (c==TAB) return "TAB";
+  else if (c==RETURN) return  "RETURN";
+  else if (c==ESC) return "ESC";
+  else if (c<32) sprintf(s, "^%c", c+64);
+  else if (c<127) s[0]= c;
+  else if (c==BACKSPACE) return "BACKSPACE";
+  else if (c==DEL) return "DEL";
+  // 127? == delete key?
+  else if (c==S_TAB) return "S_TAB";
+  else if (c==META+'a') return "UP";
+  else if (c==META+'b') return "DOWN";
+  else if (c==META+'c') return "RIGHT";
+  else if (c==META+'d') return "LEFT";
+  else if (c>=META+' ') sprintf(s, "M-%c", c-META);
+  else if (c>=META) sprintf(s, "F-%d", c-META);
+  return &s[0];
 }
 
 int flines(FILE* f) {
@@ -166,4 +190,9 @@ int endswith(char* s, char* end) {
   if (!s || !end) return !end && s;
   int i = strlen(s)-strlen(end);
   return i<0 ? 0 : strcmp(s+i, end)==0;
+}
+
+void testkey() {
+  for(int k= 0; k!=CTRL+'C'; k= key())
+    fprintf(stderr, "%s ", key_string(k));
 }

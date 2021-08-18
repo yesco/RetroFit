@@ -3,6 +3,7 @@
 # - no empty lines
 # - no single '{' or '}'
 # - no 'TRACE(' lines
+# - no 'assert(' lines
 # - no 'else'-only lines
 # - nothing after the string  'ENDWCOUNT'
 
@@ -19,6 +20,7 @@ grep -iPv '^\s*}\s*$' | \
 grep -iPv '^\s*{\s*$' | \
 grep -v '^\s*$' | \
 grep -vP 'TRACE\(' | \
+grep -vP 'assert\(' | \
 grep -vinP '^\s*}?\s*else\s*{?\s*(//.*)?$' | \
 wc"
 

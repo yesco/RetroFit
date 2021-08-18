@@ -15,22 +15,17 @@
 # TODO: in the home directory?
 
 WDIR=.w
-
-[ ! -d $WDIR ] \
-  && mkdir $WDIR
-  # TODO: could be shared globally
-
-[ ! -d $WDIR/Cache ] \
-  && mkdir $WDIR/Cache
-  # TODO: could be several?
-[ ! -d $WDIR/Session ] \
-  && mkdir $WDIR/Session
+mkdir -p $WDIR/Cache $WDIR/Session
 
 # --- sets LINES/COLUMNS
 stty size >/dev/null
 clear # this too!
 
 ./wbuild || exit $?
+
+# --- make sure have render of libary
+
+./w.x loading.html loading.html > $WDIR/Cache/loading.html.ansi
 
 # --- URLs TROUBLES!!!
 

@@ -87,7 +87,7 @@ dstr* dstrprintf(dstr* d, char* fmt, ...) {
 }
 
 // generally used for parse() of symbols
-typedef char TAG[32];
+typedef char TAG[40]; // largest entity 35!
 
 // w3c colors
 // - https://www.w3.org/wiki/CSS/Properties/color/keywords
@@ -469,21 +469,21 @@ void p(int c) {
 #define STEP ((c= fgetc(f)) != EOF)
 
 // parse chars till one of ENDCHARS
-// S: if not NULL, lowercase char, append
+// S: if not NULL, LOWERCASE char, append
 // Returns non-matching char
-int parse(FILE* f, char* endchars, char* s) {
+int parse(FILE* f, char* endchars, char* s, int size) {
   int c; char* origs= s;
   if (s) *s++ = ' ';
   while (STEP && (!strchr(endchars, c))) {
     //fputc(c, stderr);
-    if (s) {
+    if (s && --size>2) {
       *s++= tolower(c);
       // TODO: error here for google.com
       if (s-origs>sizeof(TAG)) s--;
       //error(s-origs > sizeof(TAG), 7, "TAG waiting for >>>%s<<< too long=%s\n", endchars, origs);
     }
   }
-  if (s) { *s++ = ' '; *s= 0; }
+  if (s && size>=2) { *s++ = ' '; *s= 0; }
   return c<0? 0: c;
 }
 
@@ -649,15 +649,29 @@ void process(TAG *end) {
   int c;
   while (STEP) {
 
-    if (c!='<') { // content
+    if (c!='<' && c!='&') { // content
       p(c);
+
+    } else if (c=='&') { // &amp;
+      TAG entity= {'&', 0};
+      char *e= &entity[0], *s= p;
+      do {
+        *e++= tolower(c);
+        // check if start of entity
+        if (!strcasestr(ENTITIES, entity)) break;
+      } while (e-s+2<sizeof(entity) && STEP && (isalnum(c) || c=='#'));
+      if (c==';') *e++= c; else ungetc(c, f);
+      char* d= decode_entity(entity);
+      s= d ? d : s;
+      // print - it's all printables
+      while(*s) p(*s++);
 
     } else { // '<' tag start
       TAG tag= {0};
       _pc(-1); // flush word
 
       // parse tag
-      c= parse(f, "> \n\r", tag);
+      c= parse(f, "> \n\r", tag, sizeof(tag));
       TRACE("\n---%s\n", tag);
 
       // comment
@@ -697,7 +711,7 @@ void process(TAG *end) {
             ungetc(skipspace(f), f); //hmm
             // read attribute
             TAG attr= {0};
-            c= parse(f, "= >\"\'", attr);
+            c= parse(f, "= >\"\'", attr, sizeof(attr));
             if (c=='>' ||c==EOF) break;
             //printf("\n---%s.%s\n", tag, attr);
             // do we want it?
@@ -721,7 +735,7 @@ void process(TAG *end) {
           }
         }
       }
-      if (c!='>') c= parse(f, ">", NULL);
+      if (c!='>') c= parse(f, ">", NULL, 0);
 
       // pre action for tags (and </tag>)
       // TODO: /th /td /tr tags are optional.. :-(

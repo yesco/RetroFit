@@ -77,7 +77,7 @@ extern enum color _fg,  _bg;
 enum { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127, CTRL=-64, META=128, FUNCTION=META, UP=META+'a', DOWN, RIGHT, LEFT, S_TAB=META+'z', DEL=META+'3'};
 
 int key();
-void print_key(int c);
+char* key_string(int c);
 
 ////////////////////////////////////////
 // - files

@@ -12,6 +12,9 @@
 
 #include "jio.h"
 
+#define LOADING_FILE ".w/Cache/loading.html.ansi"
+
+
 // - limits
 int nlines= 12000, nright= 10;
 
@@ -84,6 +87,7 @@ int loadbookmarks(char *file) {
   fclose(flinks);
 }
 
+// TODO: search prefixkey, or string
 void displaybookmarks() {
   clear();
   printf("\n=== BOOKMARKS ===\n\n");
@@ -157,7 +161,7 @@ void display(int line, int k) {
   if (1) { // debug
     printf("%3d %3d %3d/%d ", top, right, tab, ntab-1);
     //clearend();
-    print_key(k);
+    puts(key_string(k));
     clearend();
   }
 }
@@ -213,10 +217,6 @@ int click(int k) {
     }
   }
   return 0;
-}
-
-int newtab() {
-  return ++tab;
 }
 
 // update status
@@ -290,7 +290,8 @@ int main(void) {
   screen_init();
   rows = screen_rows-2;
 
-  char *history= fopen(".whistory", "r");
+  FILE *history= fopen(".whistory", "a+");
+  assert(history);
   start_tab= flines(history);
 
   char *hit= NULL; // FREE!
@@ -326,7 +327,7 @@ int main(void) {
       error(!file, 10, "history log entry bad: '%s'\n", hit);
     } else {
       // TODO: add a way to reload or signal when done!
-      file= "loading.html";
+      file= LOADING_FILE;
 
       //error(!hit, 10, "history log entry not found: %d", t);
     }
@@ -353,23 +354,19 @@ int main(void) {
     if (k==META+'V' || k==BACKSPACE || k==DEL) if ((top-= rows) < 0) top= 0;
     if (k==CTRL+'V' || k==' ') if ((top+= rows) > nlines) top= nlines-1;
 
-    // clicking (new tab)
-    if (k>='a' && k<='z') {
-      push(tab);
-      //tab= newtab();
-      tab= click(k);
-    }
-    if (k>='A' && k<='Z') {
-      push(tab);
-      int t= newtab();
-      click(k+32);
-      //tab= pop();
-    }
-    if (k>=META+'A' && k<=META+'Z') {
-      push(tab);
-      click(kc);
-      //tab= pop();
-      tab= ntab-1;
+    // clicking (new tab) a-z0-9
+    //  a  open link in new tab and go
+    //  A  open in background tab
+    //  M-A open shortcut page 
+    if (isalnum(kc) && (k<127 || kc<='Z')) {
+      if (k==toupper(kc)) { // A-Z
+        // open behind
+        click(k);
+      } else { // a-z, M-A -- M-Z
+        // open now
+        push(tab);
+        tab= click(kc);
+      }
     }
 
     if (k==CTRL+'R') reload();
@@ -423,29 +420,30 @@ int main(void) {
     // pop from deleted (chrome: ^S-T
     if (k==CTRL+'Y') {
       push(tab);
-      tab= delpop();
+      //tab= delpop();
     }
 
     if (k==CTRL+'W') { // close tab (^F4)
       delpush(tab);
       deltab();
-      tab= pop();
+      //tab= pop();
     }
     if (k==CTRL+'K') { // kill forward
       delpush(tab);
       deltab();
-      tab++;
+      //tab++;
     }
     if (k==CTRL+'D') { // delete tab back
       delpush(tab);
       deltab();
-      tab++;
+      //tab++;
     }
 
-    if (k==CTRL+'T') {
-      push(tab);
-      tab= newtab();
-    }
+    // TODO: open empty has no meaning...
+    //if (k==CTRL+'T') {
+    //push(tab);
+    //tab= ntab++;
+    //}
 
     COUNT(top, DOWN, UP, nlines);
     COUNT(top, CTRL+'N', CTRL+'P', nlines);
