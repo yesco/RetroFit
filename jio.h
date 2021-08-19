@@ -86,8 +86,6 @@ int flines(FILE* f);
 char* fgetline(FILE* f);
 char* fgetlinenum(FILE* f, long line);
 
-
-
 ////////////////////////////////////////
 // - strings
 
@@ -99,3 +97,16 @@ int isutf8(int c);
 
 int isfullwidth(int c);
 int iszerowidth(int c);
+
+////////////////////////////////////////
+// Dynamic STRings (see Play/dstrncat.c)
+
+#define DSTR_STEP 64
+
+typedef struct dstr {
+  int max;
+  char s[0];
+} dstr;
+
+dstr* dstrncat(dstr* d, char* add, int n);
+dstr* dstrprintf(dstr* d, char* fmt, ...);

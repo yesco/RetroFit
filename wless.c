@@ -104,7 +104,7 @@ char *url= NULL;
 // --- Display
 
 void display(int line, int k) {
-  // header
+  // -- header
   reset();
   gotorc(0, 0);
   if (url) {
@@ -122,21 +122,20 @@ void display(int line, int k) {
     clearend();
   }
 
-  // main content
+  // -- main content
   gotorc(1, 0);
   fflush(stdout);
 
   // build ./wdisplay command
-  const char command[]= "./wdisplay %s %d %d";
-  char buf[sizeof(command)+1 + 1024]= {0};
-  // top+2 because skips the header line
-  int lbuf= snprintf(buf, sizeof(buf), command, file?file:".stdout", top+2, rows);
-  assert(lbuf+5 < sizeof(buf));
+  dstr *dbuf= dstrprintf
+    (NULL, "./wdisplay %s %d %d",
+     file?file:".stdout", top+2, rows);
 
   fgcolor(0); bgcolor(7);
+  system(dbuf->s);
+  free(dbuf);
 
-  system(buf);
-
+  // read keyboard shortcuts, page links
   trunclinks(0);
   loadbookmarks(".wkeys");
   loadbookmarks(".wlinks");
@@ -146,8 +145,8 @@ void display(int line, int k) {
   clearend(); C(white); B(black); clearend();
   cleareos();
 
+  // -- footer
   gotorc(rows, 0);
-//  cleareos();
 
   reset();
 
@@ -160,15 +159,9 @@ void display(int line, int k) {
   // TODO: remove
   if (1) { // debug
     printf("%3d %3d %3d/%d ", top, right, tab, ntab-1);
-    //clearend();
     printf("%s", keystring(k));
     clearend(); fflush(stdout);
   }
-}
-
-void help() {
-  // TODO: fix
-  system("./w wless.html");
 }
 
 // --- ACTIONS
@@ -196,16 +189,15 @@ int click(int k) {
 
       // skip spaces
       while(*u && (*u==' ' || *u=='\t')) u++;
-      
-      // start download in background
+
       char *end= strchr(u, ' ');
       int llen= end? end-u : strlen(u);
-      char cmd[30+llen];
-      cmd[0]= 0;
-      strcat(cmd, "./wdownload \"");
-      strncat(cmd, u, llen);
-      sprintf(cmd+strlen(cmd), "\" %d %d &", screen_rows, screen_cols);
-      system(cmd);
+      
+      // start download in background
+      dstr *cmd= cmd= dstrncat(NULL, "./wdownload \"", -1);
+      cmd= dstrncat(cmd, u, llen);
+      cmd= dstrprintf(cmd, "\" %d %d &", screen_rows, screen_cols);
+      system(cmd->s);
 
       //sleep(3); // testing
       // TODO: write log entry here!
@@ -342,7 +334,7 @@ int main(void) {
 
     // action
     if (k==CTRL+'L') clear();;
-    if (k=='?' || k==CTRL+'H') help();
+    if (k=='?' || k==CTRL+'H') 
 
     if (k==CTRL+'D' || strchr("=*#$", k)) bookmark(k);
     if (k==CTRL+'X') displaybookmarks();

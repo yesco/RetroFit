@@ -41,51 +41,6 @@ const int lmargin= 2;
 
 #include "jio.h"
 
-// Dynamic STRings (see Play/dstrncat.c)
-#define DSTR_STEP 64
-
-typedef struct dstr {
-  int max;
-  char s[0];
-} dstr;
-
-// Usage: d= dstrncat(d, "foo", -1);
-//   d, add: can be NULL (both->alloc N)
-//   n: -1) strlen(add), or copy N chars
-// 
-// Returns: d or newly allocated dstr
-dstr* dstrncat(dstr* d, char* add, int n) {
-  int len= d ? strlen(d->s) : 0, max= d ? d->max : 0;
-  n= (n<0 && add)? strlen(add) : n;
-  if (!d || len+n+1>max) {
-    max= ((max+n)/DSTR_STEP + 1)*DSTR_STEP*13/10;
-    d= realloc(d, sizeof(dstr)+max);
-    d->s[len]= 0; // if new allocated
-  }
-  d->max= max;
-  if (add) strncat(d->s, add, n);
-  return d;
-}
-
-// Dynamic string D printf using FORMAT with ARGUMENTS (...)
-//
-// Usage: d= dstrprintf(d, format, ...)
-//     d= dstrprintf(d, "c=%c s=%s i=%d f=%f\n", 65, "foobar", 4711, 3.1415);
-// Returns: d or newly allocated dstr
-dstr* dstrprintf(dstr* d, char* fmt, ...) {
-  va_list argp;
-  char dummy[1024];
-  va_start(argp, fmt);
-  printf("111111111\n");
-  // TODO:crashes her
-  int n= vsnprintf(&dummy, 1024, fmt, argp);
-  if (!d || strlen(d->s)+n+1 > d->max)
-    d= dstrncat(d, NULL, n+1);
-  vsnprintf(d->s+strlen(d->s), n, fmt, argp);
-  va_end(argp);
-  return d;
-}
-
 // generally used for parse() of symbols
 typedef char TAG[40]; // largest entity 35!
 
