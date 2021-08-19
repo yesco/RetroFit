@@ -128,6 +128,8 @@ int decode_color(char* name, int dflt) {
   return parse_color(m+strlen(name)+2, dflt);
 }
 
+// TODO: <nobr> - how to do if not fit?
+
 // hard space, hard newline
 #define HS -32
 #define HNL -10
@@ -235,7 +237,28 @@ int _curx= 0, _cury= 0, _fullwidth= 0, _capture= 0, _table= 0;
 void nl();
 void indent();
 
+// TODO: (linebreak chars!)
+//  - https://metacpan.org/pod/Unicode::LineBreak
+
 // track visible chars printed
+// (assumes one byte == 1 char)
+// trick?
+//
+// TODO:
+//   - 32..126 == 1 char
+//   - 0b11xx xxxx == 1 char
+//   - 0b10xx xxxx == (no count!)
+//
+// Unicode problem (wide chars):
+
+// ALT: 0) print it in terminal and ask it!
+// ALT: 2) wcwidth.c !!!!
+// - https://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c
+// AL2: 1) parse and handle this file
+// - https://stackoverflow.com/questions/3634627/how-to-know-the-preferred-display-width-in-columns-of-unicode-characters
+// - http://www.unicode.org/reports/tr11/#Relation
+// - https://www.unicode.org/Public/UCD/latest/ucd/EastAsianWidth.txt
+// - http://www.unicode.org/Public/UNIDATA/EastAsianWidth.txt
 void inx() {
   _curx++; _nl= 0;
   if (!_pre && _curx+rmargin == screen_cols) nl();
@@ -319,17 +342,29 @@ void myungetc(int c, FILE* f) {
 
 // --- keys for links
 
-char _keys[15]= {0};
+char _keys[15]= {'a'-1, 0};
 int _nkeys= 0;
 
-void step_key() {
-  int i= 0, v= _nkeys++;
-  do {
-    _keys[i++]= (v % 25) + 'a';
-    v /= 25;
-  } while (v);
-  _keys[i]= 0;
+// -- generate sequense A:
+//  a, b, c...z, aa, ba, ca, .. za, ab, bb, cb, ..zb, ac, ... zz, aaa, baa, caa, ... zaa, aba, ...
+//
+// https://m.facebook.com/groups/242675022610339/permalink/1700651710145989/?comment_id=1700669053477588&notif_t=group_comment&notif_id=1629376009997714&ref=bookmarks
+// recursion by Kjell Post:
+// (modified from putch)
+void p26(int n, int i) {
+  if (n<26)
+    _keys[i]= n+'a';
+  else {
+    p26(n%26, i);
+    p26(n/26-1, i+1);
+  }
 }
+
+void step_key() {
+  p26(_nkeys++, 0);
+}
+
+
 
 TAG link_tag;
 dstr* _url= NULL;
