@@ -27,6 +27,10 @@ Tests/ibm.com
 Tests/html.com.tables
 Tests/google.com
 Tests/forth.org
+Tests/*.com
+Tests/*.org
+Tests/*.se
+Tests/*.simple
 
 # - data files
 .wlog
