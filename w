@@ -142,7 +142,7 @@ while [ $CFILE.ansi -nt $FILE ]; do
       sleep 1
 done
 
-./w.x $FILE > $CFILE.ansi \
+./w.x $FILE $GO > $CFILE.ansi \
   || (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
   (printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run $GO";echo "where") | gdb ./w.x; exit) || exit
 
@@ -179,7 +179,8 @@ cat .stderr 1>&2
 git show :w.c >.w.c
 git show :table.c >.table.c
 git show :wless.c >.wless.c
-cat .w.c .table.c .wless.c >.before-all.c
+git show :jio.c >.jio.c
+cat .w.c .table.c .wless.c jio.c >.before-all.c
 
 cat w.c table.c jio.c wless.c >.all.c
 
@@ -220,3 +221,4 @@ rm .all.c
 rm .w.c
 rm .table.c
 rm .before-all.c
+rm .jio.c

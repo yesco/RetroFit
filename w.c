@@ -334,7 +334,7 @@ void step_key() {
 TAG link_tag;
 dstr* _url= NULL;
 
-void print_url() {
+void print_hidden_url() {
   if (!_url) return;
   step_key();
   printf("\e]:A:{%s %s}\e\\", _keys, _url->s);
@@ -374,7 +374,8 @@ void nl() {
   B(_bg); C(_fg); // fix "less -r" scroll up
   printf("\e[K");
   // indent(); print_state();
-  print_url();
+  // print at newline if still inside <a>
+  print_hidden_url();
   _cury++; _curx= 0; _ws= 1; _nl= 1;
 }
 
@@ -481,7 +482,12 @@ int parse(FILE* f, char* endchars, char* s, int size) {
 ///////////////////////////////////
 // specific web-page parsing
 
-char *url= NULL, *ansifile= NULL;
+// WARNING: don't free these, as they may be shared or not (not big leak)
+char *file=NULL, *url= NULL;
+char *hosturl= NULL; // ends before '/'
+
+int urlIsFile= 0;
+
 dstr *dsbase= NULL;
 
 // must be absolute URI
@@ -489,31 +495,70 @@ dstr *dsbase= NULL;
 // and truncates path filename
 //   http://foo.com/bar/index.html
 //   => http://foo.com/bar/
+// examples:
+//   yesco.org       =>  yesco.org/
+//   yesco.org/      =>  yesco.org/
+//   yesco.org/foo   =>  yesco.org/
+//   yesco.org/foo/  =>  yesco.org/foo/
+//
+// We cannot prefix with http[s]://
+//   as we don't know which!
 void setBase(dstr* d) {
   if (dsbase) free(dsbase);
   dsbase= d;
   char *s= dsbase->s;
+  // last slash
+  char *last= strrchr(s+1, '/');
 
-  // move to path (after '://[^/]*/' )
-  while(*s && *s!=':') s++;
-  // TDOO: we really should use file:/// ?  
-  if (*s==':' && *++s=='/' && *++s=='/')
-    s= strchr(s+1, '/');
+  // last char=='/' already
+  // 0) yesco.org/
+  // 0) http://yesco.org/
+  if (last && last==s+strlen(s)-1)
+    ; // OK
 
-  // ensure host followed by '/'
-  if (!s || !*s) {
+  // add if no single '/'
+  // 1) yesco.org
+  // 2) http://yesco.org
+  else if (!last || *(last-1)=='/')
     dsbase= dstrncat(dsbase, "/", 1);
-  } else {
-    s++;
-    // we're now after host/
-    // remove any "/FOO$" trailing => "/"
-    char *e= s+strlen(s)-1;
-    while(*e && e>=s && *e!='/') e--;
-    // truncate after last '/'
-    if (*e=='/') *(e+1)= 0;
-  }
+
+  // truncate after last '/'
+  // 3) yesco.org/foo
+  // 3) http://yesco.org/foo
+  else
+    s[last-s+1]= 0;
+
+  // extract host url
+  s= dsbase->s;
+  char* end= strstr(s, "//");
+  end= end ? end+2 : s;
+  end = strchr(s, '/');
+  // copy upto but not including '/'
+  hosturl= strndup(s, end-s);
+}
+
+void setLinkUrl(dstr* val) {
+  if (_url) free(_url);
+  _url= val;
+  if (!_url || !dsbase || !hosturl) return;
+
+  //fprintf(stderr, "\nFIXURL:  %s\n", _url->s);
+
+  // absolute url
+  if (strchr(_url->s, ':') || strstr(_url->s, "//")) return;
+
+  dstr *n= NULL;
+  // absolute path /foo...
+  if (_url->s[0]=='/')
+    n= dstrncat(NULL, hosturl, -1);
+  else
+    n= dstrncat(NULL, dsbase->s, -1);
   
-  return;
+  n= dstrncat(n, _url->s,-1);
+  free(_url);
+  _url= n;
+
+  //fprintf(stderr, "FIXURL=> %s\n", _url->s);
 }
 
 void addContent();
@@ -579,9 +624,10 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     // off underline links!
     if (strstr(" a ", tag)) {
       end_underline();
-      if (content && _url)
-        //metadata("LINK", link_tag, &_keys[0], content->s, _url->s);
-      if (_url) free(_url); _url= NULL;
+      // TODO: make again, but at next new line...
+      //if (content && _url)
+      //metadata("LINK", link_tag, &_keys[0], content->s, _url->s);
+      setLinkUrl(NULL);
       if (!--_capture) addContent();
     }
     if (strstr(" table ", tag)) {
@@ -645,10 +691,10 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
     }
 
     memcpy(link_tag, tag, sizeof(link_tag));
-    if (_url) free(_url);
-    _url= val;
-    print_url();
+    setLinkUrl(val);
+    print_hidden_url();
 
+    // output [ab] link key selector
     indent();
     int fg=_fg, bg=_bg; {
       B(rgb(1,2,4)); C(white);
@@ -852,18 +898,14 @@ int main(int argc, char**argv) {
     fprintf(stderr, "Usage:\n  ./w [FIL] URL [COLS] # cols must be 3rd arg\n");
     return 0;
   }
-  char* file= argv[1];
-  char* url= argc>2 ? argv[2] : file;
+  file= argv[1];
+  url= argc>2 ? argv[2] : file;
   // override if run from script
   if (argc>3) screen_cols= atoi(argv[3]);
-  setBase(dstrncat(NULL, url, -1));
 
   // metadata
   printf("\n#=DATE "); fflush(stdout);
   system("date --iso=s");
-  metadata("URL", url, NULL, NULL, NULL);
-  // TODO: not needed if fix all URLs!
-  //metadata("BASE", dsbase->s, NULL, NULL, NULL);
 
   // print header line
   C(white); B(black);
@@ -900,10 +942,24 @@ int main(int argc, char**argv) {
   char* wget= calloc(strlen(url) + strlen(WGET) + 1, 1);
   sprintf(wget, WGET, url);
   f= fopen(file, "r");
+  urlIsFile= f && file==url;
   // TODO: remove? make pure renderer?
   if (!f)
     f= popen(wget, "r");
   if (!f) return 404; // TODO: better error
+
+  // if is file, keep it null
+  if (urlIsFile) {
+    metadata("FILE", file, NULL, NULL, NULL);
+    // base==NULL
+  } else {
+    metadata("URL", url, NULL, NULL, NULL);
+    setBase(dstrncat(NULL, url, -1));
+    //printf("base=%s\n", dsbase?dsbase->s:"(null)");
+    //printf("hosturl=%s\n", hosturl?hosturl:"(null)"); exit(0);
+  }
+
+//  fprintf(stderr, "\nurlIsFile=%s\nequal: %s\nfile=%s\nurl=%s\nbase=%s\n", urlIsFile?"true":"false", file==url?"==":"!=", file, url?url:"(null)", dsbase&&dsbase->s?dsbase->s:"(null)"); exit(0);
 
   // render HTML
   C(black); B(white);
