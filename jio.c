@@ -257,7 +257,6 @@ dstr* dstrprintf(dstr* d, char* fmt, ...) {
   va_list argp;
   char dummy[1024];
   va_start(argp, fmt);
-  printf("111111111\n");
   // TODO:crashes her
   int n= vsnprintf(&dummy, 1024, fmt, argp);
   if (!d || strlen(d->s)+n+1 > d->max)

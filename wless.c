@@ -128,7 +128,7 @@ void display(int line, int k) {
 
   // build ./wdisplay command
   dstr *dbuf= dstrprintf
-    (NULL, "./wdisplay %s %d %d",
+    (NULL, "./wdisplay \"%s\" %d %d",
      file?file:".stdout", top+2, rows);
 
   fgcolor(0); bgcolor(7);
@@ -166,6 +166,32 @@ void display(int line, int k) {
 
 // --- ACTIONS
 
+// creates a new tab from URL.
+//
+// Note: URL can be terminated by whitespace. This allows this
+// function to be called with a pointer of an url within another
+// string.
+//
+// Return newly opened tab number
+int newtab(char* url) {
+  char *end= strpbrk(url, " \t\n");
+  int size= end? end-url : strlen(url);
+
+  // start download in background
+  dstr *cmd= cmd= dstrncat(NULL, "./wdownload \"", -1);
+  cmd= dstrncat(cmd, url, size);
+  cmd= dstrprintf(cmd, "\" %d %d &", screen_rows, screen_cols);
+  system(cmd->s);
+
+  //sleep(3); // testing
+  // TODO: write log entry here!
+  // wait enough for .whistory to be updated...
+  usleep(100*1000);
+
+  // open new tab, go to
+  return ++ntab;
+}
+      
 // Find match to key INPUT extract link and ./wdonwload it in, allocate new tab.
 //
 // Return 0 if no match
@@ -190,22 +216,7 @@ int click(int k) {
       // skip spaces
       while(*u && (*u==' ' || *u=='\t')) u++;
 
-      char *end= strchr(u, ' ');
-      int llen= end? end-u : strlen(u);
-      
-      // start download in background
-      dstr *cmd= cmd= dstrncat(NULL, "./wdownload \"", -1);
-      cmd= dstrncat(cmd, u, llen);
-      cmd= dstrprintf(cmd, "\" %d %d &", screen_rows, screen_cols);
-      system(cmd->s);
-
-      //sleep(3); // testing
-      // TODO: write log entry here!
-      // wait enough for .whistory to be updated...
-      usleep(100*1000);
-
-      // open new tab, go to
-      return ++ntab;
+      return newtab(u);
     }
   }
   return 0;
@@ -334,7 +345,6 @@ int main(void) {
 
     // action
     if (k==CTRL+'L') clear();;
-    if (k=='?' || k==CTRL+'H') 
 
     if (k==CTRL+'D' || strchr("=*#$", k)) bookmark(k);
     if (k==CTRL+'X') displaybookmarks();
@@ -347,6 +357,14 @@ int main(void) {
     if (k=='>' || kc=='.') top= nlines-1; // bottom
     if (k==META+'V' || k==BACKSPACE || k==DEL) if ((top-= rows) < 0) top= 0;
     if (k==CTRL+'V' || k==' ') if ((top+= rows) > nlines) top= nlines-1;
+
+    // -- TABS
+
+    if (k=='?' || k==CTRL+'H') {
+      push(tab);
+      // open already existing?
+      tab= newtab("wless.html");
+    }
 
     // clicking (new tab) a-z0-9
     //  a  open link in new tab and go

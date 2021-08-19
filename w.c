@@ -316,7 +316,7 @@ int _nkeys= 0;
 //
 // https://m.facebook.com/groups/242675022610339/permalink/1700651710145989/?comment_id=1700669053477588&notif_t=group_comment&notif_id=1629376009997714&ref=bookmarks
 // recursion by Kjell Post:
-// (modified from putch)
+// (modified from printf)
 void p26(int n, int i) {
   if (n<26)
     _keys[i]= n+'a';
@@ -405,8 +405,11 @@ void p(int c) {
 
   // preformatted
   if (_pre) {
-    putchar(inx(c));
-    if (c=='\n') _curx= 0;
+    if (c=='\n') {
+      nl(); _curx= 0;
+    } else {
+      putchar(inx(c));
+    }
     return;
   }
 
