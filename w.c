@@ -259,9 +259,16 @@ void indent();
 // - http://www.unicode.org/reports/tr11/#Relation
 // - https://www.unicode.org/Public/UCD/latest/ucd/EastAsianWidth.txt
 // - http://www.unicode.org/Public/UNIDATA/EastAsianWidth.txt
-void inx() {
+// inx(-2) will step forward 2 steps
+int inx(int c) {
+  if (c<0) _curx-= c; // add!
+  // TODO: accumulate utf8 sequence and decode and check...
+  if (iszerowidth(c) || isinsideutf8(c)) return c;
+  if (isfullwidth(c)) _curx++;
+
   _curx++; _nl= 0;
   if (!_pre && _curx+rmargin == screen_cols) nl();
+  return c;
 }
 
 // _pc buffers word, and word-wrap+ENTITIES
@@ -273,7 +280,7 @@ int _overflow= 0;
 
 int isdelimiter(int c) {
   if (c==FLUSH_WORD || c==NL || c==SNL || c==HS) return 1;
-  if (c >= 128) return 0; // utf8
+  if (isutf8(c)) return 0;
   if (strchr(".,:;", c)) return 0; // keept with
   return c<33 || isspace(c);
   return c<'0' || (c>'9' && c<'A') || strchr("[\\\{|}`~", c);
@@ -283,37 +290,41 @@ void _pc(int c) {
   // TODO: break on '&' this doesn't work:
   //if (strlen(word) && (c<=' ' || c==';' || c=='\n' || c=='\r' || c=='\t' || c=='&')) {
 
-  // output word (if at break char)
   if (c==FLUSH_WORD || isdelimiter(c)) {
+    // output word (if at break char)
     printf("%s", word);
     if (c>=0) putchar(c);
     memset(word, 0, sizeof(word));
     _overflow= 0;
 
   } else if (_overflow) {
-    if (_curx+rmargin+1 >= screen_cols) {
-      putchar('-');
-      nl();
+    if (!isinsideutf8(c)) {
+      if (_curx+rmargin+1 >= screen_cols) {
+        // TODO: *overflow* may leave a single char on next line
+        putchar('-');
+        nl();
+      }
+      indent();
     }
-    indent();
-    putchar(c); inx();
+    putchar(c);
 
   } else { // add char to word
     int l= strlen(word);
-    if (l>=WORDLEN) {
+    if (l+1>=WORDLEN) {
       _overflow= 1;
       // flush
+      // (must be WORDLEN < screen_cols)
       for(int i=0; i<strlen(word); i++)
         putchar(word[i]);
 
-      putchar(c); inx();
+      putchar(c);
       memset(word, 0, sizeof(word));
       return;
     }
     word[l]= c;
 
     // word too long for this line?
-    if (_curx+rmargin+1 >= screen_cols) {
+    if (_curx+rmargin+1 >= screen_cols && !isutf8(c)) {
       nl();
       indent(); // this affects <li> second line indent
       _curx+= strlen(word);
@@ -417,7 +428,7 @@ void nl() {
 void indent() {
   if (_pre) return;
   while(_curx < _indent) {
-    putchar(' '); inx();
+    putchar(inx(' '));
   }
   _ws= 1;
 }
@@ -432,16 +443,14 @@ void indent() {
 
 void p(int c) {
   char b= c;
-  if (_table)
-    table= dstrncat(table, &b, 1);
-  if (_capture)
-    content= dstrncat(content, &b, 1);
+  if (_table)   table= dstrncat(table, &b, 1);
+  if (_capture) content= dstrncat(content, &b, 1);
 
   if (_skip) return;
 
   // preformatted
   if (_pre) {
-    putchar(c); inx();
+    putchar(inx(c));
     if (c=='\n') _curx= 0;
     return;
   }
@@ -457,7 +466,7 @@ void p(int c) {
       if (c=='\n') {
         nl();
       } else {
-        _pc(c); _ws= 0; inx();
+        _pc(inx(c)); _ws= 0;
       }
     }
     return;
@@ -470,8 +479,8 @@ void p(int c) {
   if (ws) {
     if (!_curx) return;
     if (!_ws || _pre) {
-      _pc(' '); inx();
-      if (_fullwidth) { _pc(' '); inx(); }
+      _pc(inx(' '));
+      if (_fullwidth) _pc(inx(' '));
     }
     _ws= 1; if (_tb) _tb= tb;
     return;
@@ -482,15 +491,18 @@ void p(int c) {
   if (_fullwidth) {
     // cheat, no word-wrap, print now!
     if (c<128) {
-      putwchar(0xff01 + c-33); inx();
+      putwchar(inx(0xff01 + c-33));
     } else {
-      putchar(c);
+      putchar(inx(c));
     }
   } else {
-    _pc(c);
+    // normals visible: word accumulate
+    _pc(inx(c));
   }
-  inx(); _ws= 0; _tb= 0;
+  _ws= 0; _tb= 0;
 }
+
+
 
 // steps one char in input stream
 // == true if "have next" (not EOF)
@@ -730,9 +742,13 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
     setLinkUrl(val);
     print_hidden_url();
 
+    // prelink + part of link fit?
+    // let's say 6 text chars...
+    if (6+_curx+strlen(_keys)*2+1+rmargin+1 > screen_cols) nl();
+
     // output [ab] link key selector
     indent();
-    int fg=_fg, bg=_bg; {
+    int fg=_fg, bg=_bg, ws=_ws; {
       B(rgb(1,2,4)); C(white);
       //B(blue); C(white);
       //B(red); C(white); // retro!
@@ -741,7 +757,7 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
       while (*k) p(*k++);
       _fullwidth--;
     } C(fg), B(bg);
-    p(' ');
+    //p(' ');
     
     return;
   }
@@ -893,7 +909,7 @@ void process(TAG *end) {
       if (strstr(" li dt ", tag)) {
         p(SNL);
         _indent-= 3; indent(); _indent+= 3;
-        printf(" ● "); inx(); inx(); inx();
+        printf(" ● "); inx(-3);
       }
 
       // these require action after

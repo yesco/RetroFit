@@ -161,7 +161,7 @@ void display(int line, int k) {
   if (1) { // debug
     printf("%3d %3d %3d/%d ", top, right, tab, ntab-1);
     //clearend();
-    puts(key_string(k));
+    puts(keystring(k));
     clearend();
   }
 }
@@ -336,6 +336,7 @@ int main(void) {
     visited();
 
     // - read key & decode
+    //testkeys();
     k= key();
     int kc= k & 0x7f; // only char
 
@@ -359,7 +360,7 @@ int main(void) {
     //  a  open link in new tab and go
     //  A  open in background tab
     //  M-A open shortcut page 
-    if (isalnum(kc) && (k<127 || kc<='Z')) {
+    if (isalnum(kc) && (k<127 || kc<='Z') && !(k&TERM)) {
       if (k==toupper(kc)) { // A-Z
         // open behind
         click(k);
@@ -449,6 +450,7 @@ int main(void) {
     COUNT(top, DOWN, UP, nlines);
     COUNT(top, CTRL+'N', CTRL+'P', nlines);
     COUNT(top, CTRL+'F', CTRL+'B', nlines);
+    COUNT(top, RETURN, META+RETURN, nlines);
 
     if (k==LEFT) tab--;
     if (k==RIGHT) tab++;

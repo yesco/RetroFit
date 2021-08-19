@@ -66,18 +66,18 @@ extern enum color _fg,  _bg;
 // -- Hi bit set == META
 //    1- 12  :  F1 .. F12
 //   32- 64  : (special keys)
-//     M-3     : DEL
 //   65- 96  :  M-A .. M-Z
-//   97- 126 : (special keys)
-//     M-a     : UP
-//     M-b     : DOWN
-//     M-c     : RIGHT
-//     M-d     : LEFT
-
-enum { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127, CTRL=-64, META=128, FUNCTION=META, UP=META+'a', DOWN, RIGHT, LEFT, S_TAB=META+'z', DEL=META+'3'};
+// -- 256 (9th bit set) = TERM
+//   TERM+'A': UP
+//        'B': DOWN
+//        'C': RIGHT
+//        'D': LEFT
+//   TERM+'Z': DEL
+enum { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127, CTRL=-64, META=128, TERM=256, FUNCTION=META, UP=TERM+'A', DOWN, RIGHT, LEFT, S_TAB=META+'Z', DEL=TERM+'3'};
 
 int key();
-char* key_string(int c);
+char* keystring(int c);
+void testkeys();
 
 ////////////////////////////////////////
 // - files
@@ -93,3 +93,9 @@ char* fgetlinenum(FILE* f, long line);
 
 int endswith(char* s, char* end);
 
+int isinsideutf8(int c);
+int isstartutf8(int c);
+int isutf8(int c);
+
+int isfullwidth(int c);
+int iszerowidth(int c);

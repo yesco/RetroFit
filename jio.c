@@ -111,22 +111,24 @@ int key() {
   if (b<=0) return b<0? b+1 : k;
 
   // fixing multi-char key-encodings
+  // (these are triggered in seq!)
   if (k==ESC) k=toupper(key())+META;
-  if (k==META+'[') k=tolower(key())+META;
-  if (k==META+'3') key(), k= DEL;
+  if (k==META+'[' && b) k=key()+TERM;
+  if (k==TERM+'3' && b) key(), k= DEL;
   if (!b) return k;
 
+
   // function keys (special encoding)
-  if (k==META+'O') k=key()-'P'+1+META;
-  if (k==META+'1') k=key()-'0'+META, key(), k= k==5+META?k:k-1;
-  if (k==META+'2') k=key()-'0'+9+META, key(), k= k>10+META?k-1:k;
+  if (k==TERM+'O') k=key()-'P'+1+TERM;
+  if (k==TERM+'1') k=key()-'0'+TERM, key(), k= k==5+TERM?k:k-1;
+  if (k==TERM+'2') k=key()-'0'+9+TERM, key(), k= k>10+TERM?k-1:k;
 
   return k;
 }
 
 // Returns a static string describing KEY
 // Note: next call may change previous returned value, NOT thread-safe
-char* key_string(int c) {
+char* keystring(int c) {
   static char s[10];
   memset(&s[0], 0, sizeof(s));
 
@@ -140,14 +142,23 @@ char* key_string(int c) {
   else if (c==DEL) return "DEL";
   // 127? == delete key?
   else if (c==S_TAB) return "S_TAB";
-  else if (c==META+'a') return "UP";
-  else if (c==META+'b') return "DOWN";
-  else if (c==META+'c') return "RIGHT";
-  else if (c==META+'d') return "LEFT";
+  else if (c==UP) return "UP";
+  else if (c==DOWN) return "DOWN";
+  else if (c==RIGHT) return "RIGHT";
+  else if (c==LEFT) return "LEFT";
+  else if (c>=TERM) sprintf(s, "F-%d", c-TERM);
   else if (c>=META+' ') sprintf(s, "M-%c", c-META);
-  else if (c>=META) sprintf(s, "F-%d", c-META);
   return &s[0];
 }
+
+void testkeys() {
+  fprintf(stderr, "\nCTRL-C ends\n");
+  for(int k= 0; k!=CTRL+'C'; k= key())
+    fprintf(stderr, "%s ", keystring(k));
+}
+
+////////////////////////////////////////
+// file IO
 
 int flines(FILE* f) {
   fseek(f, 0, SEEK_SET);
@@ -192,8 +203,26 @@ int endswith(char* s, char* end) {
   return i<0 ? 0 : strcmp(s+i, end)==0;
 }
 
-void testkey() {
-  for(int k= 0; k!=CTRL+'C'; k= key())
-    fprintf(stderr, "%s ", key_string(k));
+int isinsideutf8(int c) {
+  return (c & 0xc0) == 0x80;
 }
 
+int isstartutf8(int c) {
+  return (c & 0xc0) == 0xc0;
+}
+
+int isutf8(int c) {
+  // oversimplification but...
+  return c & 0x80;
+}
+
+int isfullwidth(int c) {
+  // TODO: ... chinse, dingbats, sym etc..
+  return c>=0xff01 && c<0xff01+96;
+}
+
+int iszerowidth(int c) {
+  // TODO: ... combinding chars etc...
+  // TOD0: zero-width space
+  return c<32;
+}

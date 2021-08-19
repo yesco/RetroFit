@@ -87,6 +87,7 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 <li>A text with inline&amp;code with no spaces ( &amp; ) (&amp;).</li>
 <li>&amp; tokens currently takes up as much space as the code is long, need to not count those characters... When to finish? ';' is not enough.</li>
 <li>Some code are &amp-without the ";" or just a single & or illegal &foobar <tt> &amp;amp</tt> without the ';' &mdash; this is a parsing problem.</li>
+<li>wordwrap used to count bytes, and break unicode chars - fixed</li>
 </ul>
 
 <h1>Current Bugs</h1>
@@ -109,5 +110,6 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 <h2>My Code Bugs in ./w</h2>
 <ul>
 <li>After &lt; h2 &lt; if there is no text following the h2 takes 2 lines (with same background color)</li>
+<li>Word-wrap for unicode occasionally messes up some charact...? Tests/words.html</li>
 </ul>
 
