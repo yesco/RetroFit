@@ -340,6 +340,7 @@ int main(void) {
     int kc= k & 0x7f; // only char
 
     // action
+    if (k==CTRL+'L') clear();;
     if (k=='?' || k==CTRL+'H') help();
 
     if (k==CTRL+'D' || strchr("=*#$", k)) bookmark(k);

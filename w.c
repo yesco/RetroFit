@@ -415,6 +415,7 @@ void nl() {
 }
 
 void indent() {
+  if (_pre) return;
   while(_curx < _indent) {
     putchar(' '); inx();
   }
@@ -440,7 +441,7 @@ void p(int c) {
 
   // preformatted
   if (_pre) {
-    _pc(c); inx();
+    putchar(c); inx();
     if (c=='\n') _curx= 0;
     return;
   }
