@@ -161,8 +161,8 @@ void display(int line, int k) {
   if (1) { // debug
     printf("%3d %3d %3d/%d ", top, right, tab, ntab-1);
     //clearend();
-    puts(keystring(k));
-    clearend();
+    printf("%s", keystring(k));
+    clearend(); fflush(stdout);
   }
 }
 
