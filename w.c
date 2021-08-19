@@ -158,7 +158,7 @@ int decode_color(char* name, int dflt) {
 // attribute captures
 #define TATTR " a body table th td tr font img a base iframe frame colgroup span div p "
 
-#define ATTR " href src alt aria-label title aria-hidden name id type value size accesskey align valign colspan rowspan span color bgcolor "
+#define ATTR " href src alt aria-label title aria-hidden name id type value size accesskey align valign colspan rowspan span color bgcolor target "
 
 // -- template for getting HTML
 // TODO: use "tee" to save to cache
@@ -314,6 +314,11 @@ void myungetc(int c, FILE* f) {
 #define fgetc myfgetc
 #define ungetc myungetc
 
+///////////////////////////////////
+// state of document parsed
+
+// --- keys for links
+
 char _keys[15]= {0};
 int _nkeys= 0;
 
@@ -380,8 +385,6 @@ void indent() {
   _ws= 1;
 }
 
-////////////////////////////////////////
-////////////////////////////////////////
 ////////////////////////////////////////
 // WARNING: table handling and rendering
 //          is just a hack for now, bad
@@ -473,6 +476,44 @@ int parse(FILE* f, char* endchars, char* s, int size) {
   }
   if (s && size>=2) { *s++ = ' '; *s= 0; }
   return c<0? 0: c;
+}
+
+///////////////////////////////////
+// specific web-page parsing
+
+char *url= NULL, *ansifile= NULL;
+dstr *dsbase= NULL;
+
+// must be absolute URI
+// ensures it ends with '/'
+// and truncates path filename
+//   http://foo.com/bar/index.html
+//   => http://foo.com/bar/
+void setBase(dstr* d) {
+  if (dsbase) free(dsbase);
+  dsbase= d;
+  char *s= dsbase->s;
+
+  // move to path (after '://[^/]*/' )
+  while(*s && *s!=':') s++;
+  // TDOO: we really should use file:/// ?  
+  if (*s==':' && *++s=='/' && *++s=='/')
+    s= strchr(s+1, '/');
+
+  // ensure host followed by '/'
+  if (!s || !*s) {
+    dsbase= dstrncat(dsbase, "/", 1);
+  } else {
+    s++;
+    // we're now after host/
+    // remove any "/FOO$" trailing => "/"
+    char *e= s+strlen(s)-1;
+    while(*e && e>=s && *e!='/') e--;
+    // truncate after last '/'
+    if (*e=='/') *(e+1)= 0;
+  }
+  
+  return;
 }
 
 void addContent();
@@ -595,6 +636,14 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
   if (trace) printf("\n---%s.%s=%s\n", tag, attr, val->s);
   // embed URL as hidden message
   if (strstr(" href src ", attr)) {
+    if (strstr(" base ", tag)) {
+      // TODO: conflicted, only first should be honored...
+      // - https://url.spec.whatwg.org/#concept-url-serializer
+      // - https://html.spec.whatwg.org/multipage/urls-and-fetching.html#fallback-base-url
+      setBase(val);
+      return;
+    }
+
     memcpy(link_tag, tag, sizeof(link_tag));
     if (_url) free(_url);
     _url= val;
@@ -807,13 +856,14 @@ int main(int argc, char**argv) {
   char* url= argc>2 ? argv[2] : file;
   // override if run from script
   if (argc>3) screen_cols= atoi(argv[3]);
+  setBase(dstrncat(NULL, url, -1));
 
   // metadata
   printf("\n#=DATE "); fflush(stdout);
   system("date --iso=s");
   metadata("URL", url, NULL, NULL, NULL);
-  // TODO: metadata("BASE", 
-  TRACE("URL=%s\n", url);
+  // TODO: not needed if fix all URLs!
+  //metadata("BASE", dsbase->s, NULL, NULL, NULL);
 
   // print header line
   C(white); B(black);
