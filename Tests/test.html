@@ -4,12 +4,31 @@
 <h1>Minimialist Browser</h1>
 
 <p>
-This is a test of the <i>minimalist</i> <tt>./w</tt> web-brower written in C. It is a meagure of <b>367 C-code lines</b> (comments and empty lines not counted).
+This is a test of the <i>minimalist</i> <tt>./w</tt> web-browser written in C. It is a meagre <b>&lt;1000 lines C-code</b> (comments, tests, and empty lines not counted).
 </p>
 
-<p>
-In the morning of August 4th, 2021, in the morning: it was a total 370 lines. <b>pre/code</b> added 10 lines, <b>word-wrap</b> 40, misc formatting improvements &mdash; 10 lines. I added 36 for handling <b>HTML entities</b>. Now, I didn't want to count pure comment lines &amp; nor empty lines; so changed my counting script; Adding <b>numbered entities</b>: Hex and deciaml; there are <b>345 lines</b> of <i>C</i>; Adding parsing of <b>attributes</b> added a whole lot: 70 lines. But then I did a general cleanup of most code, and got it down to 30ish lines!
+<h2>History</h2>
+<p>In the morning of August 4th, 2021, in the morning: it was a total 370 lines. <b>pre/code</b> added 10 lines, <b>word-wrap</b> 40, misc formatting improvements &mdash; 10 lines. I added 36 for handling <b>HTML entities</b>. Now, I didn't want to count pure comment lines &amp; nor empty lines; so changed my counting script; Adding <b>numbered entities</b>: Hex and deciaml; there are <b>345 lines</b> of <i>C</i>; Adding parsing of <b>attributes</b> added a whole lot: 70 lines. But then I did a general cleanup of most code, and got it down to 30ish lines! With simple table support, it's about 550 lines.
 </p>
+
+<h2>Individual Tests</h2>
+<ul id='list'>
+<li><a href='#entities'>HTML Entities</a></li>
+<li><a href='list'>This is a List</a></li>
+<li><a href='nestedlists'>Nested Lists</a></li>
+<li><a href='Tests/links.html'>Links test page</a></li>
+<li><a href='Tests/links-many.html'>Links test page</a></li>
+<li><a href='Tests/table.html'>Simle Table</a></li>
+<li><a href='Tests/table-shortened.html'>Simle Table without end-tags</a></li>
+<li><a href='Tests/table-complex.html'>Complex Table</a></li>
+<li><a href='Tests/table-crazy.html'>Crazy Table</a></li>
+<li><a href='Tests/table-crazy.html'>Crazy Table</a></li>
+<li><a href='Tests/words.html'>Testing of word-wrap (with Unicode)</a></li>
+<li><a href='Tests/unicode-pre.html'>Testing of width of characters</a></li>
+<li><a href='Tests/color.html'>Testing of colors</a></li>
+</ul>
+
+<h2 id='entities'>HTML Entities</h2>
 
 <P>As you saw above; it supports <b>named entities</b> (caveat inline without surrounded by space, see bug below). Did you know that the list of HTML entties is <b>2234</b> elements long! &amp; <tt> &amp;amp;</tt> &lt; <tt> &amp;lt;</tt>  &gt; <tt>&amp;gt;</tt> are just few examples.</p>
 
@@ -29,7 +48,7 @@ Below continues various plain simple html. CSS is <b>not</b> handled. But all ot
 see4
 </p>
 
-<h2>Lists</h2>
+<h2 id='nestedlists'>Nested Lists</h2>
 A list:
 <ul>
 <li>one</li>
