@@ -157,6 +157,22 @@ void testkeys() {
     fprintf(stderr, "%s ", keystring(k));
 }
 
+// Print prompt and input from terminal.
+// The string can be max 256 chars.
+//
+// return NULL or malloced string
+char* input(char* prompt) {
+  //char *s= readline((char*)prompt);
+  char buf[256]= {0};
+  clearend();
+  cursoron();
+  if (prompt) printf("%s", prompt);
+  fflush(stdout);
+  char *s= fgets(buf, sizeof(buf), stdin);
+  cursoroff();
+  return s? strdup(s) : NULL;
+}
+
 ////////////////////////////////////////
 // file IO
 

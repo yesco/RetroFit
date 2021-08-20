@@ -124,14 +124,13 @@ void display(int line, int k) {
 
   // -- main content
   gotorc(1, 0);
+  fgcolor(0); bgcolor(7);
   fflush(stdout);
 
   // build ./wdisplay command
-  dstr *dbuf= dstrprintf
-    (NULL, "./wdisplay \"%s\" %d %d",
-     file?file:".stdout", top+2, rows);
+  dstr *dbuf= dstrprintf(NULL, "./wdisplay \"%s\" %d %d",
+    file?file:".stdout", top+2, rows);
 
-  fgcolor(0); bgcolor(7);
   system(dbuf->s);
   free(dbuf);
 
@@ -178,10 +177,10 @@ int newtab(char* url) {
   int size= end? end-url : strlen(url);
 
   // start download in background
-  dstr *cmd= cmd= dstrncat(NULL, "./wdownload \"", -1);
-  cmd= dstrncat(cmd, url, size);
-  cmd= dstrprintf(cmd, "\" %d %d &", screen_rows, screen_cols);
+  dstr *cmd= dstrprintf(NULL, "./wdownload \"%.*s\" %d %d &",
+    size, url, screen_rows, screen_cols);
   system(cmd->s);
+  free(cmd);
 
   //sleep(3); // testing
   // TODO: write log entry here!
@@ -255,33 +254,45 @@ void reload() {
 
 
 void logbookmark(int k, char *s) {
-  //log(bms, k, url, cpos, top, s);
-  printf("\n=== ./wbookmark %c %s %d %d %s\n", k, url, -1, top, s?s:"");
+  //log(bms, k, tab, url, cpos, top, s);
+  gotorc(screen_rows-2, 0);
+  cleareos();
+  printf("./wbookmark %c %d %s %d %d %s   [press key>", k, tab, url, -1, top, s?s:"");
+  cursoron(); fflush(stdout);
   key();
+  cursoroff();
+}
+
+void opentab() {
+  gotorc(0, 0);
+  char* u= input("./w ");
+  if (!u) return;
+  push(tab);
+  tab= newtab(u);
 }
 
 void bookmark(int k) {
   int cpos= -1; // TODO
 
   if (k=='*' || k==CTRL+'D') {
+    // TODO: to save the seekpos too!
     logbookmark('*', "");
     return;
   }
 
+  gotorc(screen_rows-2, 0);
   char prompt[2]= {k, 0};
-  //char *s= readline((char*)prompt);
-  char buf[256]= {0};
-  char *s= fgets(buf, sizeof(buf), stdin);
-  if (!s) return;
+  char* s= input(prompt);
+
+  // also logs searches!
+  logbookmark(k, s);
 
   // search
   if (s=='=') {
     // TODO: seach/grep
-    return;
+    
   }
 
-  // add bookmark data
-  logbookmark(k, s);
   free(s);
 }
 
@@ -344,6 +355,7 @@ int main(void) {
     int kc= k & 0x7f; // only char
 
     // action
+    if (k==CTRL+'U') opentab();
     if (k==CTRL+'L') clear();;
 
     if (k==CTRL+'D' || strchr("=*#$", k)) bookmark(k);
