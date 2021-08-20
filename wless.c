@@ -14,16 +14,21 @@
 
 #define LOADING_FILE ".w/Cache/loading.html.ansi"
 
-
-// - limits
+// --- limits
 int nlines= 12000, nright= 10;
 
 int ntab= 1; // number of newly openeed tabs + last
 
 int rows;
 
-// - state
+// --- state
+FILE *fhistory, *fbookmarks;
+
 int top, right, tab, start_tab;
+
+// DONT free (partof hit)
+char *file= NULL;
+char *url= NULL;
 
 int incdec(int v, int k, int ikey, int dkey, int min, int max, int min2val, int max2val) {
   if (k==ikey) v++;
@@ -37,8 +42,11 @@ int incdec(int v, int k, int ikey, int dkey, int min, int max, int min2val, int 
 #define COUNT(var, ikey, dkey, limit) var= incdec(var, k, ikey, dkey, 0, limit-1, 0, limit-1)
 #define COUNT_WRAP(var, ikey, dkey, limit) var= incdec(var, k, ikey, dkey, 0, limit-1, limit-1, 0)
 
-// TODO: cleanup
-// TODO: dynamic array? or read from file and match!
+///////////////////////////////////
+// bookmarks + links
+
+// TODO: dynamic array? or read from file and match on every keystroke?
+// (some newspapers have 26*26*5++ links! [cee] )
 #define LINKS_MAX 25*25*25
 int nlinks= 0;
 char *links[LINKS_MAX] = {0};
@@ -54,7 +62,7 @@ void trunclinks(int n) {
 
 // Load bookmarks/keyboards from FILE
 // Returns number of items added
-int loadbookmarks(char *file) {
+int loadshortcuts(char *file) {
   FILE *flinks;
 
   // .ansi file - extract links
@@ -88,7 +96,7 @@ int loadbookmarks(char *file) {
 }
 
 // TODO: search prefixkey, or string
-void displaybookmarks() {
+void displayshortcuts() {
   clear();
   printf("\n=== BOOKMARKS ===\n\n");
   for(int i=0; i<nlinks; i++) 
@@ -97,9 +105,42 @@ void displaybookmarks() {
   key();
 }
 
-// DONT free (partof hit)
-char *file= NULL;
-char *url= NULL;
+void logbookmark(int k, char *s) {
+  //log(bms, url, offset, top, s);
+  gotorc(screen_rows-2, 0);
+  cleareos();
+  dstr *ds= dstrprintf(NULL, "%s %s %d %d %c%s\n",
+    isotime(), url,  -1, top, k, s);
+  // print to screen w/o newline
+  fputs(ds->s, fbookmarks);
+  free(ds);
+}
+
+void bookmark(int k) {
+  int cpos= -1; // TODO
+
+  if (k=='*' || k==CTRL+'D') {
+    // TODO: to save the seekpos too!
+    logbookmark('*', "");
+    return;
+  }
+
+  gotorc(screen_rows-2, 0);
+  char prompt[2]= {k, 0};
+  char* s= input(prompt);
+  if (!s) return;
+
+  // also logs searches!
+  logbookmark(k, s);
+
+  // search
+  if (k=='=') {
+    // TODO: seach/grep
+    
+  }
+
+  free(s);
+}
 
 // --- Display
 
@@ -136,8 +177,8 @@ void display(int line, int k) {
 
   // read keyboard shortcuts, page links
   trunclinks(0);
-  loadbookmarks(".wkeys");
-  loadbookmarks(".wlinks");
+  loadshortcuts(".wkeys");
+  loadshortcuts(".wlinks");
   //loadbookmarks(file?file:".wlinks");
 
 //  reset();
@@ -165,6 +206,34 @@ void display(int line, int k) {
 
 // --- ACTIONS
 
+// update status
+void deltab() {
+}
+
+void visited() {
+}
+
+// queue/stack readers
+void push(int t) {
+}
+
+int pop() {
+  return 0;
+}
+
+void delpush(int t) {
+}
+
+int delpop() {
+  return 0;
+}
+
+void read_next() { // till end
+}
+
+void queue_read() {
+}
+
 // creates a new tab from URL.
 //
 // Note: URL can be terminated by whitespace. This allows this
@@ -191,6 +260,14 @@ int newtab(char* url) {
   return ++ntab;
 }
       
+void opentab() {
+  gotorc(0, 0);
+  char* u= input("./w ");
+  if (!u) return;
+  push(tab);
+  tab= newtab(u);
+}
+
 // Find match to key INPUT extract link and ./wdonwload it in, allocate new tab.
 //
 // Return 0 if no match
@@ -221,79 +298,7 @@ int click(int k) {
   return 0;
 }
 
-// update status
-void deltab() {
-}
-
-void visited() {
-}
-
-// queue/stack readers
-void push(int t) {
-}
-
-int pop() {
-  return 0;
-}
-
-void delpush(int t) {
-}
-
-int delpop() {
-  return 0;
-}
-
-void read_next() { // till end
-}
-
-void queue_read() {
-}
-
 void reload() {
-}
-
-
-void logbookmark(int k, char *s) {
-  //log(bms, k, tab, url, cpos, top, s);
-  gotorc(screen_rows-2, 0);
-  cleareos();
-  printf("./wbookmark %c %d %s %d %d %s   [press key>", k, tab, url, -1, top, s?s:"");
-  cursoron(); fflush(stdout);
-  key();
-  cursoroff();
-}
-
-void opentab() {
-  gotorc(0, 0);
-  char* u= input("./w ");
-  if (!u) return;
-  push(tab);
-  tab= newtab(u);
-}
-
-void bookmark(int k) {
-  int cpos= -1; // TODO
-
-  if (k=='*' || k==CTRL+'D') {
-    // TODO: to save the seekpos too!
-    logbookmark('*', "");
-    return;
-  }
-
-  gotorc(screen_rows-2, 0);
-  char prompt[2]= {k, 0};
-  char* s= input(prompt);
-
-  // also logs searches!
-  logbookmark(k, s);
-
-  // search
-  if (s=='=') {
-    // TODO: seach/grep
-    
-  }
-
-  free(s);
 }
 
 // --- MAIN LOOP
@@ -304,10 +309,12 @@ int main(void) {
   screen_init();
   rows = screen_rows-2;
 
-  FILE *history= fopen(".whistory", "a+");
-  assert(history);
-  start_tab= flines(history);
-
+  // --- Open files for persistent state
+  // (append+ will create if need)
+  fhistory= fopen(".whistory", "a+");
+  fbookmarks= fopen(".wbookmarks", "a+");
+  start_tab= flines(fhistory);
+  
   char *hit= NULL; // FREE!
   int k= 0, q=0, last_tab;
   while(1) {
@@ -318,7 +325,7 @@ int main(void) {
       free(hit);
       file= url= hit= NULL;
     }
-    hit= fgetlinenum(history, t);
+    hit= fgetlinenum(fhistory, t);
 
     if (hit) {
       const char *W= "#=W ";
@@ -359,7 +366,7 @@ int main(void) {
     if (k==CTRL+'L') clear();;
 
     if (k==CTRL+'D' || strchr("=*#$", k)) bookmark(k);
-    if (k==CTRL+'X') displaybookmarks();
+    if (k==CTRL+'X') displayshortcuts();
 
     // navigation
     if (k==CTRL+'C') break;

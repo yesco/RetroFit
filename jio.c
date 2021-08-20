@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h>
+#include <time.h>
+#include <locale.h>
 #include <assert.h>
 
+
 #include "jio.h"
+
 
 extern int screen_rows= 24, screen_cols= 80;
 // https://stackoverflow.com/questions/1022957/getting-terminal-width-in-c
@@ -160,16 +164,22 @@ void testkeys() {
 // Print prompt and input from terminal.
 // The string can be max 256 chars.
 //
-// return NULL or malloced string
+// Return string, len>1
+//   NULL on error, or empyt line.
 char* input(char* prompt) {
-  //char *s= readline((char*)prompt);
   char buf[256]= {0};
   clearend();
   cursoron();
   if (prompt) printf("%s", prompt);
   fflush(stdout);
+  // TODO: use for full editing
+  //char *s= readline((char*)prompt);
   char *s= fgets(buf, sizeof(buf), stdin);
+  // remove ending newline
+  if (s && s[strlen(s)-1]=='\n')
+    s[strlen(s)-1]=0;
   cursoroff();
+  if (s && !*s) s= NULL;
   return s? strdup(s) : NULL;
 }
 
@@ -282,3 +292,16 @@ dstr* dstrprintf(dstr* d, char* fmt, ...) {
   return d;
 }
 
+
+// Returns current time iso-formatted to seconds w timezone
+// Note: The returned pointer is static, so you may need to copy, DON'T free!
+char* isotime() {
+  static char ret[32];
+  memset(ret, 0, sizeof(ret));
+
+  time_t t= time(NULL);
+  struct tm *ptm= localtime(&t);
+  if (ptm)
+    strftime((char*)ret, sizeof(ret), "%FT%T%z", ptm);
+  return (char*)ret;
+}

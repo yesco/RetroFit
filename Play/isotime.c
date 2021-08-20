@@ -2,6 +2,19 @@
 #include <time.h>
 #include <locale.h>
  
+// Returns current time iso-formatted to seconds w timezone
+// Note: The returned pointer is static, so you may need to copy, DON'T free!
+char* isotime() {
+  static char ret[32];
+  memset(ret, 0, sizeof(ret));
+
+  time_t t= time(NULL);
+  struct tm *ptm= localtime(&t);
+  if (ptm)
+    strftime((char*)ret, sizeof(ret), "%FT%T%z", ptm);
+  return (char*)ret;
+}
+
 int main(void) {
     char buff[70];
     struct tm my_time = {
@@ -14,6 +27,7 @@ int main(void) {
     };
  
     time_t tm= time(NULL);
+    // localtime might return NULL! on error
     my_time= *localtime(&tm);
     // https://man7.org/linux/man-pages/man3/strftime.3.html
     if (strftime(buff, sizeof buff, "%A %c", &my_time)) {
@@ -40,4 +54,7 @@ int main(void) {
     } else {
       puts("strftime failed");
     }
+
+    printf("MYISOTIME: %s\n", isotime());
 }
+

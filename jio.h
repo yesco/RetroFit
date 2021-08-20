@@ -111,3 +111,5 @@ typedef struct dstr {
 
 dstr* dstrncat(dstr* d, char* add, int n);
 dstr* dstrprintf(dstr* d, char* fmt, ...);
+
+char* isotime();
