@@ -84,6 +84,7 @@ int decode_color(char* name, int dflt) {
 }
 
 // TODO: <nobr> - how to do if not fit?
+// TODO: <link rel=next|prev|alternate|author|help|icon|prefetch|preload|prerender|search|stylesheet|shortcut|canonical>
 
 // hard space, hard newline
 #define HS -32
@@ -115,7 +116,11 @@ int decode_color(char* name, int dflt) {
 // attribute captures
 #define TATTR " a body table th td tr font img a base iframe frame colgroup span div p "
 
+// TODO:
 #define ATTR " href src alt aria-label title aria-hidden name id type value size accesskey align valign colspan rowspan span color bgcolor target "
+
+// TODO:
+#define CSS " liststyle color background background-color width height max-height min-height max-width min-width linebreak hypens overflow clip white-space word-break word-spacing word-wrap left right top bottom text-align align-content clear break-before break-after floatdisplay visibility font-size font-weight text-decoration text-shadow text-indent text-justify text-overflow table-layout "
 
 // -- template for getting HTML
 // TODO: use "tee" to save to cache
@@ -786,18 +791,6 @@ void process(TAG *end) {
         if (strstr(TATTR, tag)) {
           newTag(tag);
           // TODO: CSS cheat: match nay
-          // - color:\s*\S+[ ;}]
-          // - background(-color)?:\s*\S+[ ;}]
-          // - width/height/max-height/min-height
-          // - linebreak/hypens/overflow/clip/white-space/word-break/word-spacing/word-wrap
-          // - left/right/top/bottom
-          // - text-align/align-content
-          // - clear/break-before/break-after
-          // - float
-          // - display/visibility/
-          // - font-size/font-weight/text-decoration/text-shadow/
-          // - text-indent/text-justify/text-overflow
-          // - table-layout
           while (STEP) {
             // TODO: hmmm
             ungetc(c, f);

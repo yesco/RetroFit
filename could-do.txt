@@ -1,0 +1,19 @@
+    <meta name="description" content="News, email and search are just the beginning. Discover more every day. Find your yodel.">
+    <meta name="keywords" content="yahoo, yahoo home page, yahoo homepage, yahoo search, yahoo mail, yahoo messenger, yahoo games, news, finance, sport, entertainment">
+    <meta property="og:title" content="Yahoo | Mail, Weather, Search, Politics, News, Finance, Sports & Videos" />
+    <meta property="og:type" content='website' />
+    <meta property="og:url" content="http://www.yahoo.com" />
+    <meta property="og:description" content="News, email and search are just the beginning. Discover more every day. Find your yodel."/>
+    <meta property="og:image" content="https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png"/>
+    <meta property="og:site_name" content="Yahoo | Mail, Weather, Search, Politics, News, Finance, Sports & Videos" />
+    <meta property="fb:app_id" content="458584288257241" />
+    <link rel="icon" sizes="any" mask href="https://s.yimg.com/cv/apiv2/default/icons/favicon_y19_32x32_custom.svg">
+<meta name="theme-color" content="#400090">
+    <link rel="shortcut icon" href="https://s.yimg.com/rz/l/favicon.ico" />
+    <link rel="canonical" href="https://www.yahoo.com" />       <meta property="fb:pages" content="7040724713, 37510781596, 128015890542670, 73756409831, 1273983622628492, 183227235893, 107952415910993, 828031943896361, 338028696036, 228108177528276, 126435880711, 8603738371, 357311694375173, 168824166370, 116789651713844, 116789651713844, 284428852938, 116789651713844, 169590426398017, 150897358265131, 115060728528067, 358130347547704, 167601473274275, 166721106679241, 1573791532894850, 141301389258994, 138207559575213, 112996545439734, 345185573000, 131747896861126, 345185573000, 81262596234, 107143776010250, 137657892926963, 118757131504803" />    <meta name="referrer" content="unsafe-url">        <link href="https://s.yimg.com/os/yc/css/bundle.c60a6d54.css" rel="stylesheet" type="text/css">
+
+alterenative languages ? does google do this?
+        <link rel="alternate" href="https://www.yahoo.com" hreflang="x-default" /><link rel="alternate" href="https://www.yahoo.com" hreflang="en-us" /><link rel="alternate" href="https://au.yahoo.com" hreflang="en-au" /><link rel="alternate" href="https://fr-be.yahoo.com" hreflang="fr-be" /><link rel="alternate" href="https://be.yahoo.com" hreflang="nl-be" /><link rel="alternate" href="https://br.yahoo.com" hreflang="pt-br" /><link rel="alternate" href="https://de.yahoo.com" hreflang="de-de" /><link rel="alternate" href="https://espanol.yahoo.com" hreflang="es-us" /><link rel="alternate" href="https://es.yahoo.com" hreflang="es-es" /><link rel="alternate" href="https://fr.yahoo.com" hreflang="fr-fr" /><link rel="alternate" href="https://in.yahoo.com" hreflang="en-in" /><link rel="alternate" href="https://it.yahoo.com" hreflang="it-it" /><link rel="alternate" href="https://sg.yahoo.com" hreflang="en-sg" /><link rel="alternate" href="https://uk.yahoo.com" hreflang="en-gb" /><link rel="alternate" href="https://ca.yahoo.com" hreflang="en-ca" /><link rel="alternate" href="https://tw.yahoo.com" hreflang="zh-hant-tw" /><link rel="alternate" href="https://hk.yahoo.com" hreflang="zh-hant-hk" />
+
+<header id="Header">
+

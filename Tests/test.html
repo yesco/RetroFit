@@ -1,5 +1,5 @@
 <head>
-  <base href="http://w.minimalist.yesco.org/foo/index.html" />
+  <1--base href="http://w.minimalist.yesco.org/foo/index.html" /> -->
 </head>
 <h1>Minimialist Browser</h1>
 
@@ -16,16 +16,16 @@ This is a test of the <i>minimalist</i> <tt>./w</tt> web-browser written in C. I
 <li><a href='#entities'>HTML Entities</a></li>
 <li><a href='list'>This is a List</a></li>
 <li><a href='nestedlists'>Nested Lists</a></li>
-<li><a href='Tests/links.html'>Links test page</a></li>
-<li><a href='Tests/links-many.html'>Links test page</a></li>
-<li><a href='Tests/table.html'>Simle Table</a></li>
-<li><a href='Tests/table-shortened.html'>Simle Table without end-tags</a></li>
-<li><a href='Tests/table-complex.html'>Complex Table</a></li>
-<li><a href='Tests/table-crazy.html'>Crazy Table</a></li>
-<li><a href='Tests/table-crazy.html'>Crazy Table</a></li>
-<li><a href='Tests/words.html'>Testing of word-wrap (with Unicode)</a></li>
-<li><a href='Tests/unicode-pre.html'>Testing of width of characters</a></li>
-<li><a href='Tests/color.html'>Testing of colors</a></li>
+<li><a href='links.html'>Links test page</a></li>
+<li><a href='links-many.html'>Links test page</a></li>
+<li><a href='table.html'>Simle Table</a></li>
+<li><a href='table-shortened.html'>Simle Table without end-tags</a></li>
+<li><a href='table-complex.html'>Complex Table</a></li>
+<li><a href='table-crazy.html'>Crazy Table</a></li>
+<li><a href='table-crazy.html'>Crazy Table</a></li>
+<li><a href='words.html'>Testing of word-wrap (with Unicode)</a></li>
+<li><a href='unicode-pre.html'>Testing of width of characters</a></li>
+<li><a href='color.html'>Testing of colors</a></li>
 </ul>
 
 <h2 id='entities'>HTML Entities</h2>
@@ -100,13 +100,16 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 <h6>Header 6</h6>
 <h6>Header 6</h6>
 <p>Blah blahbalhbal albhablab ablahblabhalbla blabhalbahbla bahbl ablhaba</p>
-<h1>Fixed bugs</h1>
 
+<h1>Fixed bugs</h1>
 <ul>
 <li>A text with inline&amp;code with no spaces ( &amp; ) (&amp;).</li>
 <li>&amp; tokens currently takes up as much space as the code is long, need to not count those characters... When to finish? ';' is not enough.</li>
 <li>Some code are &amp-without the ";" or just a single & or illegal &foobar <tt> &amp;amp</tt> without the ';' &mdash; this is a parsing problem.</li>
 <li>wordwrap used to count bytes, and break unicode chars - fixed</li>
+<li>Not really a bug, but a matter of resilience of missing end tags. For example of the end li-tag is missing, indentation becomes messed up.</li>
+<li>Handle larger font-sizes &lt;font size=+N&gt; and css="font-size:16px == double? = 4x4 font? Is there an ascii-art font in two lines?<br/>bubbleart,graceful:lower part of fire-font-s, <b>Calvin S</b> - a wire/boxgraphics font!, AMC 3 Liv1, bigfig! wire, Broadway KB !, Cyberlarge! Cybersmall! JS BLock Letters :  a 3 char high font in <a href="https://patorjk.com/software/taag/#p=testall&f=Graffiti&t=Jonas%20S%20Karlsson">ascii-art</a><br/>(4 high: rectangles, small, small slant, ascii new roman</li>
+<li><b>images</b>? maybe this can help <a href="https://github.com/kristopolous/UniFig/blob/master/unifig.js">UniFig</a></li>
 </ul>
 
 <h1>Current Bugs</h1>
@@ -120,10 +123,10 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 
 <h2>TODO:</h2>
 <ul>
-<li>Not really a bug, but a matter of resilience of missing end tags. For example of the end li-tag is missing, indentation becomes messed up.</li>
 <li>Handle image tag, show alt. Image maps too.</li>
 <li>Navigate to links by cursor movements.</li>
 <li> &lt; ordered lists!</li>
+<li>handle &lt;foo id="name"&gt; #name links, and be able to go to them; need to embed-hide it in the .ansi-file! (all id/name?) &lt;a name="foo"&gt; is <a href="https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigate">deprecated</a>.</li>
 </ul>
 
 <h2>My Code Bugs in ./w</h2>
@@ -131,5 +134,7 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 <li>After &lt; h2 &lt; if there is no text following the h2 takes 2 lines (with same background color)</li>
 <li>Much improved, but...still word-wrap for unicode occasionally messes up some charact...? Tests/words.html</li>
 <li>headers than span more than one line, don't break lines correctly, this messess up the output of wdisplay...
+<li>URL#foo need to strip #foo when loading?</li>
+<li>Need to decode attributes: yahoo.com encodes href... - https:%26%23x2F%3b%26%23x2F%3bnews.yahoo.com%26%23x2F%3b.ansi LOL</li>
 </ul>
 

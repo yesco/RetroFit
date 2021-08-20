@@ -1,0 +1,12 @@
+unulimit -c unlimited
+
+rm core
+
+$*
+
+if [[ -f core ]]; then
+   echo "got core!"
+   (echo "where" | gdb $1 core)
+fi
+
+

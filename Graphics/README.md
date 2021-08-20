@@ -1,5 +1,9 @@
 # Converting graphics to ANSI colors:
 
+Smallest program - no issues compile!
+- https://github.com/stolk/imcat
+
+
 # Unicode characters to use
 
 Unicode characters as 8x8 font!
@@ -18,3 +22,11 @@ https://docs.rs/font8x8/0.1.0/font8x8/
   https://en.m.wikipedia.org/wiki/Block_Elements
 - triangles on square basis
   https://en.m.wikipedia.org/wiki/Geometric_Shapes
+
+Unicode block graphics font mapped to pixels converter of image .cpp
+jsk: works fine, but 1 char=1 pixel
+- https://github.com/stefanhaustein/TerminalImageViewer/blob/master/src/main/cpp/tiv.cpp
+
+can do gif/movies/streamed
+- https://github.com/danielgatis/imgcat
+
