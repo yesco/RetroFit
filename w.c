@@ -94,14 +94,14 @@ int decode_color(char* name, int dflt) {
 // -- groups of tags according to format
 #define SKIP " script head "
 
-#define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dl dt dd table tr noscript address tbody "
-#define XNL " br /ul /ol hr tbody "
+#define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dt dd table tr noscript address tbody "
+#define XNL " br /ul /ol /dl hr tbody "
 #define HD " h1 h2 h3 h4 h5 h6 "
 //#define CENTER " center caption " // TODO
 
-#define BD " b strong "
+#define BD " b strong dt "
 #define IT " i em caption "
-// TODO: #define UL " u a "
+// TODO: #define UL " u a " ????
 
 #define HL " u s q cite ins del noscript abbr acronym "
 
@@ -117,7 +117,7 @@ int decode_color(char* name, int dflt) {
 #define TATTR " a body table th td tr font img a base iframe frame colgroup span div p "
 
 // TODO:
-#define ATTR " href src alt aria-label title aria-hidden name id type value size accesskey align valign colspan rowspan span color bgcolor target "
+#define ATTR " href hreflang src alt aria-label title aria-hidden name id type value size accesskey align valign colspan rowspan span color bgcolor target start "
 
 // TODO:
 #define CSS " liststyle color background background-color width height max-height min-height max-width min-width linebreak hypens overflow clip white-space word-break word-spacing word-wrap left right top bottom text-align align-content clear break-before break-after floatdisplay visibility font-size font-weight text-decoration text-shadow text-indent text-justify text-overflow table-layout "
@@ -239,7 +239,7 @@ int _overflow= 0;
 #define FLUSH_WORD -1
 
 int isdelimiter(int c) {
-  if (c==FLUSH_WORD || c==NL || c==SNL || c==HS) return 1;
+  if (c==FLUSH_WORD || c==NL || c==SNL || c==HS || isspace(c)) return 1;
   if (isutf8(c)) return 0;
   if (strchr(".,:;", c)) return 0; // keept with
   return c<33 || isspace(c);
@@ -601,7 +601,7 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     if (strstr(PR, tag)) _pre= 1;
     if (strstr(SKIP, tag)) _skip= 1;
 
-    if (strstr(" ul ol ", tag)) _indent+= 2;
+    if (strstr(" ul ol dl ", tag)) _indent+= 2;
 
     // underline links!
     if (strstr(" a ", tag)) {
@@ -689,6 +689,14 @@ void newTag(TAG tag) {
 }
 
 void addAttr(TAG tag, TAG attr, dstr* val) {
+  // - https://www.w3.org/TR/html4/appendix/notes.html#non-ascii-chars
+
+  // B.2.2 Ampersands in URI attribute values The URI that is constructed when a form is submitted may be used as an anchor-style link (e.g., the href attribute for the A element). Unfortunately, the use of the "&" character to separate form fields interacts with its use in SGML attribute values to delimit character entity references. For example, to use the URI "http://host/?x=1&y=2" as a linking URI, it must be written <A href="http://host/?x=1&#38;y=2"> or <A href="http://host/?x=1&amp;y=2">.
+  // We recommend that HTTP server implementors, and in particular, CGI implementors support the use of ";" in place of "&" to save authors the trouble of escaping "&" characters in this manner.
+
+  // TODO: decode val! &amp:....
+  // and %xx and + for ' ', lol?
+
   entity* e= lastentity;
   if (trace) printf("\n---%s.%s=%s\n", tag, attr, val->s);
   // embed URL as hidden message
@@ -856,11 +864,19 @@ void process(TAG *end) {
         if (_curx>_indent) p(HNL);
         indent(); p(HS);p(HS);
       }
-      // TODO: dt
-      if (strstr(" li dt ", tag)) {
+      if (strstr(" li dd dt ", tag)) {
         p(SNL);
+        // first line special indent
         _indent-= 3; indent(); _indent+= 3;
-        printf(" ● "); inx(-3);
+        if (strstr(" dd ", tag)) {
+          printf("   "); inx(-3);
+        } else if (strstr(" dt ", tag)) {
+          // dt becomes shifted left
+          //   dd here
+        } else {
+          printf(" ● "); inx(-3);
+        }
+        inx(-3);
       }
 
       // these require action after
@@ -886,7 +902,7 @@ void process(TAG *end) {
       HI(" a ", 27, none);
 
       // formatting only
-      HI(" ul ol ", none, none);
+      HI(" ul ol dl ", none, none);
       HI(SKIP, none, none);
       HI(" table ", none, none);
     }

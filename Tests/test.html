@@ -14,8 +14,10 @@ This is a test of the <i>minimalist</i> <tt>./w</tt> web-browser written in C. I
 <h2>Individual Tests</h2>
 <ul id='list'>
 <li><a href='#entities'>HTML Entities</a></li>
-<li><a href='list'>This is a List</a></li>
-<li><a href='nestedlists'>Nested Lists</a></li>
+<li><a href='#list'>This is a List</a></li>
+<li><a href='#todo'>The TODO list at the end</a></li>
+<li><a href='#nestedlists'>Nested Lists</a></li>
+<li><a href='dl.html'>Definition Lists</a></li>
 <li><a href='links.html'>Links test page</a></li>
 <li><a href='links-many.html'>Links test page</a></li>
 <li><a href='table.html'>Simle Table</a></li>
@@ -121,7 +123,7 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 <li>Text background/underline wraps with nl, it's "correct" but ugly</li>
 </ul>
 
-<h2>TODO:</h2>
+<h2 id="todo">TODO:</h2>
 <ul>
 <li>Handle image tag, show alt. Image maps too.</li>
 <li>Navigate to links by cursor movements.</li>
@@ -136,5 +138,7 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 <li>headers than span more than one line, don't break lines correctly, this messess up the output of wdisplay...
 <li>URL#foo need to strip #foo when loading?</li>
 <li>Need to decode attributes: yahoo.com encodes href... - https:%26%23x2F%3b%26%23x2F%3bnews.yahoo.com%26%23x2F%3b.ansi LOL</li>
+<li>Wrap too early, and space missing, COLS=39:<br>aa b c d e f g h i j k l m n o p Q R s t u v w x y z</li>
+<li>ab cd ef gh ij kl mn op qr st uv wx yz</li>
 </ul>
 
