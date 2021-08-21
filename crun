@@ -1,2 +1,6 @@
+rm core 2>/dev/null
 
-cc -g $1 && ./a.out
+[[ -f $1 ]] && cc -g $1 && ./a.out
+[[ -f Play/$1 ]] && cc -g Play/$1 && ./a.out
+[[ -f Play/$1.c ]] && cc -g Play/$1.c && ./a.out
+
