@@ -99,6 +99,19 @@ int isutf8(int c);
 int isfullwidth(int c);
 int iszerowidth(int c);
 
+int lprefix(char *a, char *b);
+char *sskip(char *s, char *w);
+char *struncp(char *s, char *p);
+char *strunc(char *s, char *w);
+char *strunch(char *s, char c);
+char *struncafter(char *s, char *w, char c);
+char *sdel(char *s, char *w);
+char *sdelall(char *s, char *w);
+char *srepl(char *s, char *w, char c);
+char *sreplbetween(char *s, char *first, char *last, char c, int keep);
+char *scollapse(char *s, char c, int n);
+
+
 ////////////////////////////////////////
 // Dynamic STRings (see Play/dstrncat.c)
 

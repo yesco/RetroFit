@@ -229,6 +229,13 @@ int endswith(char* s, char* end) {
   return i<0 ? 0 : strcmp(s+i, end)==0;
 }
 
+char *strrstr(char *s, char* w) {
+  if (!s || !w) return s;
+  char *r= s+strlen(s)-strlen(w);
+  while(r>=s && !strstr(r, w)) r--;
+  return r<s? NULL : r;
+}
+
 int isinsideutf8(int c) {
   return (c & 0xc0) == 0x80;
 }
@@ -251,6 +258,102 @@ int iszerowidth(int c) {
   // TODO: ... combinding chars etc...
   // TOD0: zero-width space
   return c<32;
+}
+
+// char *strpbrk(char *s, char *brk)|0
+// char *strdep(char **s, char *delim)
+// char *strstr()/strcasestr()|0
+// int strspn(char *s, char* accepts)
+// int strcspn(char *s, char* rejects)
+
+///////////////////////////////////
+// string modifiers
+// (safe!)
+
+int lprefix(char *a, char *b) {
+  if (!a || !b) return 0;
+  int i= 0;
+  while (a[i] && b[i] && a[i]==b[i]) i++;
+  return i;
+}
+
+char *sskip(char *s, char *w) {
+  if (!s || !w) return s;
+  char *r= s;
+  while(*r && *w && *r++==*w++);
+  return *w ? s : r;
+}
+
+char *struncp(char *s, char *p) {
+  if (p) *p= 0;
+  return s;
+}
+
+char *strunc(char *s, char *w) {
+  return struncp(s, strstr(s, w));
+}
+
+char *strunch(char *s, char c) {
+  return struncp(s, strchr(s, c));
+}
+
+char *struncafter(char *s, char *w, char c) {
+  char *r= strstr(s, w);
+  if (r) memset(r+strlen(w), c, strlen(r)-strlen(w));
+  return s;
+}
+
+char *sdel(char *s, char *w) {
+  char *r= strstr(s, w);
+  if (!r) return s;
+  strcpy(r, r+strlen(w));
+  return s;
+}
+
+char *sdelall(char *s, char *w) {
+  if (!s || !w) return s;
+  char *r;
+  while((r= strstr(s, w)))
+    sdel(r, w);
+  return s;
+}
+
+char *srepl(char *s, char *w, char c) {
+  char *r= strstr(s, w);
+  if (r) while(*w++ && (*r++= c));
+  return s;
+}
+
+char *sreplbetween(char *s, char *first, char *last, char c, int keep) {
+  char *f= strstr(s, first);
+  char *l= strrstr(f, last);
+  if (f && l) {
+    if (!keep) {
+      f+= strlen(first);
+      l+= strlen(last);
+    }
+    if (f<l) memset(f+1, c, l-f-1);
+  }
+  return s;
+}
+
+char *scollapse(char *s, char c, int n) {
+  char *d= s, *p= d;
+  while(*p) {
+    // skip till c
+    while(*p && *p!=c) *d++= *p++;
+
+    // while c if more than n remove
+    int i= 0;
+    while(*p && *p==c) {
+      if (i++<n)
+        *d++= *p++;
+      else
+        p++;
+    }
+  }
+  *d= 0;
+  return s;
 }
 
 ////////////////////////////////////////

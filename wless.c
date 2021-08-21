@@ -96,7 +96,7 @@ int loadshortcuts(char *file) {
 }
 
 // TODO: search prefixkey, or string
-void displayshortcuts() {
+void listshortcuts() {
   clear();
   printf("\n=== BOOKMARKS ===\n\n");
   for(int i=0; i<nlinks; i++) 
@@ -104,6 +104,8 @@ void displayshortcuts() {
   printf("\n===Press key to continue\n");
   key();
 }
+
+// TODO: research universal XML bookmarks format called XBEL, also supported by e.g. Galeon, various "always-have-my-bookmarks" websites and number of universal bookmark converters.
 
 void logbookmark(int k, char *s) {
   //log(bms, url, offset, top, s);
@@ -114,6 +116,67 @@ void logbookmark(int k, char *s) {
   // print to screen w/o newline
   fputs(ds->s, fbookmarks);
   free(ds);
+}
+
+void listbookmarks(char *url, char *s) {
+  char *line;
+  clear();
+  if (url)
+    printf("Bookmark info for\n- %s\n", url);
+  else if (s && *s)
+    printf("=== Matching Bookmarks: %s ===\n", s);
+  else 
+    printf("=== All Boookmarks ===\n");
+  putchar('\n');
+  
+  fseek(fbookmarks, 0, SEEK_SET);
+cursoron();
+  while(line= fgetline(fbookmarks)) {
+    //  printf("? %s\n", line);
+    if ((!url || !*url || strstr(line, url))
+        && (!s || !*s || strcasestr(line, s))) {
+
+      // it's a match!
+      //printf("= %s\n", line);
+
+      //char* date, u, data;
+      char *date, *u, *data;
+      int offset, top;
+      //int n= sscanf(line, "%ms %ms %d %d %ms",
+      //&date, &u, &offset, &top, &data);
+      int n= sscanf(line, "%ms %ms %d %d %ms",
+        &date, &u, &offset, &top, &data);
+      //printf("matched=%d (5)\n", n);
+      if (n < 5) continue;
+
+      int cols= screen_cols-16-2;
+      printf("%-*s ",  cols, data);
+      if (!url) {
+        // TODO: ? pcre2api
+        char *r= u;
+        r= sskip(r, "https://");
+        r= sskip(r, "http://");
+        r= sskip(r, "www.");
+        r= strunc(r, "?");
+        r= sdel(r, ".html");
+        r= sdel(r, ".htm");
+        printf("%.16s ", r);
+      } else {
+        printf("%.16s ", date);
+      }
+
+      putchar('\n');
+      
+      free(line);
+      free(date); free(u); free(data);
+    } else {
+      free(line);
+    }
+  }
+
+  printf("\n(press key to continue)");
+  fflush(stdout);
+  key();
 }
 
 void bookmark(int k) {
@@ -135,8 +198,8 @@ void bookmark(int k) {
 
   // search
   if (k=='=') {
-    // TODO: seach/grep
-    
+    // TODO: make a loop around it allowing "incremental" search
+    listbookmarks(NULL, s);
   }
 
   free(s);
@@ -363,10 +426,48 @@ int main(void) {
 
     // action
     if (k==CTRL+'U') opentab();
-    if (k==CTRL+'L') clear();;
+    if (k==CTRL+'L') clear();
 
+    //if (k==CTRL+'S' || k=='/' || k=='%') searchPage();
+
+    //if (k==CTRL+'H') showHistory();
+    //if (k==CTRL+'J') showDownloads();
+
+
+    // --- Do stuff with page
+    // CTRL-P: print current webbpage ? save?
+    // CTRL-S: save current webpage
+    // ESC: stop loading webpage
+    // ^O - open file on computer
+    // ^U - display HTML
+    // ^D - save current page as bookmark
+    // ^S-D- save all open tabs as "folder"
+    
+    // --- page functions
+    // print
+    // email
+    // save
+    // ! run command
+    // | pipe to program
+    // open file (^O)
+    // edit file (^E) in emacs!
+    // html (full, formatted, outline, loading log, headers))
+
+
+
+    // w3m: Esc-b	View bookmarks
+    // w3m: Esc-a	To bookmark
+    // elinks: v load bookmark, ESc b
+    // elinks: a, ESC a add current bookmark
+    // ^S_B: show/hide bookmarks (chrome)
+    // ^S_A: open bookmarks manager (chrome)
+    // ^D - save current page as bookmark
+    // ^S-D- save all open tabs as "folder" (chrome)
     if (k==CTRL+'D' || strchr("=*#$", k)) bookmark(k);
-    if (k==CTRL+'X') displayshortcuts();
+    if (k==CTRL+'A') listbookmarks(NULL, NULL);
+    if (k==CTRL+'Q') listbookmarks(url, NULL);
+
+    if (k==CTRL+'X') listshortcuts();
 
     // navigation
     if (k==CTRL+'C') break;
@@ -379,7 +480,7 @@ int main(void) {
 
     // -- TABS
 
-    if (k=='?' || k==CTRL+'H') {
+    if (k=='?' || k==CTRL+'H' || k==FUNCTION+1) {
       push(tab);
       // open already existing?
       tab= newtab("wless.html");
@@ -418,8 +519,8 @@ int main(void) {
     // M-RIGHT: forward browsing histor
 
     // M-F, M-E: open menu
-    // ^S-B: show/hide bookmarks
-    // ^S-A: open bookmarks manager
+    // ^S_B: show/hide bookmarks
+    // ^S_A: open bookmarks manager
 
     // ^H: history page in new tab
     // ^J: downloads manager
@@ -441,12 +542,13 @@ int main(void) {
     // ESC: stop loading webpage
     // ^O - open file on computer
     // ^U - display HTML
+
     // ^D - save current page as bookmark
     // ^S-D- save all open tabs as "folder"
 
     // ALT-link (mouse) download link
 
-
+    // M-F, M-E: open menu
 
     // pop from deleted (chrome: ^S-T
     if (k==CTRL+'Y') {

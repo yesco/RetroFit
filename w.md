@@ -82,7 +82,7 @@ $foo bar fie RET - store string for bookmark
 
 =keyword ...     - search keyword?
 
-@                - mail current page?
+@key             - define shortcutkey
 %                - scissor/cut-n-(paste)
 () [] {}         - start end?
 
