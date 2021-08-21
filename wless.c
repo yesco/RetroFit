@@ -121,52 +121,65 @@ void logbookmark(int k, char *s) {
 void listbookmarks(char *url, char *s) {
   char *line;
   clear();
+  C(black); B(white);
   if (url)
-    printf("Bookmark info for\n- %s\n", url);
+    printf("./wbookmarks %s", url);
   else if (s && *s)
-    printf("=== Matching Bookmarks: %s ===\n", s);
+    printf("./wbookmarks %s", s);
   else 
-    printf("=== All Boookmarks ===\n");
-  putchar('\n');
+    printf("./wbookmarks");
+  clearend(); printf("\n\n");
+  C(white); B(black);
   
   fseek(fbookmarks, 0, SEEK_SET);
 cursoron();
   while(line= fgetline(fbookmarks)) {
-    //  printf("? %s\n", line);
+    char *m=NULL;
     if ((!url || !*url || strstr(line, url))
-        && (!s || !*s || strcasestr(line, s))) {
+        && (!s || !*s || (m= strcasestr(line, s)))) {
 
       // it's a match!
       //printf("= %s\n", line);
 
-      //char* date, u, data;
       char *date, *u, *data;
       int offset, top;
-      //int n= sscanf(line, "%ms %ms %d %d %ms",
-      //&date, &u, &offset, &top, &data);
-      int n= sscanf(line, "%ms %ms %d %d %ms",
+      int n= sscanf(line, "%ms %ms %d %d %m[^]",
         &date, &u, &offset, &top, &data);
       //printf("matched=%d (5)\n", n);
-      if (n < 5) continue;
+      if (n == 5 && data[0]!='=') {
+        const int right= 16;
+        int cols= screen_cols-right-2;
+        if (strlen(data)>cols) {
+          C(url?yellow:blue);
+          printf("- %s\n", url?date:u);
+          C(white);
+          printf("%s\n", data);
+        } else {
+          printf("%-*s ",  cols, data);
+          if (!url) {
+            // simplify url to show
+            char *r= u;
+            r= sskip(r, "https://");
+            r= sskip(r, "http://");
+            r= sskip(r, "www.");
+            r= strunc(r, "?");
+            r= sdel(r, ".html");
+            r= sdel(r, ".htm");
+            C(blue);
+            if (strlen(r)>right)
+              printf("%.13s...", r);
+            else
+              printf("%.16s", r);
 
-      int cols= screen_cols-16-2;
-      printf("%-*s ",  cols, data);
-      if (!url) {
-        // TODO: ? pcre2api
-        char *r= u;
-        r= sskip(r, "https://");
-        r= sskip(r, "http://");
-        r= sskip(r, "www.");
-        r= strunc(r, "?");
-        r= sdel(r, ".html");
-        r= sdel(r, ".htm");
-        printf("%.16s ", r);
-      } else {
-        printf("%.16s ", date);
+          } else {
+            C(yellow);
+            printf("%.16s ", date);
+          }
+          C(white);
+          putchar('\n');
+        }
       }
 
-      putchar('\n');
-      
       free(line);
       free(date); free(u); free(data);
     } else {
