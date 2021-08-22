@@ -1,3 +1,5 @@
+# TODO: remove? less.x can do it!
+
 # Display an preformatted ANSI-file
 # starting at opt LINE (1) showing 
 # LINES (99999).

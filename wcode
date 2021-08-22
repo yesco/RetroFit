@@ -22,5 +22,5 @@ grep -v '^\s*$' | \
 grep -vP 'TRACE\(' | \
 grep -vP 'assert\(' | \
 grep -vinP '^\s*}?\s*else\s*{?\s*(//.*)?$' | \
-wc"
+wc | (read lines foo ; echo \$lines)"
 

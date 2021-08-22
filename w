@@ -60,9 +60,12 @@ git show :w.c >.w.c
 git show :table.c >.table.c
 git show :wless.c >.wless.c
 git show :jio.c >.jio.c
-cat .w.c .table.c .wless.c jio.c >.before-all.c
 
-cat w.c table.c jio.c wless.c >.all.c
+cat .w.c .table.c .wless.c >.before-all.c
+cat w.c table.c wless.c >.all.c
+
+cat .w.c .table.c >.before-render.c
+cat w.c table.c >.render.c
 
 # --- print stats and USAGE
 
@@ -76,16 +79,13 @@ cat w.c table.c jio.c wless.c >.all.c
 
 - https://github.com/yesco/RetroFit -
 
-
 TOTAL   Lines: `cat .all.c | wc`
 
-w.c     - LOC: `./wcode w.c`
- +table.c LOC: `./wcode table.c`
-wless.c - LOC: `./wcode wless.c`
-jio.c   - LOC: `./wcode jio.c`
+render  - LOC: `./wcode .render.c`	(`./wcode .before-render.c`)
+browser - LOC: `./wcode wless.c`	(`./wcode .wless.c`)
+[libary - LOC: `./wcode jio.c`	(`./wcode .jio.c`)]
 ---
-TOTAL   - LOC: `./wcode .all.c`
-   (old - LOC: `./wcode .before-all.c`)
+TOTAL   - LOC: `./wcode .all.c`	(`./wcode .before-all.c`) [+ `./wcode jio.c`]
 
 
 Usage: ./w
@@ -101,4 +101,5 @@ rm .all.c
 rm .w.c
 rm .table.c
 rm .before-all.c
+rm .before-render.c
 rm .jio.c
