@@ -3,7 +3,7 @@
 # LINES (99999).
 #
 # Usage:
-#  ./wdisplay [ansi.f [line [lines]]]
+#  ./wdisplay [f.ANSI [line [lines]]]
 
 # sets LINES/COLUMNS
 stty size >/dev/null 2>/dev/null

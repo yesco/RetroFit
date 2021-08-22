@@ -12,10 +12,10 @@
 
 #include "jio.h"
 
-#define LOADING_FILE ".w/Cache/loading.html.ansi"
+#define LOADING_FILE ".w/Cache/loading.html.ANSI"
 
 // --- limits
-int nlines= 12000, nright= 10;
+int nlines= 0, nright= 10;
 
 int ntab= 1; // number of newly openeed tabs + last
 
@@ -66,7 +66,7 @@ int loadshortcuts(char *file) {
   FILE *flinks;
 
   // .ansi file - extract links
-  if (endswith(file, ".ansi")) {
+  if (endswith(file, ".ANSI")) {
     //const char CMD[]= "./wlinks %s";
     //char cmd[sizeof(CMD)+1 + 1024]= {0};
     //int lcmd= snprintf(cmd, sizeof(cmd), CMD, file);
@@ -230,9 +230,14 @@ void bookmark(int k) {
 // --- Display
 
 void display(int line, int k) {
+
   // -- header
   reset();
   gotorc(0, 0);
+  FILE *f= fopen(file?file:".stdout", "r");
+  nlines= f? flines(f) : -1;
+  if (f) fclose(f);
+
   if (url) {
     clearend();
     // TODO: app header reserved for tab-info?
@@ -240,12 +245,18 @@ void display(int line, int k) {
     col= printf("./w ");
     gotorc(0, col);
     // nprintf !!!
+    char parts[10];
+    int w= snprintf(parts, sizeof(parts), " %d/%d", (top+2)/rows+1, (nlines+0)/rows+1);
     while (*u) {
+      // TODO: unicode?
       putchar(*u++);
       col++;
-      if (col+1 >= screen_cols) break;
+      if (col+1 >= screen_cols-w) break;
     }
     clearend();
+    // space out
+    while (col++ < screen_cols-w) putchar(' ');
+    printf("%s", parts);
   }
 
   // -- main content
@@ -496,7 +507,7 @@ int main(void) {
     if (k==CTRL+'Z') kill(getpid(), SIGSTOP);
     // navigation
     if (k=='<' || kc==',') top= 0; // top
-    if (k=='>' || kc=='.') top= nlines-1; // bottom
+    if (k=='>' || kc=='.') top= nlines-rows; // bottom
     if (k==META+'V' || k==BACKSPACE || k==DEL) if ((top-= rows) < 0) top= 0;
     if (k==CTRL+'V' || k==' ') if ((top+= rows) > nlines) top= nlines-1;
 

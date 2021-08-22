@@ -19,7 +19,7 @@ else
 fi
 
 # --- Log it
-echo "`date --iso=s` #=W $GO $CFILE.ansi" \
+echo "`date --iso=s` #=W $GO $CFILE.ANSI" \
   | tee -a .wlog \
   | tee -a $CFILE.WLOG \
   >> .whistory
@@ -27,12 +27,16 @@ echo "`date --iso=s` #=W $GO $CFILE.ansi" \
 # --- Do we already have it?
 # (detect change of screen width?)
 
-[ -f $CFILE.ansi ] \
+[ -f $CFILE.ANSI ] \
   && ./wmessage "./wdownload already have $GO" $ROWS $COLS \
   && exit 0
 
-# --- download
-echo "`date --iso=s` #=DOWN $GO $CFILE.ansi" \
+# --- local file
+
+[ -f $GO ] && cp $GO $CFILE.DOWN
+
+# --- log
+echo "`date --iso=s` #=DOWN $GO $CFILE.ANSI" \
   | tee -a .wlog \
   >> $CFILE.WLOG
 
@@ -48,14 +52,19 @@ echo "`date --iso=s` #=DOWN $GO $CFILE.ansi" \
 #   8   Server gave error.
 
 # TODO: always update?
+
+# --- download if not local file
 if [[ ! -f "$GO" ]]; then
    # - display spinning globe!
    ./spin.x & foo_pid=$!
 
    ./wmessage "./wdownload $GO" $ROWS $COLS
 
+   # save original URL
+   echo "$GO" > $CFILE.URL
+
    # - download
-   wget -q -O $FILE.TMP -a $FILE.LOG "$GO" >/dev/null \
+   wget -q -O $CFILE.TMP -a $CFILE.LOG "$GO" >/dev/null \
      || ./werror "./wdownload error: $GO" $ROWS $COLS
 
    ./wmessage "./wdownload done: $GO" $ROWS $COLS
@@ -63,13 +72,13 @@ if [[ ! -f "$GO" ]]; then
    # - kill the globe
    ( kill $foo_pid && wait $foo_pid ) 2>/dev/null 1>&2
 
-   # - cat so get new inode? HMMM?
-   # TODO: mv???
-   cat $FILE.TMP > $FILE
+   # - cat so get correct date on file
+   # (wget gives file as of HEAD date!)
+   cat $FILE.TMP > $CFILE.DOWN
 
 fi
 
-./w.x $FILE $GO $COLS > $CFILE.ansi
+./w.x $CFILE.DOWN $GO $COLS > $CFILE.ANSI
 
 # - Signal app that requested
 # TODO: 

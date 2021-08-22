@@ -74,15 +74,15 @@ clear
 # TODO: use correct cached file
 # (detect change of screen width?)
 
-[ ! -f $CFILE.ansi ] && (./w.x $FILE > $CFILE.ansi)
+[ ! -f $CFILE.ANSI ] && (./w.x $FILE > $CFILE.ANSI)
 
 # show a page-ful of last page viewed
 
 #TODO: Bug, skips first line?
-./wdisplay $CFILE.ansi
+./wdisplay $CFILE.ANSI
 
 # --- Log it
-echo "`date --iso=s` #=W $GO $CFILE.ansi" \
+echo "`date --iso=s` #=W $GO $CFILE.ANSI" \
 | tee -a .wlog >> .whistory
 
 # --- display spinning globe!
@@ -106,10 +106,10 @@ echo "`date --iso=s` #=W $GO $CFILE.ansi" \
 # TODO:      use ./wdownload
 # TODO:
 
-[ ! -f "$GO" ] && (wget -q -O $FILE.TMP -a $FILE.LOG "$GO" >/dev/null ; { kill $foo_pid && wait $foo_pid; } 2>/dev/null 1>&2 ; cat $FILE.TMP > $FILE) &
+[ ! -f "$GO" ] && (wget -q -O $CFILE.TMP -a $CFILE.LOG "$GO" >/dev/null ; { kill $foo_pid && wait $foo_pid; } 2>/dev/null 1>&2 ; cat $FILE.TMP > $FILE) &
 echo "`date --iso=s` #=W $GO" >> $CFILE.WLOG
 
-[ -f "$GO" ] && ( kill $foo_pid && wait $foo_pid; ) 2>/dev/null 1>&2
+[ -f "$GO" ] && ( cp $FILE $CFILE.DOWN ; kill $foo_pid && wait $foo_pid; ) 2>/dev/null 1>&2
 
 # --- less options help
 # - http://www.greenwoodsoftware.com/less/faq.html#tricks
@@ -137,17 +137,17 @@ printf "\e[m\e[48;50m\e[38;57m"
 # --- wait for HTML downloaded
 
 [ "$CFILE" == "$FILE" ] && \
-while [ $CFILE.ansi -nt $FILE ]; do
+while [ $CFILE.ANSI -nt $CFILE ]; do
       printf ">"
       sleep 1
 done
 
-./w.x $FILE $GO > $CFILE.ansi \
+./w.x $CFILE $GO > $CFILE.ANSI \
   || (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
   (printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run $GO";echo "where") | gdb ./w.x; exit) || exit
 
 # TODO: fix
-cp $CFILE.ansi .stdout
+cp $CFILE.ANSI .stdout
 
 ./wless.x || (printf "\n\n\e[48;5;1m\e[38;5;7m %% FAILED with ERROR $?\e[48;5;0m" && \
 ( printf "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; echo "run ";echo "where") | gdb ./wless.x; exit 7) || exit 7
