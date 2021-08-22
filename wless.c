@@ -549,7 +549,7 @@ int main(void) {
     // navigation
     if (k=='<' || kc==',') top= 0; // top
     if (k=='>' || kc=='.') top= nlines-rows; // bottom
-    if (k==META+'V' || k==BACKSPACE || k==DEL) if ((top-= rows) < 0) top= 0;
+    if (k==META+'V' || k==META+' ' || k==BACKSPACE || k==DEL) if ((top-= rows) < 0) top= 0;
     if (k==CTRL+'V' || k==' ') if ((top+= rows) > nlines) top= nlines-1;
 
     // -- TABS
