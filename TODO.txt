@@ -1,0 +1,17 @@
+# TODOs ideas for ./w
+
+- .ansi: add last lines #=LINES 4711
+- .ansi: add first "#"\r line with 80 chars, to later be overwritten with info #=LINES 4711 (if file is seekable!)
+
+- wbookmarks: URL
+- wbookmarks: SEARCH
+- whistory: URL
+- whistory: SEARCH
+- whistory: 
+  searching should generate result files and be part of history, using URI scheme like whistory:<url> wbookmarks:<url> wbookmarks:<foo>+<bar>
+-  need <td align=right>... for that display
+
+- use field format for log files? keep fiexed fields?
+
+- when viewing URL-info (^Q) show bookmarks, and last visits (3 minutes ago, 7 hours ago, ...)
+

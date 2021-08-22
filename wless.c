@@ -133,6 +133,7 @@ void listbookmarks(char *url, char *s) {
   
   fseek(fbookmarks, 0, SEEK_SET);
 cursoron();
+  int mcount= 0;
   while(line= fgetline(fbookmarks)) {
     char *m=NULL;
     if ((!url || !*url || strstr(line, url))
@@ -145,39 +146,46 @@ cursoron();
       int offset, top;
       int n= sscanf(line, "%ms %ms %d %d %m[^]",
         &date, &u, &offset, &top, &data);
+
+      // simplify url to show
+      char *simple= u;
+      simple= sskip(simple, "https://");
+      simple= sskip(simple, "http://");
+      simple= sskip(simple, "www.");
+      simple= strunc(simple, "?");
+      simple= sdel(simple, ".html");
+      simple= sdel(simple, ".htm");
+
       //printf("matched=%d (5)\n", n);
       if (n == 5 && data[0]!='=') {
+        mcount++;
+
+        // --- got a matched result
+
         const int right= 16;
         int cols= screen_cols-right-2;
-        if (strlen(data)>cols) {
-          C(url?yellow:blue);
-          printf("- %s\n", url?date:u);
-          C(white);
-          printf("%s\n", data);
-        } else {
-          printf("%-*s ",  cols, data);
-          if (!url) {
-            // simplify url to show
-            char *r= u;
-            r= sskip(r, "https://");
-            r= sskip(r, "http://");
-            r= sskip(r, "www.");
-            r= strunc(r, "?");
-            r= sdel(r, ".html");
-            r= sdel(r, ".htm");
-            C(blue);
-            if (strlen(r)>right)
-              printf("%.13s...", r);
-            else
-              printf("%.16s", r);
 
-          } else {
-            C(yellow);
-            printf("%.16s ", date);
-          }
-          C(white);
-          putchar('\n');
+        if (strlen(data)<=cols)
+          printf("%-*s ", cols, data);
+        else
+          printf("%-*s ", cols, "");
+
+        // print right column
+        if (url) {
+          C(yellow);
+          printf("%.16s\n", isoago(date));
+        } else {
+          C(blue);
+          if (strlen(simple)>right)
+            printf("%.13s...\n", simple);
+          else
+            printf("%.16s\n", simple);
         }
+        C(white);
+
+        if (strlen(data)>cols)
+          printf("%s\n", data);
+
       }
 
       free(line);
@@ -187,6 +195,7 @@ cursoron();
     }
   }
 
+  printf("\n%d Matching Lines", mcount);
   printf("\n(press key to continue)");
   fflush(stdout);
   key();

@@ -125,4 +125,12 @@ typedef struct dstr {
 dstr* dstrncat(dstr* d, char* add, int n);
 dstr* dstrprintf(dstr* d, char* fmt, ...);
 
+///////////////////////////////////
+// Date Time functions
+
 char* isotime();
+
+char *timeago(time_t epoch);
+char *isoago(char *iso);
+
+
