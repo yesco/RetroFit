@@ -229,15 +229,35 @@ void bookmark(int k) {
 
 // --- Display
 
-void display(int line, int k) {
+void display(int k) {
 
   // -- header
   reset();
   gotorc(0, 0);
-  FILE *f= fopen(file?file:".stdout", "r");
-  nlines= f? flines(f) : -1;
-  if (f) fclose(f);
+  clearend();
 
+
+  // wait for open of ANSI file
+  FILE *fansi= fopen(file?file:".stdout", "r");
+  char tmp[strlen(file)+1];
+  strcpy(tmp, file);
+  strcpy(tmp+strlen(tmp)-4, "TMP");
+  FILE *ftmp= fopen(tmp, "r");
+  // wait if have .TMP till .ANSI or key
+  if (ftmp) {
+    do {
+      fansi= fopen(file?file:".stdout", "r");
+      if (!fansi) {
+        usleep(300*1000);
+        putchar('>'); fflush(stdout);
+      }
+    } while (!fansi && !haskey());
+  }
+  nlines= fansi? flines(fansi) : -1;
+  //if (fansi) fclose(fansi);
+  if (ftmp) fclose(ftmp);
+
+  gotorc(0, 0);
   if (url) {
     clearend();
     // TODO: app header reserved for tab-info?
@@ -260,16 +280,37 @@ void display(int line, int k) {
   }
 
   // -- main content
+  B(white); C(black);
   gotorc(1, 0);
-  fgcolor(0); bgcolor(7);
   fflush(stdout);
 
-  // build ./wdisplay command
-  dstr *dbuf= dstrprintf(NULL, "./wdisplay \"%s\" %d %d",
-    file?file:".stdout", top+2, rows);
+  if (fansi) {
+    int c, n=top;
+    fseek(fansi, 0, SEEK_SET);
+    while((c= fgetc(fansi)) != EOF) {
+      // TODO: cleanup when make the hidden lines simplier...
+      if (c=='\n') {
+        c= fgetc(fansi);
+        if (c!='\n' && c!='#') {
+          if (n<0) putchar('\n');
+          n--;
+        } else {
+          while(c=='\n' || c=='#') {
+            // skip comment line
+            if (c=='#')
+              while((c= fgetc(fansi)) != EOF && c!='\n');
+            c= fgetc(fansi);
+            if (c==EOF) break;
+          }
+        }
+      }
+      // TODO: hidden escape codes?
+      if (n<0) putchar(c);
+      if (n<=-rows) break;
+    }
 
-  system(dbuf->s);
-  free(dbuf);
+    fclose(fansi);
+  }
 
   // read keyboard shortcuts, page links
   trunclinks(0);
@@ -449,7 +490,7 @@ int main(void) {
       //error(!hit, 10, "history log entry not found: %d", t);
     }
 
-    display(top, k);
+    display(k);
     visited();
 
     // - read key & decode

@@ -32,8 +32,8 @@ void cleareos() { printf("\x1b[J"); }
 void gotorc(int r, int c) { printf("\x1b[%d;%dH", r+1, c+1); }
 
 void inverse(int on) { printf(on ? "\x1b[7m" : "\x1b[m"); }
-void fgcolor(int c) { printf("\x1b[[3%dm", c); } // 0black 1red 2green 3yellow 4blue 5magnenta 6cyan 7white 9default
-void bgcolor(int c) { printf("\x1b[[4%dm", c); } // 0black 1red 2green 3yellow 4blue 5magnenta 6cyan 7white 9default
+void fgcolor(int c) { printf("\x1b[[3%dm", c); }
+void bgcolor(int c) { printf("\x1b[[4%dm", c); }
 
 void savescreen() { printf("\x1b[?47h"); }
 void restorescreen() { printf("\x1b[?47l"); }
@@ -82,6 +82,27 @@ void B(int n) { bg(n); }
 
 ////////////////////////////////////////
 // - keyboard
+
+int haskey() {
+  struct termios old, tmp;
+  tcgetattr(0, &old);
+  tmp= old;
+  // modify
+  cfmakeraw(&tmp); // ^C & ^Z !
+  tmp.c_lflag &= ~ICANON & ~ECHO;
+  tcsetattr(0, TCSANOW, &tmp);
+
+  struct timeval tv = { 0L, 0L };
+  fd_set fds;
+  FD_ZERO(&fds);
+  FD_SET(0, &fds);
+  int r= select(1, &fds, NULL, NULL, &tv);
+
+  // restore
+  tcsetattr(0, TCSANOW, &old);
+
+  return r;
+}
 
 // Note: NOT thread-safe
 int key() {
@@ -157,8 +178,13 @@ char* keystring(int c) {
 
 void testkeys() {
   fprintf(stderr, "\nCTRL-C ends\n");
-  for(int k= 0; k!=CTRL+'C'; k= key())
+  for(int k= 0; k!=CTRL+'C'; k= key()) {
     fprintf(stderr, "%s ", keystring(k));
+    while(!haskey()) {
+      putchar('.'); fflush(stdout);
+      usleep(300*1000);
+    }
+  }
 }
 
 // Print prompt and input from terminal.

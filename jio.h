@@ -75,7 +75,9 @@ extern enum color _fg,  _bg;
 //   TERM+'Z': DEL
 enum { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127, CTRL=-64, META=128, TERM=256, FUNCTION=META, UP=TERM+'A', DOWN, RIGHT, LEFT, S_TAB=META+'Z', DEL=TERM+'3'};
 
+int haskey();
 int key();
+
 char* keystring(int c);
 void testkeys();
 char* input(char* prompt);

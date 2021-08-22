@@ -64,6 +64,7 @@ if [[ ! -f "$GO" ]]; then
    echo "$GO" > $CFILE.URL
 
    # - download
+   # (.TMP indicates download started)
    wget -q -O $CFILE.TMP -a $CFILE.LOG "$GO" >/dev/null \
      || ./werror "./wdownload error: $GO" $ROWS $COLS
 
@@ -74,8 +75,8 @@ if [[ ! -f "$GO" ]]; then
 
    # - cat so get correct date on file
    # (wget gives file as of HEAD date!)
-   cat $FILE.TMP > $CFILE.DOWN
-
+   cat $CFILE.TMP > $CFILE.DOWN
+   rm $CFILE.TMP
 fi
 
 ./w.x $CFILE.DOWN $GO $COLS > $CFILE.ANSI
