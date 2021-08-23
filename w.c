@@ -381,7 +381,7 @@ void nl() {
   printf("@%d:\r", offset);
 
   // recolor for each new line
-  bg(_bg); fg(_fg); 
+  recolor();
 
   clearend();
   // indent(); print_state();

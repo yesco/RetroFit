@@ -24,16 +24,16 @@ echo "`date --iso=s` #=W $GO $CFILE.ANSI" \
   | tee -a $CFILE.WLOG \
   >> .whistory
 
+# --- local file
+
+[ -f $GO ] && cp $GO $CFILE.DOWN && rm $FILE.ANSI && touch $CFILE.TMP
+
 # --- Do we already have it?
 # (detect change of screen width?)
 
 [ -f $CFILE.ANSI ] \
   && ./wmessage "./wdownload already have $GO" $ROWS $COLS \
   && exit 0
-
-# --- local file
-
-[ -f $GO ] && cp $GO $CFILE.DOWN
 
 # --- log
 echo "`date --iso=s` #=DOWN $GO $CFILE.ANSI" \
@@ -76,10 +76,13 @@ if [[ ! -f "$GO" ]]; then
    # - cat so get correct date on file
    # (wget gives file as of HEAD date!)
    cat $CFILE.TMP > $CFILE.DOWN
-   rm $CFILE.TMP
 fi
 
+# TODO: handle render errors? 
+# (maybe add error message in file?)
 ./w.x $CFILE.DOWN $GO $COLS > $CFILE.ANSI
+
+rm $CFILE.TMP
 
 # - Signal app that requested
 # TODO: 
