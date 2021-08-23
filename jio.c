@@ -84,7 +84,9 @@ void end_underline() { printf("\e[24m"); }
 
 // TODO:   modify the state anmake it saveable... as a struct.
 
-int _reverse=1;
+int _reverse=1; // 1 and bold works for black!
+
+// TODO: is reverse mode with colors reverse a decent mode for "dark/night" theme?
 
 void reverse() { printf("\e[7m"); }
 
