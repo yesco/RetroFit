@@ -27,6 +27,8 @@ int trace= 0, trace_content= 0;
 const int rmargin= 1; // 1 or more (no 0)
 const int lmargin= 2;
 
+//const int reverse= 1; // white on black
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -377,8 +379,11 @@ void nl() {
   printf("\e[K\n"); // workaround bug!
   // hidden source file offset
   printf("@%d:\r", offset);
-  B(_bg); C(_fg); // fix "less -r" scroll up
-  printf("\e[K");
+
+  // recolor for each new line
+  bg(_bg); fg(_fg); 
+
+  clearend();
   // indent(); print_state();
   // print at newline if still inside <a>
   print_hidden_url();
@@ -586,18 +591,18 @@ void process(TAG *end);
 
 // After the matching </TAG> is reached:
 // restore colors and undo formatting.
-void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
+void hi(TAG *tag, char* tags, enum color f, enum color b) {
   static int level= 0;
   if (!tag || !*tag || !strstr(tags, *tag)) return;
 
   level++;
-  TRACE("--->%d %s %d %d\n", level, tag?*tag:NULL, fg, bg);
+  TRACE("--->%d %s %d %d\n", level, tag?*tag:NULL, f, b);
 
   // save colors
   int sfg= _fg, sbg= _bg, spre= _pre, sskip= _skip, sindent=_indent; {
     // - START highlight
-    if (fg != none) _fg= fg;
-    if (bg != none) _bg= bg;
+    if (f != none) C(f);
+    if (b != none) B(b);
     if (strstr(PR, tag)) _pre= 1;
     if (strstr(SKIP, tag)) _skip= 1;
 
@@ -605,7 +610,8 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
 
     // underline links!
     if (strstr(" a ", tag)) {
-      underline(); C(_fg);
+      underline();
+      fg(_fg); bg(_bg); // needed?
       _capture++;
     }
     if (strstr(" table ", tag)) {
@@ -613,12 +619,12 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
       _table++;
     }
     // italics
-    if (strstr(IT, tag)) { printf("\e[3m"); C(_fg); };
+    if (strstr(IT, tag)) { printf("\e[3m"); fg(_fg); bg(_bg); };
     // fullwidth
     if (strstr(HD, tag)) _fullwidth++;
 
     // content
-    C(_fg); B(_bg);
+    //C(_fg); B(_bg);
     if (strstr(" h1 ", tag)) p(HNL);
     if (strstr(HD, tag)) p(HS);
     if (strstr(TT, tag)) p(HS);
@@ -652,7 +658,7 @@ void hi(TAG *tag, char* tags, enum color fg, enum color bg) {
     // restore saved state (colors/pre/skip)
   } _pre= spre; _skip= sskip; _indent= sindent;
   if (strstr(NL, tag)) p(SNL);
-  C(sfg); B(sbg); 
+  fg(sfg); bg(sbg);
 
   level--;
   TRACE("<--%d %s\n", level, tag?*tag:NULL);
@@ -719,7 +725,7 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
 
     // output [ab] link key selector
     indent();
-    int fg=_fg, bg=_bg, ws=_ws; {
+    int f=_fg, b=_bg, ws=_ws; {
       B(rgb(1,2,4)); C(white);
       //B(blue); C(white);
       //B(red); C(white); // retro!
@@ -727,7 +733,7 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
       char* k= (char*)_keys;
       while (*k) p(*k++);
       _fullwidth--;
-    } C(fg), B(bg);
+    } fg(f), bg(b);
     //p(' ');
     
     return;
@@ -941,10 +947,10 @@ int main(int argc, char**argv) {
   if (strstr(u, "https://")==u) {
     printf("🔒"); u+= 8;
   } else if (strstr(u, "http://")==u) {
-    int f=_fg;
+    int f=_fg, b=_bg;
     C(red);
     printf("🚩");
-    fg(f);
+    fg(f); bg(b);
     u+= 7;
   } 
   if (u[strlen(u)-1]=='/')

@@ -63,9 +63,10 @@ void _color(int c) {
 
 enum color _fg= black, _bg= white;
 
-void fg(int c) { printf("\e[38;"); _color(c); _fg= c; }
-void bg(int c) { printf("\e[48;"); _color(c); _bg= c; }
+color fg(int c) { color r=_fg; printf("\e[38;"); _color(c); _fg= c; return r; }
+color bg(int c) { color r=_bg; printf("\e[48;"); _color(c); _bg= c; return r; }
 
+// most colors are per default bold!
 int bold(int c /* 0-7 */) { return c+8; }
 int rgb(int r, int g, int b /* 0-5 */) { return 0x10+ 36*r + 6*g + b; }
 int gray(int c /* 0-7 */) { return 0xe8+  c; }
@@ -73,12 +74,35 @@ int RGB(int r, int g, int b /* 0-255 */) { return -(r*256+g)*256+b; }
 void underline() { printf("\e[4m"); }
 void end_underline() { printf("\e[24m"); }
 
+// TODO:
+// TODO: not work correctly!
+int _reverse=0;
+
+void reverse() { printf("\e[7m"); }
+
 // adjusted colors
-void C(int n) {
-  if (n==blue) fg(rgb(0, 0, 1)); // darkest blue
-  fg(n + 8*(n!=0 && n<8));
+color _C(int n) {
+//  if (_reverse) reverse();
+  // dark blue
+  return fg(n==blue? rgb(0,0,1) : n);
+
 }
-void B(int n) { bg(n); }
+
+color _B(int n) {
+  //  if (_reverse) reverse();
+  return bg(n);
+}
+
+// adjusted colors
+color C(int n) {
+//  _C(n);
+  return (_reverse? _B : _C)(n);
+}
+
+color B(int n) {
+//  _B(n);
+  return (_reverse? _C : _B)(n);
+}
 
 ////////////////////////////////////////
 // - keyboard

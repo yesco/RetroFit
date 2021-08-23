@@ -29,32 +29,37 @@ void clearend();
 void cleareos();
 
 void gotorc(int r, int c);
+
 void cursoroff();
 void cursoron();
+
+//void fgcolor(int c);
+//void bgcolor(int c);
+
 void inverse(int on);
-void fgcolor(int c);
-void bgcolor(int c);
+
 void savescreen();
 void restorescreen();
 void insertmode(int on);
-void _color(int c);
-void fg(int c);
-void bg(int c);
+
+// - higher level colors
+typedef enum color{black, red, green, yellow, blue, magnenta, cyan, white, none} color;
+
+extern enum color _fg,  _bg;
+
+color fg(int c);
+color bg(int c);
 int bold(int c /* 0-7 */);
 int rgb(int r, int g, int b /* 0-5 */);
 int gray(int c /* 0-7 */);
 int RGB(int r, int g, int b /* 0-255 */);
+
 void underline();
 void end_underline();
 
 // adjusted colors
-void C(int n);
-void B(int n);
-
-// - higher level colors
-enum color{black, red, green, yellow, blue, magnenta, cyan, white, none};
-
-extern enum color _fg,  _bg;
+color C(int n);
+color B(int n);
 
 ////////////////////////////////////////
 // - keyboard
