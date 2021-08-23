@@ -124,6 +124,13 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 <li>Text background/underline wraps with nl, it's "correct" but ugly</li>
 </ul>
 
+<h2 id="annoy">Annoyances</h2>
+Not really bugs, but behaviour that could be fixed:
+<ul>
+<li><code>./w FILE</code> if open the same file as last, no need to add to history? Same with ALT-X?</li>
+<li>link spanning line-end will underline indented spaces, haha, and <tt>will overflow</tt> solution is a delayed reformatting()? like recolor()?</li>
+</ul>
+
 <h2 id="todo">TODO:</h2>
 <ul>
 <li>Handle image tag, show alt. Image maps too.</li>

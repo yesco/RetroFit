@@ -162,7 +162,7 @@ int key() {
   // get next c
   // hacky code, set c by shifting bytes
   if (b>0) {
-    memcpy(&buf[0], &buf[1], b--);
+    memcpy(buf, &buf[1], b--);
   } else {
     // read as many as available, as we're blocking=>at least one char
     // terminals return several character for one key (^[A == M-A  arrows etc)
@@ -172,6 +172,11 @@ int key() {
 
   // restore
   tcsetattr(0, TCSANOW, &old);
+
+//TDOO: BACKSPACE seems broken!
+// or at least in Play/testkeys.c...
+
+//printf("\n [k=%d] \n", k);
 
   // simple character, or error
   if (b<=0) return b<0? b+1 : k;
@@ -183,11 +188,22 @@ int key() {
   if (k==TERM+'3' && b) key(), k= DEL;
   if (!b) return k;
 
+  // CTRL/SHIFT/ALT arrow keys
+  if (k==TERM+'1' && b==3 && buf[1]==';') {
+    key();
+    char mod= key();
+    k= UP+ key()-'A';
+    switch(mod) {
+    case '2': k+= SHIFT; break;
+    case '5': k+= CTRL; break;
+    case '3': k+= META; break;
+    }
+  }
 
   // function keys (special encoding)
-  if (k==TERM+'O') k=key()-'P'+1+TERM;
-  if (k==TERM+'1') k=key()-'0'+TERM, key(), k= k==5+TERM?k:k-1;
-  if (k==TERM+'2') k=key()-'0'+9+TERM, key(), k= k>10+TERM?k-1:k;
+  if (k==META+'O') k=key()-'P'+1+FUNCTION;
+  if (k==TERM+'1'&& b==2) k=key()-'0'+FUNCTION, key(), k= k==5+FUNCTION?k:k-1;
+  if (k==TERM+'2'&& b==2) k=key()-'0'+9+FUNCTION, key(), k= k>10+FUNCTION?k-1:k;
 
   return k;
 }
@@ -195,24 +211,43 @@ int key() {
 // Returns a static string describing KEY
 // Note: next call may change previous returned value, NOT thread-safe
 char* keystring(int c) {
-  static char s[10];
-  memset(&s[0], 0, sizeof(s));
+  static char s[16];
+  memset(s, 0, sizeof(s));
 
   if (0) ;
   else if (c==TAB) return "TAB";
   else if (c==RETURN) return  "RETURN";
   else if (c==ESC) return "ESC";
   else if (c<32) sprintf(s, "^%c", c+64);
-  else if (c<127) s[0]= c;
   else if (c==BACKSPACE) return "BACKSPACE";
   else if (c==DEL) return "DEL";
+  else if (c<127) s[0]= c;
   // 127? == delete key?
   else if (c==S_TAB) return "S_TAB";
+
   else if (c==UP) return "UP";
   else if (c==DOWN) return "DOWN";
   else if (c==RIGHT) return "RIGHT";
   else if (c==LEFT) return "LEFT";
-  else if (c>=TERM) sprintf(s, "F-%d", c-TERM);
+
+  // TODO: simplify
+  else if (c==SHIFT+UP) return "S_UP";
+  else if (c==SHIFT+DOWN) return "S_DOWN";
+  else if (c==SHIFT+RIGHT) return "S_RIGHT";
+  else if (c==SHIFT+LEFT) return "S_LEFT";
+
+  else if (c==CTRL+UP) return "^UP";
+  else if (c==CTRL+DOWN) return "^DOWN";
+  else if (c==CTRL+RIGHT) return "^RIGHT";
+  else if (c==CTRL+LEFT) return "^LEFT";
+
+  else if (c==META+UP) return "M-UP";
+  else if (c==META+DOWN) return "M-DOWN";
+  else if (c==META+RIGHT) return "M-RIGHT";
+  else if (c==META+LEFT) return "M-LEFT";
+  // END:TODO:
+
+  else if (c>=FUNCTION && c<=FUNCTION+12) sprintf(s, "F-%d", c-FUNCTION);
   else if (c>=META+' ') sprintf(s, "M-%c", c-META);
   return &s[0];
 }
@@ -220,7 +255,7 @@ char* keystring(int c) {
 void testkeys() {
   fprintf(stderr, "\nCTRL-C ends\n");
   for(int k= 0; k!=CTRL+'C'; k= key()) {
-    fprintf(stderr, "%s ", keystring(k));
+    fprintf(stderr, "===> %s\n", keystring(k));
     while(!haskey()) {
       putchar('.'); fflush(stdout);
       usleep(300*1000);

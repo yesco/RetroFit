@@ -80,7 +80,12 @@ fi
 
 # TODO: handle render errors? 
 # (maybe add error message in file?)
+
 ./w.x $CFILE.DOWN $GO $COLS > $CFILE.ANSI
+
+# generate links list
+./wlinks $CFILE.ANSI > $CFILE.LINKS
+
 
 rm $CFILE.TMP
 

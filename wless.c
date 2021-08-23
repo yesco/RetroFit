@@ -60,6 +60,18 @@ void trunclinks(int n) {
   }
 }
 
+FILE *fopenext(char *fname, char *ext, char *mode) {
+  char tmp[strlen(fname)+1+strlen(ext)+1];
+  strcpy(tmp, fname);
+  char *ldot= strrchr(tmp, '.');
+  if (ldot)
+    strcpy(ldot, ext);
+  else
+    strcat(tmp, ext);
+  //printf("....open: %s\n", tmp); key();
+  return fopen(tmp, mode);
+}
+
 // Load bookmarks/keyboards from FILE
 // Returns number of items added
 int loadshortcuts(char *file) {
@@ -67,20 +79,10 @@ int loadshortcuts(char *file) {
 
   // .ansi file - extract links
   if (endswith(file, ".ANSI")) {
-    //const char CMD[]= "./wlinks %s";
-    //char cmd[sizeof(CMD)+1 + 1024]= {0};
-    //int lcmd= snprintf(cmd, sizeof(cmd), CMD, file);
-    //assert(lcmd+5 < sizeof(cmd));
-    //system(cmd);
-    // TODO: use popen instead, but it doesn't work with fgetline
-    //FILE* flinks= popen(cmd, "r");
-
-    // TODO: murky...
-    // ./wdisplay already wrote it...
-    file= ".wlinks";
+    flinks= fopenext(file, ".LINKS", "r");
+  } else {
+    flinks= fopen(file, "r");
   }
-
-  flinks= fopen(file, "r");
   // TODO: display error message?
   if (!flinks) return 0;
 
@@ -228,6 +230,16 @@ void bookmark(int k) {
 }
 
 // --- Display
+void message(char* format, ...) {
+  va_list argp;
+  va_start(argp, format);
+
+  // last line
+  reset();
+  gotorc(screen_rows-1, 0);
+  vprintf(format, argp);
+  clearend(); fflush(stdout);
+}
 
 void display(int k) {
 
@@ -239,10 +251,7 @@ void display(int k) {
 
   // wait for open of ANSI file
   FILE *fansi= fopen(file?file:".stdout", "r");
-  char tmp[strlen(file)+1];
-  strcpy(tmp, file);
-  strcpy(tmp+strlen(tmp)-4, "TMP");
-  FILE *ftmp= fopen(tmp, "r");
+  FILE *ftmp= fopenext(file, ".TMP", "r");
   // wait if have .TMP till .ANSI or key
   if (ftmp) {
     do {
@@ -315,7 +324,8 @@ void display(int k) {
   // read keyboard shortcuts, page links
   trunclinks(0);
   loadshortcuts(".wkeys");
-  loadshortcuts(".wlinks");
+  loadshortcuts(file);
+
   //loadbookmarks(file?file:".wlinks");
 
 //  reset();
@@ -323,22 +333,10 @@ void display(int k) {
   cleareos();
 
   // -- footer
-  gotorc(rows, 0);
-
   reset();
 
-//cursoron();return;
-
-  // last line
-  gotorc(screen_rows-1, 0);
-
-  // pretty print state & key
-  // TODO: remove
-  if (1) { // debug
-    printf("%3d %3d %3d/%d ", top, right, tab, ntab-1);
-    printf("%s", keystring(k));
-    clearend(); fflush(stdout);
-  }
+  // TODO: set message and show for X s?
+  message("%3d %3d/%d = %d %d", top, right, tab, ntab-1, 4711, 12);
 }
 
 // --- ACTIONS
@@ -371,6 +369,21 @@ void read_next() { // till end
 void queue_read() {
 }
 
+// start download in background
+void reload(char* url) {
+  char *end= strpbrk(url, " \t\n");
+  int ulen= end? end-url : strlen(url);
+
+  // TODO: srip the script?
+  dstr *cmd= dstrprintf(NULL, "./wdownload \"%.*s\" %d %d &",
+    ulen, url, screen_rows, screen_cols);
+  system(cmd->s);
+  free(cmd);
+
+  // wait enough for .whistory to be updated...  and .TMP to be created
+  usleep(1000*1000);
+}
+
 // creates a new tab from URL.
 //
 // Note: URL can be terminated by whitespace. This allows this
@@ -379,22 +392,10 @@ void queue_read() {
 //
 // Return newly opened tab number
 int newtab(char* url) {
-  char *end= strpbrk(url, " \t\n");
-  int size= end? end-url : strlen(url);
-
-  // start download in background
-  dstr *cmd= dstrprintf(NULL, "./wdownload \"%.*s\" %d %d &",
-    size, url, screen_rows, screen_cols);
-  system(cmd->s);
-  free(cmd);
-
-  //sleep(3); // testing
-  // TODO: write log entry here!
-  // wait enough for .whistory to be updated...
-  usleep(100*1000);
+  reload(url);
 
   // open new tab, go to
-  return ++ntab;
+  return ntab++;
 }
       
 void opentab() {
@@ -432,10 +433,8 @@ int click(int k) {
       return newtab(u);
     }
   }
+  message("\[31mNo such link: %s", keystring(k));
   return 0;
-}
-
-void reload() {
 }
 
 // --- MAIN LOOP
@@ -575,7 +574,7 @@ int main(void) {
       }
     }
 
-    if (k==CTRL+'R') reload();
+    if (k==CTRL+'R') reload(url);
 
     // Up/Down LOL?
     if (k==CTRL+'U'); // Unread
