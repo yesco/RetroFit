@@ -58,6 +58,8 @@ void underline();
 void end_underline();
 
 // adjusted colors
+void recolor();
+
 color C(int n);
 color B(int n);
 

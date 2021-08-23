@@ -4,12 +4,13 @@
 #include <time.h>
 #include <locale.h>
 #include <assert.h>
-
+#include <unistd.h>
+#include <ctype.h>
 
 #include "jio.h"
 
 
-extern int screen_rows= 24, screen_cols= 80;
+int screen_rows= 24, screen_cols= 80;
 // https://stackoverflow.com/questions/1022957/getting-terminal-width-in-c
 void screen_init() {
   struct winsize w;
@@ -67,6 +68,7 @@ color fg(int c) { color r=_fg; printf("\e[38;"); _color(c); _fg= c; return r; }
 color bg(int c) { color r=_bg; printf("\e[48;"); _color(c); _bg= c; return r; }
 
 // most colors are per default bold!
+//int bold(int c /* 0-7 */) { return c+8; }
 int bold(int c /* 0-7 */) { return c+8; }
 int rgb(int r, int g, int b /* 0-5 */) { return 0x10+ 36*r + 6*g + b; }
 int gray(int c /* 0-7 */) { return 0xe8+  c; }
@@ -74,34 +76,47 @@ int RGB(int r, int g, int b /* 0-255 */) { return -(r*256+g)*256+b; }
 void underline() { printf("\e[4m"); }
 void end_underline() { printf("\e[24m"); }
 
-// TODO:
-// TODO: not work correctly!
-int _reverse=0;
+// Reverse video!
+//   Ok, this is going to be "funny". Since I've been using "true video" (white on black) the bold wasn't really bolding black letters, instead I typeset it in red color. (ugh!)
+//   So, turns out the solution is to use reverse video. Then bold of black works! (but not of white...).
+//   Also, to pull this off, since reverse video makes fg be background and bg be foreground color, we switch those if we're in reverse mode!
+//  Second, there is no way to turn off bold, except turn everything off, so we need to recolor it (and for every line of our .ANSI-file. Use recolor();
+
+// TODO:   modify the state anmake it saveable... as a struct.
+
+int _reverse=1;
 
 void reverse() { printf("\e[7m"); }
 
+void recolor() {
+  if (_reverse) reverse();
+  bg(_bg); fg(_fg);
+  // TODO: underline, bold, italics, 
+  // means need to keep track of state...
+}
+
 // adjusted colors
 color _C(int n) {
-//  if (_reverse) reverse();
+  if (_reverse) reverse();
   // dark blue
-  return fg(n==blue? rgb(0,0,1) : n);
+  return fg(n);
 
 }
 
 color _B(int n) {
-  //  if (_reverse) reverse();
+  if (_reverse) reverse();
   return bg(n);
 }
 
 // adjusted colors
 color C(int n) {
 //  _C(n);
-  return (_reverse? _B : _C)(n);
+  return (_reverse? _B : _C)(n==blue? rgb(0,0,1) : n);
 }
 
 color B(int n) {
 //  _B(n);
-  return (_reverse? _C : _B)(n);
+  return (_reverse? _C : _B)(n==blue? rgb(0,0,1) : n==white ? n+8 : n);
 }
 
 ////////////////////////////////////////
@@ -437,7 +452,7 @@ dstr* dstrprintf(dstr* d, char* fmt, ...) {
   char dummy[1024];
   va_start(argp, fmt);
   // TODO:crashes her
-  int n= vsnprintf(&dummy, 1024, fmt, argp);
+  int n= vsnprintf(dummy, 1024, fmt, argp);
   if (!d || strlen(d->s)+n+1 > d->max)
     d= dstrncat(d, NULL, n+1);
   vsnprintf(d->s+strlen(d->s), n+1, fmt, argp);

@@ -618,6 +618,9 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
       table= dstrncat(NULL, NULL, 1024);
       _table++;
     }
+    // bold
+    if (strstr(BD, tag)) { printf("\e[1m"); }
+
     // italics
     if (strstr(IT, tag)) { printf("\e[3m"); fg(_fg); bg(_bg); };
     // fullwidth
@@ -650,6 +653,8 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
     if (strstr(" table ", tag)) {
       if (!--_table) renderTable();
     }
+    // off bold
+    if (strstr(BD, tag)) { printf(" \e[0m"); recolor(); }
     // off italics
     if (strstr(IT, tag)) printf("\e[23m");
     // off fullwidth
@@ -658,7 +663,7 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
     // restore saved state (colors/pre/skip)
   } _pre= spre; _skip= sskip; _indent= sindent;
   if (strstr(NL, tag)) p(SNL);
-  fg(sfg); bg(sbg);
+  fg(sfg); bg(sbg); // TODO: recolor
 
   level--;
   TRACE("<--%d %s\n", level, tag?*tag:NULL);
@@ -893,7 +898,7 @@ void process(TAG *end) {
       HI(" h5 ", black, cyan);
       HI(" h6 ", black, white);
 
-      HI(BD, red, none);
+      HI(BD, none, none);
       HI(IT, none, none);
 
       HI(HL, magnenta, none);
