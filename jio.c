@@ -75,7 +75,7 @@ void end_underline() { printf("\e[24m"); }
 
 // adjusted colors
 void C(int n) {
-  if (n==blue) fg(rgb(0, 0, 1));
+  if (n==blue) fg(rgb(0, 0, 1)); // darkest blue
   fg(n + 8*(n!=0 && n<8));
 }
 void B(int n) { bg(n); }

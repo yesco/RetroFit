@@ -1,7 +1,29 @@
 # TODOs ideas for ./w
 
-- .ansi: add last lines #=LINES 4711
-- .ansi: add first "#"\r line with 80 chars, to later be overwritten with info #=LINES 4711 (if file is seekable!)
+- URL completion? log/extract every URL:
+  unix> cut -d\  -f3 .whistory  | sort | uniq -c | sort -rn | grep " Te"    !!!
+
+
+- mouse scroll !
+- mouse click click
+- mouse menu
+
+- use bold unicode for bold - https://unicode-table.com/en/blocks/mathematical-alphanumeric-symbols/ but NO bold numbers :-(
+
+- allow font serif/monospace/normal bu
+
+
+
+- .ANSI: change the #= out-of-band data, cache till next newline, output after:
+    <OFFET>#=W ...#=LINK <URL><clearend><bgcolor><fgcolor>TEXT TEXT TEXT(\n)
+https://m.facebook.com/groups/GNUEmacsUsers/?notif_t=group_r2j_approved&notif_id=1629670864950883&ref=bookmarks
+
+ 
+- .ANSI: add last lines #=LINES 4711
+- .ANSI: add first "#"\r line with 80 chars, to later be overwritten with info #=LINES 4711 (if file is seekable!)
+
+
+- when viewing URL-info (^Q) show bookmarks, and last visits (3 minutes ago, 7 hours ago, ...)
 
 - wbookmarks: URL
 - wbookmarks: SEARCH
@@ -9,9 +31,9 @@
 - whistory: SEARCH
 - whistory: 
   searching should generate result files and be part of history, using URI scheme like whistory:<url> wbookmarks:<url> wbookmarks:<foo>+<bar>
+
 -  need <td align=right>... for that display
 
-- use field format for log files? keep fiexed fields?
 
-- when viewing URL-info (^Q) show bookmarks, and last visits (3 minutes ago, 7 hours ago, ...)
+- use field format for log files? keep fiexed fields?
 

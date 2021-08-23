@@ -1,0 +1,45 @@
+Normal test: [7m Reverse video
+
+Script started on 2021-08-23 13:52:01+07:00 [TERM="xterm-256color" TTY="/dev/pts/43" COLUMNS="39" LINES="40"]
+[?2004h[0;32m~/GIT/RetroFit[0m [0;97m$[0m cat bold.txt
+
+[?2004l
+-- cat
+fooooobar
+foooxbar
+foooobar
+foooobar
+
+[0mfoooobar[0m- normal text)
+[1mfoooobar[0m- bold text)
+[0;7mfoooobar[0m- normal text - rerse)
+[1;7mfoooobar[0m - bold text - reverse video
+
+--- Text green, Background red
+[0;32;41mfoooobar[0m- normal text)
+[1;32;41mfoooobar[0m- bold text)
+[0;7;32;41mfoooobar[0m- normal text - rerse)
+[1;7;32;41mfoooobar[0m - bold text - reverse video
+
+--- Text green, Background red
+[0;32;41mfoooobar[0m- normal text)
+[1;32;41mfoooobar[0m- bold text)
+[0;32;41;7mfoooobar[0m- normal text - rerse)
+[1;32;41;7mfoooobar[0m - bold text - reverse video
+
+[30;47mfoooobar
+[30;47mfoooobar
+[30;47;1mfoooobar
+
+---here is the body part:
+fo[1mo[0mbar
+fo[1mx[0mbar
+fo[1mo[0mbar
+fo[1mo[0mbar
+[1mfo[1mo[0mbar[0m
+[30;47mfo[1mo[0mbar
+[30;47mfo[1mo[0mbar
+[30;47;1mfo[1mo[0mbar
+
+[7mbold.txt
+
