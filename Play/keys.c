@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
 
     // pretty
     c= getch();
+    if (c==27) fprintf(stderr, "\r\n");
     if (c < 32)
       fprintf(stderr, "^%c", c+64);
     else

@@ -56,6 +56,136 @@ $any comment   - Add a comment
 %regexp        - ... using regexp
 </pre>
 
+<h3>Guesture Navigation</h3>
+<p>Amazing enough, on Android using Termux, the terminal can read a limited set of touche operations. They are:</p>
+<ul>
+<li>touch a point at the screen (click)<br>
+  My jio library gives a MOUSE_DOWN and MOUSE_UP event. Booth have the same coordinates.</li>
+<li>touch and drag, up and down<br>
+It's limited, there is no ability to detect sideways scroll. The output is a continious scroll event at every moment once initiated. The events have the button field set to 64 for draggin down, and 65 for up-drag<br>Each event has the original position</li>
+</ul>
+
+<p>As can be seen, these events are quite limited. But, we can still work with it. The drag is quite accurate and can be used to scroll up and down smoothly. It even has a bit of <em>gravity</em> in that a fast limited scroll yields more events than the same length slow movement!</p>
+
+<p>So this is the plan: "reserve" various areas of the screen for operations. For example, these regions are special:</p>
+
+<table>
+<tr><th>Top Left</th><th>Top Middle</th><th>Top Rigth</th></tr>
+<tr><td>home, (tab)menu</td><td>URL/location</td><td>close, back</td></tr>
+
+<tr><th>Upper Left</th><th>Upper Middle</th><th>Upper Right</th></tr>
+<tr>tab<td></td><td>---</td><td>tab</td></tr>
+
+<tr><th>Upper Left</th><th>Upper Middle</th><th>Upper Right</th></tr>
+<tr>???<td></td><td>---</td><td>???</td></tr>
+
+<tr><th>Upper Left</th><th>Upper Middle</th><th>Upper Right</th></tr>
+<tr>???<td></td><td>---</td><td>???</td></tr>
+
+<tr><th>Bottom Left</th><th>Bottom Middle</th><th>Bottom Right</th></tr>
+<tr>???<td></td><td>???</td><td>???</td></tr>
+</table>
+
+
+
+
+<table>
+
+<tr> <td>home bookmarks save</td> <td>URL location</td> <td>cancel delete close</td> </tr>
+
+<tr> <td>page show</td> <td>---</td> <td>info</td> </tr>
+
+<tr> <td>tab prev</td> <td>---</td> <td>tabnext</td> </tr>
+
+<tr> <td></td> <td>---</td> <td></td> </tr>
+
+<tr> <td></td> <td></td> <td></td> </tr>
+</table>
+
+<h3>Action on top NOUNS</h3>
+<pre><b>
+bookmark         location       bin</b>
+
+SHOW/info        SHOW           SHOWitTbin
+bookmark         (reformat)     (close)
+  
+STAR             STAR           REMEMBER
+(make bm)        (reload)       undelete
+
+LIST             LIST           LIST
+bookmarks        history        deleted
+
+HASHTAG          COPY           QUIT
+</pre>
+
+<h3>Middle NOUNS</h3>
+<pre>            
+                GOTO TOP
+
+                
+
+                this page
+
+
+
+                GOTO BOTTOM 
+</pre>       
+
+<h3>Weather Direction</h3>
+<pre>
+<b>NW  N  NE</b>
+wn  n  en
+<b>W   C   E</b>
+w   s  es 
+<b>SW  S  SE</b>
+</pre>
+
+<pre>
+
+          NW    (N)     NE
+            \    |    /
+         wn  \   n   /  en
+              \  |  /
+       (W) ---- (C) ---- (E)
+              /  |  \
+         ws  /   s   \  es
+            /    |    \
+          SW    (S)    SE
+
+
+</pre>
+
+<h3>Click</h3>
+<pre>
+HOME           URL(select)      CLOSE
+
+
+HIST BACK                       HIST FORW
+
+
+PREV TAB                        NEXT TAB
+
+
+HASHTAG                         PAGE UP
+
+
+STAR             INFO           PAGE DOWN
+</pre>
+
+
+
+<li>Dag
+<li>URL drag to:
+  <ul>
+    <li>xxx</li>
+    <li>reload</li>
+    <li>stack it</li>
+    <li>bury</li>
+    <li>show HTML</li>
+  </ul>
+      
+
+
 <!--
 <h3>Forms</h3>
 <pre>

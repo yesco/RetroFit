@@ -11,13 +11,16 @@ let entities= JSON.parse(fs.readFileSync('entities.json'));
 let s= Object.keys(entities).sort().map(n=>{
   let e=entities[n], c=e.characters;
   // some outputs need \ ...
+  if (0) {
   if (c.length!=1) {
     console.log("%%ERROR: "+n+" "+c+" len="+c.length);
+  }
   }
   if (c.match(' ')) {
     console.log("%%ERROR.space!: "+n+" "+c+" len="+c.length);
   }
-  //console.log('"'+n.toLowerCase()+' '+c+'"');
-  //console.log(n+'='+c);
+  //SHIT case matters!
+  console.log('"'+n+' '+c+'"');
+//  console.log(n+'='+c);
 });
 

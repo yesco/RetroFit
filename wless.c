@@ -572,7 +572,54 @@ do {
     if (k & MOUSE) {
       // TODO: make function/macro/API?
       int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
-      
+      k= -1;
+
+      // Adjusted Row and Column
+      int ar= r-1, ac= c-1;
+      char LEVELS[]= "Nn   CC   sS";
+      char DIST[]= "W CCC E";
+
+      if(0)
+      for(int rr=0; rr<screen_rows; rr++){
+        for(int cc=0; cc<screen_cols; cc++){
+          int l= (sizeof(LEVELS)-1)*rr/screen_rows;
+          int d= (sizeof(DIST)-1)*cc/screen_cols;
+          if (LEVELS[l]==' ' || DIST[d]==' ')
+            continue;
+          gotorc(rr, cc);
+          B(yellow);spc();
+        }
+      }
+
+      int l= (sizeof(LEVELS)-1)*ar/screen_rows;
+      int d= (sizeof(DIST)-1)*ac/screen_cols;
+      if (l<0) l=0; if (d<0) d=0;
+      if (LEVELS[l]==' ' || DIST[d]==' ')
+        continue;
+      for(int rr=0; rr<screen_rows; rr++){
+        for(int cc=0; cc<screen_cols; cc++){
+          int ll= (sizeof(LEVELS)-1)*rr/screen_rows;
+          int dd= (sizeof(DIST)-1)*cc/screen_cols;
+          if (ll!=l || dd!=d) continue;
+          gotorc(rr, cc);
+          B(red);spc();
+        }
+      }
+
+      gotorc(ar, ac-1);
+      B(red);C(white);
+
+      char dir[3]={LEVELS[l], DIST[d],0};
+      printf("%s",dir);
+
+      // click buttons
+      if (!strcmp(dir, "sE")) k= META+' ';
+      if (!strcmp(dir, "SE")) k= ' ';
+
+      if (!strcmp(dir, "CW")) k= LEFT;
+      if (!strcmp(dir, "CE")) k= RIGHT;
+
+      if(0)
       for(int rr=-3; rr<=1; rr++) {
         for(int cc=-5; cc<=3; cc++) {
           gotorc(r+rr, c+cc);
@@ -583,7 +630,10 @@ do {
           putchar(' ');
         }
       }
-      k= -1;
+
+      B(white); C(black); gotorc(ar, ac-2);
+      //printf(" %c%c ", LEVELS[l], DIST[d]);
+
       B(white);
     }
 } while (k<0);

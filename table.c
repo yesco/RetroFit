@@ -190,7 +190,7 @@ void renderTable() {
   for(int i=0; i<tdn; i++) {
     tcol* t= &tds[i];
 
-    if (!t->i) putchar('\n');
+    if (!t->i) { putchar('\n'); clearend(); }
  
     char* s= t->s;
     if (s) {

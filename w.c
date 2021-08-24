@@ -171,7 +171,9 @@ char* decode_entity(char* name) {
   fnd[strlen(fnd)]= ' ';
   TRACE("[>> \"%s\" <<]", fnd);
 
-  char* m= strcasestr(ENTITIES, fnd);
+  char* m= strstr(ENTITIES, fnd);
+  // I think case matters but if not found...
+  if (!m) m= strstr(ENTITIES, fnd);
   if (!m) return NULL;
   
   // skip '&name;? '
