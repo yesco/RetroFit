@@ -389,7 +389,9 @@ void display(int k) {
   reset();
 
   // TODO: set message and show for X s?
-  message("%3d %3d/%d = %d %d", top, right, tab, ntab-1, 4711, 12);
+  if (0) message("%3d %3d/%d = %d %d", top, right, tab, ntab-1, 4711, 12);
+  
+  gotorc(screen_rows-2, 0);
 }
 
 // --- ACTIONS
@@ -514,7 +516,8 @@ int main(void) {
   
   char *hit= NULL; // FREE!
   int k= 0, q=0, last_tab;
-  dstr *line= NULL; // for editing
+  // string for editing/command
+  dstr *line= dstrncat(NULL, NULL, 1);
   while(1) {
 
     // load right page data
@@ -564,7 +567,10 @@ int main(void) {
     gotorc(screen_rows-2, 0); clearend();
     cursoron();
     // TODO: only " ', add commands?
+//while(k!=CTRL+'C') {
     k= edit(&line, -1, NULL, " *#@=");
+//    printf(" {%s} ", keystring(k));
+//}
     cursoroff();
     int kc= k & 0x7f; // only char
 
@@ -727,9 +733,10 @@ int main(void) {
 
     COUNT(top, DOWN, UP, nlines);
     COUNT(top, CTRL+'N', CTRL+'P', nlines);
-    COUNT(top, CTRL+'F', CTRL+'B', nlines);
-    COUNT(top, RETURN, META+RETURN, nlines);
+    COUNT(top, RETURN,META+RETURN, nlines);
+    COUNT(top, SCROLL_UP, SCROLL_DOWN, nlines);
 
+    //COUNT(top, CTRL+'F', CTRL+'B', nlines);
     if (k==LEFT) tab--;
     if (k==RIGHT) tab++;
     if (start_tab+tab<=1) tab= -start_tab+1;

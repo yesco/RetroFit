@@ -175,11 +175,9 @@ keycode key() {
   tmp.c_lflag &= ~ICANON & ~ECHO;
   tcsetattr(0, TCSANOW, &tmp);
 
-  // get next c
-  // hacky code, set c by shifting bytes
+  // get next key
   if (_key_b>0) {
     memcpy(buf, &buf[1], _key_b--);
-    buf[_key_b]= 0;
   } else {
     // read as many as available, as we're blocking=>at least one char
     // terminals return several character for one key (^[A == M-A  arrows etc)
@@ -187,6 +185,7 @@ keycode key() {
     _key_b= read(0, &buf[0], sizeof(buf)) - 1;
   }
   int k= buf[0];
+  buf[_key_b+1]= 0;
 
   // restore
   tcsetattr(0, TCSANOW, &old);
@@ -220,11 +219,12 @@ keycode key() {
       if (n==4) len++; //ok
 
       // TODO: be limited to 0-256...?
-      fprintf(stderr, "\n\n[n=%d ==>%d TOUCH.%s %d , %d \"%s\" ]", n, len, m=='M'?"down":"up", r, c, &buf[1]);
-      // BUTT == 64 scroll dowb
-      // 65 if scroll up
+      //fprintf(stderr, "\n\n[n=%d ==>%d TOUCH.%s %d , %d \"%s\" ]", n, len, m=='M'?"down":"up", r, c, &buf[1]);
       k= (m=='M'?MOUSE_DOWN:MOUSE_UP)
         + (but<<16) + (c<<8) + r;
+
+      if (but==64) k= SCROLL_DOWN;
+      if (but==65) k= SCROLL_UP;
     }
     // eat up the parsed strokes
     while(len-->0) key();
@@ -289,10 +289,10 @@ char* keystring(int c) {
   else if (c==META+LEFT) return "M-LEFT";
   // END:TODO:
 
+  else if (c==SCROLL_UP) return "SCROLL_UP";
+  else if (c==SCROLL_DOWN) return "SCROLL_DOWN";
   else if (c & MOUSE) {
     int but= (c>>16) & 0xff, r= (c>>8) & 0xff, c= c & 0xff;
-    if (but==64) return "SCROLL_DOWN";
-    if (but==65) return "SCROLL_UP";
     sprintf(s, "MOUSE_%s-B%d-R%d-C%d", c&MOUSE_UP?"UP":"DOWN", (c>>16) & 0xff, (c>>8) & 0xff, c & 0xff);
   }
   else if (c>=FUNC && c<=FUNC+12) sprintf(s, "F-%d", c-FUNC);
@@ -317,6 +317,7 @@ void testkeys() {
 // Return string, len>1
 //   NULL on error, or empyt line.
 char* input(char* prompt) {
+  return NULL;
   char buf[256]= {0};
   clearend();
   cursoron();
