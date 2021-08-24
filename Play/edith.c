@@ -28,7 +28,7 @@ int edith(dstr **dsp, int width, char *allowed, char *not) {
       ; // ok
     else if (k==BACKSPACE || k==DEL) {
       if (len>0) {
-        putchar(8); putchar(' '); putchar(8); fflush(stdout);
+        bs(); spc(); bs(); fflush(stdout);
         (*dsp)->s[len-1]= 0;
       }
       k= ' ';
@@ -53,14 +53,20 @@ int main() {
   dstr *line= NULL;
   int k=0;
   do {
-    B(blue); C(yellow);
+    B(cyan); C(black);
     gotorc(10,10);
-    printf("NAME: [%10s]", "");
-    gotorc(10,10+7);
-    fflush(stdout);
+    printf("NAME: ");
 
     B(white); C(black);
+    spaces(10);
+
+    gotorc(10,10+6);
+    fflush(stdout);
+
+    B(white); C(black); fflush(stdout);
     k= edith(&line, 10, allowed, not);
+
+    B(black); C(white);
     printf("\nBREAK: %s\n", keystring(k));
   } while (k!=CTRL+'C');
 }

@@ -143,3 +143,11 @@ char *timeago(time_t epoch);
 char *isoago(char *iso);
 
 
+///////////////////////////////////
+// string goodies
+
+void spc();
+void bs();
+void repeat(char c, int n);
+void spaces(int n);
+

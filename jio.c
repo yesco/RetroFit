@@ -577,3 +577,17 @@ char *isoago(char *iso) {
     return iso;
 }
 
+///////////////////////////////////
+// string goodies
+
+void spc() { putchar(' '); }
+
+void bs() { putchar('\b'); }
+
+void repeat(char c, int n) {
+  while(n-->0) putchar(c);
+}
+
+void spaces(int n) {
+  repeat(' ', n);
+}
