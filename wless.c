@@ -589,7 +589,7 @@ int main(void) {
 
     // -- TABS
 
-    if (k=='?' || k==CTRL+'H' || k==FUNCTION+1) {
+    if (k=='?' || k==CTRL+'H' || k==FUNC+1) {
       push(tab);
       // open already existing?
       tab= newtab("wless.html");

@@ -145,6 +145,16 @@ int haskey() {
   return r;
 }
 
+// Wait and read a key stroke.
+// Returns:
+//   - ASCII
+//   - UTF-8 bytes
+//   - CTRL+'A' .. CTRL+'Z'
+//   or if >= 256:
+//     - META+'A'
+//     - FUNC+1
+//     - (CTRL/SHIFT/META)+UP/DOWN/LEFT/RIGHT
+//   - TAB S_TAB RETURN DEL BACKSPACE
 // Note: NOT thread-safe
 int key() {
   static int b= 0;
@@ -201,9 +211,9 @@ int key() {
   }
 
   // function keys (special encoding)
-  if (k==META+'O') k=key()-'P'+1+FUNCTION;
-  if (k==TERM+'1'&& b==2) k=key()-'0'+FUNCTION, key(), k= k==5+FUNCTION?k:k-1;
-  if (k==TERM+'2'&& b==2) k=key()-'0'+9+FUNCTION, key(), k= k>10+FUNCTION?k-1:k;
+  if (k==META+'O') k=key()-'P'+1+FUNC;
+  if (k==TERM+'1'&& b==2) k=key()-'0'+FUNC, key(), k= k==5+FUNC?k:k-1;
+  if (k==TERM+'2'&& b==2) k=key()-'0'+9+FUNC, key(), k= k>10+FUNC?k-1:k;
 
   return k;
 }
@@ -247,7 +257,7 @@ char* keystring(int c) {
   else if (c==META+LEFT) return "M-LEFT";
   // END:TODO:
 
-  else if (c>=FUNCTION && c<=FUNCTION+12) sprintf(s, "F-%d", c-FUNCTION);
+  else if (c>=FUNC && c<=FUNC+12) sprintf(s, "F-%d", c-FUNC);
   else if (c>=META+' ') sprintf(s, "M-%c", c-META);
   return &s[0];
 }
@@ -255,7 +265,7 @@ char* keystring(int c) {
 void testkeys() {
   fprintf(stderr, "\nCTRL-C ends\n");
   for(int k= 0; k!=CTRL+'C'; k= key()) {
-    fprintf(stderr, "===> %s\n", keystring(k));
+    fprintf(stderr, "===> %s %s\n", keystring(k), isutf8(k)?"(utf-8)":"");
     while(!haskey()) {
       putchar('.'); fflush(stdout);
       usleep(300*1000);

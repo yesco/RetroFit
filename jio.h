@@ -66,7 +66,7 @@ color B(int n);
 ////////////////////////////////////////
 // - keyboard
 
-// 'A' CTRL+'A' META+'A' FUNCTION+7
+// 'A' CTRL+'A' META+'A' FUNC+7
 //    0- 31  :  ^@ ^A...
 //   32-126  :  ' ' .. 'Z{|}~'
 //  127      :  BACKSPACE
@@ -80,7 +80,7 @@ color B(int n);
 //        'C': RIGHT
 //        'D': LEFT
 //   TERM+'Z': DEL
-enum { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127, CTRL=-64, META=128, TERM=512, FUNCTION=META, UP=TERM+'A', DOWN, RIGHT, LEFT, S_TAB=TERM+'Z', DEL=TERM+'3', SHIFT=1024};
+enum { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127, CTRL=-64, META=256, FUNC=META, ALT=META, TERM=1024, UP=TERM+'A', DOWN, RIGHT, LEFT, S_TAB=TERM+'Z', DEL=TERM+'3', SHIFT=1024};
 
 int haskey();
 int key();
