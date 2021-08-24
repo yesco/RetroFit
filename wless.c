@@ -559,21 +559,35 @@ int main(void) {
     display(k);
     visited();
 
-
-    // mouse control
-    //   tmux: - https://unix.stackexchange.com/questions/172566/screen-xterm-how-to-select-text-with-the-mouse-in-one-only-pane-when-window-i
-
-
     // - read key & decode
     //testkeys();
+do {
     gotorc(screen_rows-2, 0); clearend();
+
     cursoron();
     // TODO: only " ', add commands?
-//while(k!=CTRL+'C') {
     k= edit(&line, -1, NULL, " *#@=");
-//    printf(" {%s} ", keystring(k));
-//}
     cursoroff();
+
+    if (k & MOUSE) {
+      // TODO: make function/macro/API?
+      int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
+      
+      for(int rr=-3; rr<=1; rr++) {
+        for(int cc=-5; cc<=3; cc++) {
+          gotorc(r+rr, c+cc);
+          if (k && MOUSE_DOWN)
+            B(red);
+          else 
+            B(green);
+          putchar(' ');
+        }
+      }
+      k= -1;
+      B(white);
+    }
+} while (k<0);
+
     int kc= k & 0x7f; // only char
 
     k= command(k, line);
