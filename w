@@ -13,10 +13,16 @@
 
 ./wbuild || exit $!
 
+# -- download/refresh in background
+
+stty size >/dev/null
+
 for f in "$@"
 do
-  ./wdownload "$f"
+  ./wdownload -d "$f" $LINES $COLUMNS &
 done
+
+# -- browse
 
 ./wless.x
 

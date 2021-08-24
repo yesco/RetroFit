@@ -20,6 +20,10 @@ else
   CFILE=$WDIR/Cache/$SAFE
 fi
 
+# --- DOWNLOAD forces a new download
+
+[ $DOWNLOAD ] && rm -f $CFILE.ANSI $CFILE.TMP
+
 # --- Log it (if -d)
 # (logging it adds to history so we can browse it!)
 
@@ -31,7 +35,7 @@ fi
 
 # --- local file (always copy)
 
-[ -f $GO ] && cp $GO $CFILE.DOWN && rm $FILE.ANSI && touch $CFILE.TMP
+[ -f $GO ] && cp $GO $CFILE.DOWN && ( rm -f $CFILE.ANSI ; touch $CFILE.TMP )
 
 # --- Do we already have it?
 # (detect change of screen width?)
@@ -59,7 +63,7 @@ echo "`date --iso=s` #=DOWN $GO $CFILE.ANSI" \
 # TODO: always update?
 
 # --- download if not local file
-if [[ ! -f "$CFILE.DOWN" || $DOWNLOAD ]]; then
+if [[ ! -f "$CFILE.DOWN" ]]; then
    # - display spinning globe!
    ./spin.x & foo_pid=$!
 
