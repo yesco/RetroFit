@@ -218,8 +218,8 @@ keycode key() {
       if (n==3) c='m'; // We get ^@0 byte?
       if (n==4) len++; //ok
 
-      // TODO: be limited to 0-256...?
       //fprintf(stderr, "\n\n[n=%d ==>%d TOUCH.%s %d , %d \"%s\" ]", n, len, m=='M'?"down":"up", r, c, &buf[1]);
+      // TODO: be limited to 0-256...?
       k= (m=='M'?MOUSE_DOWN:MOUSE_UP)
         + (but<<16) + (c<<8) + r;
 
@@ -228,6 +228,8 @@ keycode key() {
     }
     // eat up the parsed strokes
     while(len-->0) key();
+    //printf(" {%08x} ", k);
+    return k;
   }
 
   // CTRL/SHIFT/ALT arrow keys
@@ -252,52 +254,52 @@ keycode key() {
 
 // Returns a static string describing KEY
 // Note: next call may change previous returned value, NOT thread-safe
-char* keystring(int c) {
+char* keystring(int k) {
   static char s[32];
   memset(s, 0, sizeof(s));
 
   if (0) ;
-  else if (c==TAB) return "TAB";
-  else if (c==RETURN) return  "RETURN";
-  else if (c==ESC) return "ESC";
-  else if (c<32) sprintf(s, "^%c", c+64);
-  else if (c==BACKSPACE) return "BACKSPACE";
-  else if (c==DEL) return "DEL";
-  else if (c<127) s[0]= c;
+  else if (k==TAB) return "TAB";
+  else if (k==RETURN) return  "RETURN";
+  else if (k==ESC) return "ESC";
+  else if (k<32) sprintf(s, "^%c", k+64);
+  else if (k==BACKSPACE) return "BACKSPACE";
+  else if (k==DEL) return "DEL";
+  else if (k<127) s[0]= k;
   // 127? == delete key?
-  else if (c==S_TAB) return "S_TAB";
+  else if (k==S_TAB) return "S_TAB";
 
-  else if (c==UP) return "UP";
-  else if (c==DOWN) return "DOWN";
-  else if (c==RIGHT) return "RIGHT";
-  else if (c==LEFT) return "LEFT";
+  else if (k==UP) return "UP";
+  else if (k==DOWN) return "DOWN";
+  else if (k==RIGHT) return "RIGHT";
+  else if (k==LEFT) return "LEFT";
 
   // TODO: simplify
-  else if (c==SHIFT+UP) return "S_UP";
-  else if (c==SHIFT+DOWN) return "S_DOWN";
-  else if (c==SHIFT+RIGHT) return "S_RIGHT";
-  else if (c==SHIFT+LEFT) return "S_LEFT";
+  else if (k==SHIFT+UP) return "S_UP";
+  else if (k==SHIFT+DOWN) return "S_DOWN";
+  else if (k==SHIFT+RIGHT) return "S_RIGHT";
+  else if (k==SHIFT+LEFT) return "S_LEFT";
 
-  else if (c==CTRL+UP) return "^UP";
-  else if (c==CTRL+DOWN) return "^DOWN";
-  else if (c==CTRL+RIGHT) return "^RIGHT";
-  else if (c==CTRL+LEFT) return "^LEFT";
+  else if (k==CTRL+UP) return "^UP";
+  else if (k==CTRL+DOWN) return "^DOWN";
+  else if (k==CTRL+RIGHT) return "^RIGHT";
+  else if (k==CTRL+LEFT) return "^LEFT";
 
-  else if (c==META+UP) return "M-UP";
-  else if (c==META+DOWN) return "M-DOWN";
-  else if (c==META+RIGHT) return "M-RIGHT";
-  else if (c==META+LEFT) return "M-LEFT";
+  else if (k==META+UP) return "M-UP";
+  else if (k==META+DOWN) return "M-DOWN";
+  else if (k==META+RIGHT) return "M-RIGHT";
+  else if (k==META+LEFT) return "M-LEFT";
   // END:TODO:
 
-  else if (c==SCROLL_UP) return "SCROLL_UP";
-  else if (c==SCROLL_DOWN) return "SCROLL_DOWN";
-  else if (c & MOUSE) {
-    int but= (c>>16) & 0xff, r= (c>>8) & 0xff, c= c & 0xff;
-    sprintf(s, "MOUSE_%s-B%d-R%d-C%d", c&MOUSE_UP?"UP":"DOWN", (c>>16) & 0xff, (c>>8) & 0xff, c & 0xff);
+  else if (k==SCROLL_UP) return "SCROLL_UP";
+  else if (k==SCROLL_DOWN) return "SCROLL_DOWN";
+  else if (k & MOUSE) {
+    int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
+    sprintf(s, "MOUSE_%s-B%d-R%d-C%d", c&MOUSE_UP?"UP":"DOWN", b, r, c);
   }
-  else if (c>=FUNC && c<=FUNC+12) sprintf(s, "F-%d", c-FUNC);
-  else if (c>=META+' ') sprintf(s, "M-%c", c-META);
-  return &s[0];
+  else if (k>=FUNC && k<=FUNC+12) sprintf(s, "F-%d", k-FUNC);
+  else if (k>=META+' ') sprintf(s, "M-%c", k-META);
+  return s;
 }
 
 void testkeys() {
