@@ -569,9 +569,13 @@ do {
     k= edit(&line, -1, NULL, " *#@=");
     cursoroff();
 
+    // simplify for up/down counters
+    if (k & SCROLL) k&= SCROLL;
+
     if (k & MOUSE) {
       // TODO: make function/macro/API?
       int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
+      int save_k= k;
       k= -1;
 
       // Adjusted Row and Column
@@ -584,6 +588,9 @@ do {
         for(int cc=0; cc<screen_cols; cc++){
           int l= (sizeof(LEVELS)-1)*rr/screen_rows;
           int d= (sizeof(DIST)-1)*cc/screen_cols;
+          if (l<0) l= 0; if (d<0) d=0;
+          if (l>=sizeof(LEVELS)-1) l=sizeof(LEVELS)-1;
+          if (d>=sizeof(DIST)-1) d=sizeof(DIST)-1;
           if (LEVELS[l]==' ' || DIST[d]==' ')
             continue;
           gotorc(rr, cc);
@@ -594,8 +601,11 @@ do {
       int l= (sizeof(LEVELS)-1)*ar/screen_rows;
       int d= (sizeof(DIST)-1)*ac/screen_cols;
       if (l<0) l=0; if (d<0) d=0;
+      if (l>=sizeof(LEVELS)-1) l=sizeof(LEVELS)-1;
+      if (d>=sizeof(DIST)-1) d=sizeof(DIST)-1;
       if (LEVELS[l]==' ' || DIST[d]==' ')
         continue;
+
       for(int rr=0; rr<screen_rows; rr++){
         for(int cc=0; cc<screen_cols; cc++){
           int ll= (sizeof(LEVELS)-1)*rr/screen_rows;
@@ -635,7 +645,12 @@ do {
       //printf(" %c%c ", LEVELS[l], DIST[d]);
 
       B(white);
+
+      // simplify for up/down counters
+      if (save_k & SCROLL) k = save_k & SCROLL;
+
     }
+
 } while (k<0);
 
     int kc= k & 0x7f; // only char

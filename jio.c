@@ -210,7 +210,7 @@ keycode key() {
   // - https://stackoverflow.com/questions/5966903/how-to-get-mousemove-and-mouseclick-in-bash/58390575#58390575
   assert(sizeof(k)>=4);
   if (k==MOUSE) {
-    int but, r, c, len;
+    int but, r, c, len= 0;
     char m;
     // this is only correct if everything is in the buffer... :-(
     int n= sscanf(&buf[1], "%d;%d;%d%n%c", &but, &r, &c, &len, &m);
@@ -223,9 +223,9 @@ keycode key() {
       k= (m=='M'?MOUSE_DOWN:MOUSE_UP)
         + (but<<16) + (c<<8) + r;
 
-      if (but==64) k= SCROLL_DOWN;
-      if (but==65) k= SCROLL_UP;
-    }
+      if (but==64) k+= SCROLL_DOWN;
+      if (but==65) k+= SCROLL_UP;
+    } else len= 0;
     // eat up the parsed strokes
     while(len-->0) key();
     //printf(" {%08x} ", k);
@@ -294,11 +294,13 @@ char* keystring(int k) {
   else if (k==META+LEFT) return "M-LEFT";
   // END:TODO:
 
-  else if (k==SCROLL_UP) return "SCROLL_UP";
-  else if (k==SCROLL_DOWN) return "SCROLL_DOWN";
-  else if (k & MOUSE) {
+  else if (k & SCROLL_UP) return "SCROLL_UP";
+  else if (k & SCROLL_DOWN) return "SCROLL_DOWN";
+
+  else if (k & MOUSE || k & SCROLL) {
     int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
-    sprintf(s, "MOUSE_%s-B%d-R%d-C%d", c&MOUSE_UP?"UP":"DOWN", b, r, c);
+    sprintf(s, "%s_%s-B%d-R%d-C%d", k&SCROLL?"SCROLL":"MOUSE",
+      k&SCROLL?(k&SCROLL_UP?"UP":"DOWN"): k&MOUSE_UP?"UP":"DOWN", b, r, c);
   }
   else if (k>=FUNC && k<=FUNC+12) sprintf(s, "F-%d", k-FUNC);
   else if (k>=META+' ') sprintf(s, "M-%c", k-META);
