@@ -4,6 +4,8 @@ mkdir -p $WDIR/Cache $WDIR/Session
 
 # --- sets COLS
 
+[ "$1" == "-d" ] && DOWNLOAD=DOWNLOAD && shift
+
 GO=$1
 ROWS=${2:-}
 COLS=${3:-}
@@ -18,22 +20,25 @@ else
   CFILE=$WDIR/Cache/$SAFE
 fi
 
-# --- Log it
-echo "`date --iso=s` #=W $GO $CFILE.ANSI" \
-  | tee -a .wlog \
-  | tee -a $CFILE.WLOG \
-  >> .whistory
+# --- Log it (if -d)
+# (logging it adds to history so we can browse it!)
 
-# --- local file
+[ $DOWNLOAD ] && ( \
+  echo "`date --iso=s` #=W $GO $CFILE.ANSI" \
+    | tee -a .wlog \
+    | tee -a $CFILE.WLOG \
+    >> .whistory )
+
+# --- local file (always copy)
 
 [ -f $GO ] && cp $GO $CFILE.DOWN && rm $FILE.ANSI && touch $CFILE.TMP
 
 # --- Do we already have it?
 # (detect change of screen width?)
 
-[ -f $CFILE.ANSI ] \
-  && ./wmessage "./wdownload already have $GO" $ROWS $COLS \
-  && exit 0
+#[ -f $CFILE.DOWN && ! $DOWNLOAD ] \
+#  && ./wmessage "./wdownload already have $O" $ROWS $COLS \
+#  && exit 0
 
 # --- log
 echo "`date --iso=s` #=DOWN $GO $CFILE.ANSI" \
@@ -54,7 +59,7 @@ echo "`date --iso=s` #=DOWN $GO $CFILE.ANSI" \
 # TODO: always update?
 
 # --- download if not local file
-if [[ ! -f "$GO" ]]; then
+if [[ ! -f "$CFILE.DOWN" || $DOWNLOAD ]]; then
    # - display spinning globe!
    ./spin.x & foo_pid=$!
 
@@ -86,8 +91,7 @@ fi
 # generate links list
 ./wlinks $CFILE.ANSI > $CFILE.LINKS
 
-
-rm $CFILE.TMP
+rm -f $CFILE.TMP
 
 # - Signal app that requested
 # TODO: 

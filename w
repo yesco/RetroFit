@@ -11,7 +11,7 @@
 # Usage:
 #  ./w [URL ...]
 
-./wbuild
+./wbuild || exit $!
 
 for f in "$@"
 do

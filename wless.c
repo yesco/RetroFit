@@ -229,6 +229,27 @@ void bookmark(int k) {
   free(s);
 }
 
+// start download in background
+void download(char* url, int force) {
+  if (!url || !*url) return;
+  char *end= strpbrk(url, " \t\n");
+  int ulen= end? end-url : strlen(url);
+
+  // TODO: srip the script?
+  dstr *cmd= dstrprintf(NULL, "./wdownload %s \"%.*s\" %d %d &",
+    force?"-d":"", ulen, url, screen_rows, screen_cols);
+  system(cmd->s);
+  free(cmd);
+
+  // wait enough for .whistory to be updated...  and .TMP to be created
+  usleep(1000*1000);
+}
+
+void reload(char* url) {
+  download(url, 1);
+}
+
+
 // --- Display
 void message(char* format, ...) {
   va_list argp;
@@ -247,25 +268,57 @@ void display(int k) {
   reset();
   gotorc(0, 0);
   clearend();
-
+  B(black); C(white);
+  printf("./w %.*s", screen_cols-5, url);
+  gotorc(0, 0);
+  fflush(stdout);
 
   // wait for open of ANSI file
   FILE *fansi= fopen(file?file:".stdout", "r");
   FILE *ftmp= fopenext(file, ".TMP", "r");
-  // wait if have .TMP till .ANSI or key
-  if (ftmp) {
-    do {
-      fansi= fopen(file?file:".stdout", "r");
-      if (!fansi) {
-        usleep(300*1000);
-        putchar('>'); fflush(stdout);
-      }
-    } while (!fansi && !haskey());
+  
+  // file missing in cache
+  // TODO: don't do every time...
+  if (!fansi && !ftmp) {
+    // clear content with white (so no flicker)
+    gotorc(1, 0);
+    for(int i=rows; i; i--) {
+      B(white); C(blue);
+      for(int j=(rows-i)*(screen_cols-20-1)/rows; j; j--)
+        putchar(' ');
+      printf("\e[1m... reloading ...\n"); clearend();
+    }
+    gotorc(1, 0);
+    download(url, 0);
+    
+    fansi= fopen(file?file:".stdout", "r");
+    ftmp= fopenext(file, ".TMP", "r");
+  }
+  // wait if have .TMP till not there
+  // that signals the end of .ANSI created
+  gotorc(1, 0);
+  int zlast= 0;
+  while (ftmp && !haskey()) {
+    usleep(300*1000);
+      
+    fseek(ftmp, 0, SEEK_END);
+    int z= ftell(ftmp);
+    if (z!=zlast)
+      printf(" %d ", z);
+    zlast= z;
+    fclose(ftmp);
+      
+    putchar('>'); fflush(stdout);
+    
+    ftmp= fopenext(file, ".TMP", "r");
   }
   nlines= fansi? flines(fansi) : -1;
-  //if (fansi) fclose(fansi);
   if (ftmp) fclose(ftmp);
 
+  fansi= fopen(file?file:".stdout", "r");
+
+  // --- print header for real!
+  reset();
   gotorc(0, 0);
   if (url) {
     clearend();
@@ -369,21 +422,6 @@ void read_next() { // till end
 void queue_read() {
 }
 
-// start download in background
-void reload(char* url) {
-  char *end= strpbrk(url, " \t\n");
-  int ulen= end? end-url : strlen(url);
-
-  // TODO: srip the script?
-  dstr *cmd= dstrprintf(NULL, "./wdownload \"%.*s\" %d %d &",
-    ulen, url, screen_rows, screen_cols);
-  system(cmd->s);
-  free(cmd);
-
-  // wait enough for .whistory to be updated...  and .TMP to be created
-  usleep(1000*1000);
-}
-
 // creates a new tab from URL.
 //
 // Note: URL can be terminated by whitespace. This allows this
@@ -418,7 +456,6 @@ int click(int k) {
     if (*u++==k) {
       // one key match found!
       //fprintf(stderr, "\n===========FOUND match key='%c' for:\n'%s'\n", k, links[i]);
-
       // TODO: make a safe system/popen
       // TODO: handle gracefully
       assert(!strchr(links[i], '\\'));
@@ -429,7 +466,6 @@ int click(int k) {
 
       // skip spaces
       while(*u && (*u==' ' || *u=='\t')) u++;
-
       return newtab(u);
     }
   }

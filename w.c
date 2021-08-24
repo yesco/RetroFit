@@ -654,7 +654,7 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
       if (!--_table) renderTable();
     }
     // off bold
-    if (strstr(BD, tag)) { printf(" \e[0m"); recolor(); }
+    if (strstr(BD, tag)) { printf("\e[0m"); recolor(); }
     // off italics
     if (strstr(IT, tag)) printf("\e[23m");
     // off fullwidth
