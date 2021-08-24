@@ -503,6 +503,8 @@ int command(keycode k, dstr *ds) {
 // --- MAIN LOOP
 
 int main(void) {
+  // TODO: mouse init/jio
+  fprintf(stderr, "\e[?1000;1003;1006;1015h");
   cursoroff();
   system("echo '`date --iso=ns` #=WLESS`' >> .wlog");
   screen_init();
@@ -756,5 +758,8 @@ int main(void) {
   gotorc(9999,9999);
   printf("\nExiting...\n");
   cursoron();
+  // TODO: deinit mouse/jio
+  fprintf(stderr, "\e[?1000;1003;1006;1015l");
+
   return 0;
 }
