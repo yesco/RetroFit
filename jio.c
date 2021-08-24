@@ -247,6 +247,9 @@ keycode key() {
   // function keys (special encoding)
   if (k==META+'O') k=key()-'P'+1+FUNC;
   if (k==TERM+'1'&& _key_b==2) k=key()-'0'+FUNC, key(), k= k==5+FUNC?k:k-1;
+  // (this only handlines FUNC
+  // TODO: how about BRACKETED PASTE?
+  // ......^[[200~~/GIT/RetroFit^[[201~
   if (k==TERM+'2'&& _key_b==2) k=key()-'0'+9+FUNC, key(), k= k>10+FUNC?k-1:k;
 
   return k;

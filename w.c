@@ -96,7 +96,7 @@ int decode_color(char* name, int dflt) {
 // -- groups of tags according to format
 #define SKIP " script head "
 
-#define NL " br hr pre code h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dt dd table tr noscript address tbody "
+#define NL " br hr pre h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dt dd table tr noscript address tbody "
 #define XNL " br /ul /ol /dl hr tbody "
 #define HD " h1 h2 h3 h4 h5 h6 "
 //#define CENTER " center caption " // TODO
@@ -107,8 +107,8 @@ int decode_color(char* name, int dflt) {
 
 #define HL " u s q cite ins del noscript abbr acronym "
 
-#define PR " pre code "
-#define TT " bdo kbd dfn samp var tt "
+#define PR " pre "
+#define TT " bdo kbd dfn samp var tt code "
 
 // thead tfoot tbody /tbody-optional!
 // td/th: rowspan colspan

@@ -48,6 +48,9 @@ int getch() {
 int main(int argc, char *argv[]) {
   fprintf(stderr, "\n[Type '^C q u i t' to quit!\r\n");
 
+  // bracketed paste display
+  fprintf(stderr,"\e[2004l");
+
   set_conio_terminal_mode();
   // jsk: after this the \n isn't \r\n 1
 
