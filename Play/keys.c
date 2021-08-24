@@ -71,4 +71,7 @@ int main(int argc, char *argv[]) {
     if (q=='q'*8+'u'*4+'i'*2+'t') break;;
   }
   printf("\r\n");
+
+  fprintf(stderr, "\e[?h");
 }
+

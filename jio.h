@@ -64,6 +64,19 @@ color C(int n);
 color B(int n);
 
 ////////////////////////////////////////
+// Dynamic STRings (see Play/dstrncat.c)
+
+#define DSTR_STEP 64
+
+typedef struct dstr {
+  int max;
+  char s[0];
+} dstr;
+
+dstr* dstrncat(dstr* d, char* add, int n);
+dstr* dstrprintf(dstr* d, char* fmt, ...);
+
+////////////////////////////////////////
 // - keyboard
 
 // 'A' CTRL+'A' META+'A' FUNC+7
@@ -80,14 +93,20 @@ color B(int n);
 //        'C': RIGHT
 //        'D': LEFT
 //   TERM+'Z': DEL
-enum { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127, CTRL=-64, META=256, FUNC=META, ALT=META, TERM=1024, UP=TERM+'A', DOWN, RIGHT, LEFT, S_TAB=TERM+'Z', DEL=TERM+'3', SHIFT=1024};
+typedef enum keycode { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127,
+  CTRL=-64, META=256, FUNC=META, ALT=META, TERM=1024,
+  UP=TERM+'A', DOWN, RIGHT, LEFT, S_TAB=TERM+'Z', DEL=TERM+'3', SHIFT=1024,
+  MOUSE_DOWN=0x01000000, MOUSE_UP=MOUSE_DOWN*2, MOUSE=MOUSE_DOWN+MOUSE_UP} keycode;
 
 int haskey();
-int key();
+keycode key();
 
 char* keystring(int c);
 void testkeys();
+
 char* input(char* prompt);
+
+keycode edit(dstr **dsp, int width, char *allowed, char *not);
 
 ////////////////////////////////////////
 // - files
@@ -120,19 +139,6 @@ char *srepl(char *s, char *w, char c);
 char *sreplbetween(char *s, char *first, char *last, char c, int keep);
 char *scollapse(char *s, char c, int n);
 
-
-////////////////////////////////////////
-// Dynamic STRings (see Play/dstrncat.c)
-
-#define DSTR_STEP 64
-
-typedef struct dstr {
-  int max;
-  char s[0];
-} dstr;
-
-dstr* dstrncat(dstr* d, char* add, int n);
-dstr* dstrprintf(dstr* d, char* fmt, ...);
 
 ///////////////////////////////////
 // Date Time functions

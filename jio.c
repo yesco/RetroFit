@@ -1,3 +1,5 @@
+// Requires sizeof(int) >= 4
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h>
@@ -124,7 +126,11 @@ color B(int n) {
 ////////////////////////////////////////
 // - keyboard
 
+// bytes buffered
+static int _key_b= 0; 
+
 int haskey() {
+  if (_key_b>0) return 1;
   struct termios old, tmp;
   tcgetattr(0, &old);
   tmp= old;
@@ -156,9 +162,9 @@ int haskey() {
 //     - (CTRL/SHIFT/META)+UP/DOWN/LEFT/RIGHT
 //   - TAB S_TAB RETURN DEL BACKSPACE
 // Note: NOT thread-safe
-int key() {
-  static int b= 0;
-  static char buf[32]= {0};
+keycode key() {
+  // TODO: whatis good size?
+  static char buf[256]= {0};
 
   struct termios old, tmp;
   tcgetattr(0, &old);
@@ -171,12 +177,14 @@ int key() {
 
   // get next c
   // hacky code, set c by shifting bytes
-  if (b>0) {
-    memcpy(buf, &buf[1], b--);
+  if (_key_b>0) {
+    memcpy(buf, &buf[1], _key_b--);
+    buf[_key_b]= 0;
   } else {
     // read as many as available, as we're blocking=>at least one char
     // terminals return several character for one key (^[A == M-A  arrows etc)
-    b= read(0, &buf[0], sizeof(buf)) - 1;
+    bzero(buf, sizeof(buf));
+    _key_b= read(0, &buf[0], sizeof(buf)) - 1;
   }
   int k= buf[0];
 
@@ -189,17 +197,41 @@ int key() {
 //printf("\n [k=%d] \n", k);
 
   // simple character, or error
-  if (b<=0) return b<0? b+1 : k;
+  if (_key_b<=0) return _key_b<0? _key_b+1 : k;
 
   // fixing multi-char key-encodings
   // (these are triggered in seq!)
   if (k==ESC) k=toupper(key())+META;
-  if (k==META+'[' && b) k=key()+TERM;
-  if (k==TERM+'3' && b) key(), k= DEL;
-  if (!b) return k;
+  if (k==META+'[' && _key_b) k=key()+TERM;
+  if (k==TERM+'3' && _key_b) key(), k= DEL;
+  if (k==TERM+'<' && _key_b) k= MOUSE;
+  if (!_key_b) return k;
+
+  // mouse!
+  // - https://stackoverflow.com/questions/5966903/how-to-get-mousemove-and-mouseclick-in-bash/58390575#58390575
+  assert(sizeof(k)>=4);
+  if (k==MOUSE) {
+    int but, r, c, len;
+    char m;
+    // this is only correct if everything is in the buffer... :-(
+    int n= sscanf(&buf[1], "%d;%d;%d%n%c", &but, &r, &c, &len, &m);
+    if (n>0) {
+      if (n==3) c='m'; // We get ^@0 byte?
+      if (n==4) len++; //ok
+
+      // TODO: be limited to 0-256...?
+      fprintf(stderr, "\n\n[n=%d ==>%d TOUCH.%s %d , %d \"%s\" ]", n, len, m=='M'?"down":"up", r, c, &buf[1]);
+      // BUTT == 64 scroll dowb
+      // 65 if scroll up
+      k= (m=='M'?MOUSE_DOWN:MOUSE_UP)
+        + (but<<16) + (c<<8) + r;
+    }
+    // eat up the parsed strokes
+    while(len-->0) key();
+  }
 
   // CTRL/SHIFT/ALT arrow keys
-  if (k==TERM+'1' && b==3 && buf[1]==';') {
+  if (k==TERM+'1' && _key_b==3 && buf[1]==';') {
     key();
     char mod= key();
     k= UP+ key()-'A';
@@ -212,8 +244,8 @@ int key() {
 
   // function keys (special encoding)
   if (k==META+'O') k=key()-'P'+1+FUNC;
-  if (k==TERM+'1'&& b==2) k=key()-'0'+FUNC, key(), k= k==5+FUNC?k:k-1;
-  if (k==TERM+'2'&& b==2) k=key()-'0'+9+FUNC, key(), k= k>10+FUNC?k-1:k;
+  if (k==TERM+'1'&& _key_b==2) k=key()-'0'+FUNC, key(), k= k==5+FUNC?k:k-1;
+  if (k==TERM+'2'&& _key_b==2) k=key()-'0'+9+FUNC, key(), k= k>10+FUNC?k-1:k;
 
   return k;
 }
@@ -221,7 +253,7 @@ int key() {
 // Returns a static string describing KEY
 // Note: next call may change previous returned value, NOT thread-safe
 char* keystring(int c) {
-  static char s[16];
+  static char s[32];
   memset(s, 0, sizeof(s));
 
   if (0) ;
@@ -257,6 +289,12 @@ char* keystring(int c) {
   else if (c==META+LEFT) return "M-LEFT";
   // END:TODO:
 
+  else if (c & MOUSE) {
+    int but= (c>>16) & 0xff, r= (c>>8) & 0xff, c= c & 0xff;
+    if (but==64) return "SCROLL_DOWN";
+    if (but==65) return "SCROLL_UP";
+    sprintf(s, "MOUSE_%s-B%d-R%d-C%d", c&MOUSE_UP?"UP":"DOWN", (c>>16) & 0xff, (c>>8) & 0xff, c & 0xff);
+  }
   else if (c>=FUNC && c<=FUNC+12) sprintf(s, "F-%d", c-FUNC);
   else if (c>=META+' ') sprintf(s, "M-%c", c-META);
   return &s[0];
@@ -265,7 +303,7 @@ char* keystring(int c) {
 void testkeys() {
   fprintf(stderr, "\nCTRL-C ends\n");
   for(int k= 0; k!=CTRL+'C'; k= key()) {
-    fprintf(stderr, "===> %s %s\n", keystring(k), isutf8(k)?"(utf-8)":"");
+    fprintf(stderr, "\n------%s\t", keystring(k));
     while(!haskey()) {
       putchar('.'); fflush(stdout);
       usleep(300*1000);
@@ -293,6 +331,53 @@ char* input(char* prompt) {
   cursoroff();
   if (s && !*s) s= NULL;
   return s? strdup(s) : NULL;
+}
+
+// Edits a string VALUE of max-SIZE until a non-ALLOWED or a NOT allowed key is typed.
+//
+// Returns key not allowed or EOF
+//
+// Edit keys:
+//   For now, only BACKSPACE   
+//
+// Usage:
+//   Normal usage is to envelope the envelope the function with a while loop
+//   until RETURN si returned.
+//    This allows the user program to still handle short-cut keys!
+//    
+// See Play/edith.c for example
+keycode edit(dstr **dsp, int width, char *allowed, char *not) {
+  // make sure have a pointer
+  *dsp= dstrncat(*dsp, NULL, 1);
+
+  printf("%s", (*dsp)->s); fflush(stdout);
+
+  int k=0;
+  while ((k= key())!=EOF) {
+    int len= strlen((*dsp)->s);
+    if (k>=32 && k<127) {
+      if (allowed && !strchr(allowed, k)) break;
+      if (not && strchr(not, k)) break;
+    } else if (isutf8(k))
+      ; // ok
+    else if (k==BACKSPACE || k==DEL) {
+      if (len>0) {
+        bs(); spc(); bs(); fflush(stdout);
+        (*dsp)->s[len-1]= 0;
+      }
+      k= ' ';
+      continue;
+    } else if (k<32 || k>=256)
+      break; // CTRL or META or TERM
+
+    // ignore when full
+    if (len>=width && width>=0) continue;
+    // accept and output
+    char c= k;
+    putchar(c); fflush(stdout);
+    *dsp= dstrncat(*dsp, &c, 1);
+  }
+  return k;
 }
 
 ////////////////////////////////////////

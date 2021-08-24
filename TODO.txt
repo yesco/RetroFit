@@ -3,10 +3,26 @@
 - URL completion? log/extract every URL:
   unix> cut -d\  -f3 .whistory  | sort | uniq -c | sort -rn | grep " Te"    !!!
 
+- Bracketed Paste Mode
+When bracketed paste mode is set, pasted text is bracketed with control
+sequences so that the program can differentiate pasted text from typed-
+in text.  When bracketed paste mode is set, the program will receive:
+   ESC [ 2 0 0 ~ ,
+followed by the pasted text, followed by
+   ESC [ 2 0 1 ~ .
+- Any-event tracking
+Any-event mode is the same as button-event mode, except that all motion
+events are reported, even if no mouse button is down.  It is enabled by
+specifying 1003 to DECSET.
+
 
 - mouse scroll !
 - mouse click click
 - mouse menu
+- https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking
+- 
+tmux: - https://unix.stackexchange.com/questions/172566/screen-xterm-how-to-select-text-with-the-mouse-in-one-only-pane-when-window-i
+
 
 - use bold unicode for bold - https://unicode-table.com/en/blocks/mathematical-alphanumeric-symbols/ but NO bold numbers :-(
 

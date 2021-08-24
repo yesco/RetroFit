@@ -450,10 +450,12 @@ void opentab() {
 //        N the new tab number
 //
 // TODO: make it match a string!
-int click(int k) {
+int click(char *keys) {
+  int len= strlen(keys);
   for(int i=0; i<nlinks; i++) {
     char *u = links[i];
-    if (*u++==k) {
+    if (!strncmp(u, keys, len) && u[len]==' ' || u[len]=='\t') {
+      u+= strlen(keys);
       // one key match found!
       //fprintf(stderr, "\n===========FOUND match key='%c' for:\n'%s'\n", k, links[i]);
       // TODO: make a safe system/popen
@@ -469,8 +471,31 @@ int click(int k) {
       return newtab(u);
     }
   }
-  message("\[31mNo such link: %s", keystring(k));
+  message("\[31mNo such link: %s", keys);
   return 0;
+}
+
+int command(keycode k, dstr *ds) {
+  char *line= ds->s;
+  int len= strlen(line);
+  if (!*line) return k;
+
+  if (k==RETURN) {
+    // all a-z, maybe link click?
+    if (strspn(line, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")==len) {
+      tab= click(line);
+      line[0]= 0;
+      return CTRL+'L';
+    }
+    // url? or file? have /:.?
+    if (strchr(line+1, '/') || strchr(line+1, ':') || strchr(line, '.')) {
+      tab= newtab(line);
+      line[0]= 0;
+      return CTRL+'L';
+    }
+  }
+
+  return k;
 }
 
 // --- MAIN LOOP
@@ -489,6 +514,7 @@ int main(void) {
   
   char *hit= NULL; // FREE!
   int k= 0, q=0, last_tab;
+  dstr *line= NULL; // for editing
   while(1) {
 
     // load right page data
@@ -528,10 +554,21 @@ int main(void) {
     display(k);
     visited();
 
+
+    // mouse control
+    //   tmux: - https://unix.stackexchange.com/questions/172566/screen-xterm-how-to-select-text-with-the-mouse-in-one-only-pane-when-window-i
+
+
     // - read key & decode
     //testkeys();
-    k= key();
+    gotorc(screen_rows-2, 0); clearend();
+    cursoron();
+    // TODO: only " ', add commands?
+    k= edit(&line, -1, NULL, " *#@=");
+    cursoroff();
     int kc= k & 0x7f; // only char
+
+    k= command(k, line);
 
     // action
     if (k==CTRL+'U') opentab();
@@ -600,13 +637,14 @@ int main(void) {
     //  A  open in background tab
     //  M-A open shortcut page 
     if (isalnum(kc) && (k<127 || kc<='Z') && !(k&TERM)) {
+      char keys[2]={kc,0};
       if (k==toupper(kc)) { // A-Z
         // open behind
-        click(k);
+        click(keys);
       } else { // a-z, M-A -- M-Z
         // open now
         push(tab);
-        tab= click(kc);
+        tab= click(keys);
       }
     }
 
