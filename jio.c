@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <strings.h>
 #include <termios.h>
 #include <time.h>
 #include <locale.h>
