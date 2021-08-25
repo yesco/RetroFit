@@ -123,6 +123,13 @@ color B(int n) {
   return (_reverse? _C : _B)(n==blue? rgb(0,0,1) : n==white ? n+8 : n);
 }
 
+color readablefg() {
+  // TODO: generalize for rgb and RGB, use hue?
+  // TODO: bad name!
+  int dark= _bg==black||_bg==blue||_bg==red||_bg==magenta;
+  return C(dark? white : black);
+}
+
 ////////////////////////////////////////
 // - keyboard
 
@@ -164,7 +171,9 @@ int haskey() {
 // Note: NOT thread-safe
 keycode key() {
   // TODO: whatis good size?
-  static char buf[256]= {0};
+  // TODO: test how much we can use?
+  // estimate: rows*10=???
+  static char buf[2048]= {0};
 
   struct termios old, tmp;
   tcgetattr(0, &old);

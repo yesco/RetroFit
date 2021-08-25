@@ -12,6 +12,9 @@
 
 #include "jio.h"
 
+// lazy include no .h
+#include "graphics.c"
+
 #define LOADING_FILE ".w/Cache/loading.html.ANSI"
 
 // --- limits
@@ -500,6 +503,254 @@ int command(keycode k, dstr *ds) {
   return k;
 }
 
+
+
+////////////////////////////////////////
+// CLICK ACTIONS
+
+void speech() {
+  system("termux-toast \"`termux-speech-to-text`\"");
+  while(haskey()) key();
+}
+
+int clickDispatch(int k) {
+  // TODO: make function/macro/API?
+  int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
+  int save_k= k;
+  k= -1;
+
+  // Adjusted Row and Column
+  int ar= r-1, ac= c-1;
+  char LEVELS[]= "N n   CC   s S";
+  char DIST[]= "W CCC E";
+
+  // show all regions clickable
+  if(1)
+    for(int rr=0; rr<screen_rows; rr++){
+      for(int cc=0; cc<screen_cols; cc++){
+        int l= (sizeof(LEVELS)-1)*rr/screen_rows;
+        int d= (sizeof(DIST)-1)*cc/screen_cols;
+        if (l<0) l= 0; if (d<0) d=0;
+        if (l>=sizeof(LEVELS)-1) l=sizeof(LEVELS)-1;
+        if (d>=sizeof(DIST)-1) d=sizeof(DIST)-1;
+        if (LEVELS[l]==' ' || DIST[d]==' ')
+          continue;
+        gotorc(rr, cc);
+        B(green);spc();
+      }
+    }
+
+  // continue if not clickable region
+  int l= (sizeof(LEVELS)-1)*ar/screen_rows;
+  int d= (sizeof(DIST)-1)*ac/screen_cols;
+  if (l<0) l=0; if (d<0) d=0;
+  if (l>=sizeof(LEVELS)-1) l=sizeof(LEVELS)-1;
+  if (d>=sizeof(DIST)-1) d=sizeof(DIST)-1;
+  if (LEVELS[l]==' ' || DIST[d]==' ')
+    return -1; // keep waiting
+
+  // mark all regions
+  for(int rr=0; rr<screen_rows; rr++){
+    for(int cc=0; cc<screen_cols; cc++){
+      int ll= (sizeof(LEVELS)-1)*rr/screen_rows;
+      int dd= (sizeof(DIST)-1)*cc/screen_cols;
+      if (ll!=l || dd!=d) continue;
+      gotorc(rr, cc);
+      B(red);spc();
+    }
+  }
+
+  gotorc(ar, ac-1);
+  B(red);C(white);
+
+  char dir[3]={LEVELS[l], DIST[d],0};
+  printf("%s",dir);
+
+  // --- click buttons
+  // TODO: replace by table?
+
+  // MENU      SPEACH      CLOSE
+  if (!strcmp(dir, "NW")) ;
+  if (!strcmp(dir, "NC")) speech();
+  if (!strcmp(dir, "NE")) drawX(),k= LEFT;
+
+  // xxxx      xxxx        xxxx
+  if (!strcmp(dir, "nW")) ;
+  if (!strcmp(dir, "nC")) ;
+  if (!strcmp(dir, "nE")) ;
+
+  // HistoryBACK  ???   HistoryFORW
+  if (!strcmp(dir, "CW")) k= LEFT;
+  //   (CC: main content area)
+  if (!strcmp(dir, "CE")) k= RIGHT;
+
+  // xxxx      xxxx        PAGE UP
+  if (!strcmp(dir, "sW")) ;
+  if (!strcmp(dir, "sC")) ;
+  if (!strcmp(dir, "sE")) k= META+' ';
+  // xxxx      xxxx        PAGE DOWN
+  if (!strcmp(dir, "SE")) k= ' ';
+
+  // show a click block
+  if(1)
+    for(int rr=-3; rr<=1; rr++) {
+      for(int cc=-5; cc<=3; cc++) {
+        gotorc(r+rr, c+cc);
+        if (k && MOUSE_DOWN)
+          B(red);
+        else 
+          B(green);
+        putchar(' ');
+      }
+    }
+
+  // Show exact position of click
+  B(white); C(black); gotorc(ar, ac-2);
+  printf(" %c%c ", LEVELS[l], DIST[d]);
+  restore();
+
+  // simplify for up/down counters
+  if (save_k & SCROLL) k = save_k & SCROLL;
+
+  return k;
+}
+
+
+
+
+////////////////////////////////////////
+// DRAG SCROLLERS ACTIONS
+
+void scrollBookmarks() {
+  // first show current page bookmark info
+  // second scroll bookmarks file backwards (reverse order)
+  // can scroll a page info in 3 rows movement! (number to indicate?)
+  // IDEA: have a diagonal background, this would make scrolling clear!
+}
+
+void scrollHistory() {
+  // Bottom Left
+  // scrollback of list in time, show when last visited?
+  // date headers like ./whi?
+}
+
+void scrollStack() {
+}
+
+void scrollReadings() {
+}
+
+void scrollTabs() {
+  // this is more like normal viewing
+  // show an alternative history!
+  // ALT-LEFT / ALT-RIGTH ? LOL
+  // this is pages in the order you saw them, so like the browser BACK/FORWARD
+
+  // Now, WHAT happens when you create a branch by going back, clicking on a link. There is no forward from that branch?
+}
+
+void showScroll(int k, int r, int c) {
+  int kxy, lxy;
+  int n= 0, up= 0, dn= 0;
+
+  int d=-1;
+  int rsmax=0;
+  do {
+    // count scrolls
+    if (k & SCROLL_UP) up++;
+    if (k & SCROLL_DOWN) dn++;
+    n++;
+
+    // draw line follow scroll
+    if (1) {
+      gotorc(r-up+dn, c);
+      B(blue); C(white); spc(); B(black); C(white);
+      gotorc(0, 0);
+    }
+
+    // print info
+    gotorc(0, 0);
+    B(black); C(white);
+    printf("---SCROLL n=%d dn=%d up=%d     ", n, dn, up);
+    fflush(stdout);
+            
+    // TODO: this will waste an event,
+    // make it stateful func instaed of lop here!
+
+    // consume events while same xy
+    // (as these dont change)
+    // (no care up or down)
+    lxy= kxy;
+    k= key();
+    kxy = k & 0x0000ffff;
+  } while(lxy==kxy);
+}
+
+int touchDispatch(int k) {
+  int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
+
+  // Adjusted Row and Column
+  int ar= r-1, ac= c-1;
+
+  // % start areas of interest
+  int pr= r*100/screen_rows;
+  int pc= c*100/screen_cols;
+
+  int top= pr<15, bottom= pr>85;
+  int left= pc<20, right= pc>80;
+
+  int center= !left && !right;
+  int middle= !top && !bottom;
+
+  // to differentiate new event
+  static int lastk= 0;
+  lastk= k;;
+
+  // Drag down actions:
+  if (top && right) {
+    color COLORS[]={
+      yellow, green, cyan, blue, magenta, red, black};
+    // Not probable
+    // Maybe a scroll-pick-hilite-links?
+    char* TEXT[]={
+      "CLOSE", "STAR", "HASHTAB", "UNDO",
+      "LIST", "HISTORY", "QUIT"};
+
+    drawPullDownMenu(COLORS, TEXT, ALEN(COLORS));
+
+    // wait for other event
+    while((k= key()) == lastk);
+
+  } else if (top && center) {
+    scrollStack();
+  } else if (top && left) {
+    scrollBookmarks();
+
+  } else if (middle && left) {
+    // history: back & forward
+    k= (k & SCROLL_UP) ? LEFT : RIGHT;
+  } else if (middle && center) {
+    // reserved: content scroll
+  } else if (middle && right) {
+    // tabs: next & prev
+    k= CTRL+ ((k & SCROLL_UP) ? LEFT : RIGHT);
+  } else if (bottom && left) {
+    scrollHistory();
+  } else if (bottom && center) {
+    scrollReadings();
+  } else if (bottom && right) {
+    //scrollTabs():
+
+  } else {
+    // No a drag-down defined
+
+    showScroll(k, ar, ac);
+    // Show screen till next event
+    k= -1;
+  }
+  return k;
+}
+
 // --- MAIN LOOP
 
 int main(void) {
@@ -561,97 +812,35 @@ int main(void) {
 
     // - read key & decode
     //testkeys();
-do {
-    gotorc(screen_rows-2, 0); clearend();
+    int lastk= 0;
+    do {
+      gotorc(screen_rows-2, 0); clearend();
 
-    cursoron();
-    // TODO: only " ', add commands?
-    k= edit(&line, -1, NULL, " *#@=");
-    cursoroff();
+      cursoron();
+      // TODO: only " ', add commands?
+      k= edit(&line, -1, NULL, " *#@=");
+      // Safe-way out!
+      if (!strcmp(line->s, "QUIT")) exit(0);
+      cursoroff();
 
-    // simplify for up/down counters
-    if (k & SCROLL) k&= SCROLL;
+      // TOUCH DRAG
+      if (k & SCROLL)
+        k= touchDispatch(k);
 
-    if (k & MOUSE) {
-      // TODO: make function/macro/API?
-      int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
-      int save_k= k;
-      k= -1;
-
-      // Adjusted Row and Column
-      int ar= r-1, ac= c-1;
-      char LEVELS[]= "Nn   CC   sS";
-      char DIST[]= "W CCC E";
-
-      if(0)
-      for(int rr=0; rr<screen_rows; rr++){
-        for(int cc=0; cc<screen_cols; cc++){
-          int l= (sizeof(LEVELS)-1)*rr/screen_rows;
-          int d= (sizeof(DIST)-1)*cc/screen_cols;
-          if (l<0) l= 0; if (d<0) d=0;
-          if (l>=sizeof(LEVELS)-1) l=sizeof(LEVELS)-1;
-          if (d>=sizeof(DIST)-1) d=sizeof(DIST)-1;
-          if (LEVELS[l]==' ' || DIST[d]==' ')
-            continue;
-          gotorc(rr, cc);
-          B(yellow);spc();
-        }
+      // not scrolling in borders...
+      if (k & SCROLL) {
+        
+        // Simplify to SCROLL_UP/DOWN
+        // (remove b r c)
+        k &= SCROLL;
+        break;
       }
 
-      int l= (sizeof(LEVELS)-1)*ar/screen_rows;
-      int d= (sizeof(DIST)-1)*ac/screen_cols;
-      if (l<0) l=0; if (d<0) d=0;
-      if (l>=sizeof(LEVELS)-1) l=sizeof(LEVELS)-1;
-      if (d>=sizeof(DIST)-1) d=sizeof(DIST)-1;
-      if (LEVELS[l]==' ' || DIST[d]==' ')
-        continue;
+      // CLICK
+      if ((k & MOUSE) && !(k & SCROLL))
+        k= clickDispatch(k);
 
-      for(int rr=0; rr<screen_rows; rr++){
-        for(int cc=0; cc<screen_cols; cc++){
-          int ll= (sizeof(LEVELS)-1)*rr/screen_rows;
-          int dd= (sizeof(DIST)-1)*cc/screen_cols;
-          if (ll!=l || dd!=d) continue;
-          gotorc(rr, cc);
-          B(red);spc();
-        }
-      }
-
-      gotorc(ar, ac-1);
-      B(red);C(white);
-
-      char dir[3]={LEVELS[l], DIST[d],0};
-      printf("%s",dir);
-
-      // click buttons
-      if (!strcmp(dir, "sE")) k= META+' ';
-      if (!strcmp(dir, "SE")) k= ' ';
-
-      if (!strcmp(dir, "CW")) k= LEFT;
-      if (!strcmp(dir, "CE")) k= RIGHT;
-
-      if(0)
-      for(int rr=-3; rr<=1; rr++) {
-        for(int cc=-5; cc<=3; cc++) {
-          gotorc(r+rr, c+cc);
-          if (k && MOUSE_DOWN)
-            B(red);
-          else 
-            B(green);
-          putchar(' ');
-        }
-      }
-
-      B(white); C(black); gotorc(ar, ac-2);
-      //printf(" %c%c ", LEVELS[l], DIST[d]);
-
-      B(white);
-
-      // simplify for up/down counters
-      if (save_k & SCROLL) k = save_k & SCROLL;
-
-    }
-
-} while (k<0);
+    } while (k<0);
 
     int kc= k & 0x7f; // only char
 

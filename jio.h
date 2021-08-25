@@ -43,7 +43,7 @@ void restorescreen();
 void insertmode(int on);
 
 // - higher level colors
-typedef enum color{black, red, green, yellow, blue, magnenta, cyan, white, none} color;
+typedef enum color{black, red, green, yellow, blue, magenta, cyan, white, none} color;
 
 extern enum color _fg,  _bg;
 
@@ -62,6 +62,20 @@ void recolor();
 
 color C(int n);
 color B(int n);
+
+color readablefg();
+
+////////////////////////////////////////
+// Macros for array length etc
+
+#define ALEN(array) (sizeof(array)/sizeof(*array))
+// TODO: bad name
+// Use: to pick an element from an array by percentage row/rows
+#define AREF(array, percent) ((array)[ALEN(array)*percent])
+
+#define SQR(a) ((a)*(a))
+#define MIN(a,b) ((a)<(b)?(a):(b))
+#define MAX(a,b) ((a)>(b)?(a):(b))
 
 ////////////////////////////////////////
 // Dynamic STRings (see Play/dstrncat.c)

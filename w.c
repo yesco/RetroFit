@@ -903,7 +903,7 @@ void process(TAG *end) {
       HI(BD, none, none);
       HI(IT, none, none);
 
-      HI(HL, magnenta, none);
+      HI(HL, magenta, none);
 
       //TODO: <input/> not handled
       // HI expects end-tag: </...

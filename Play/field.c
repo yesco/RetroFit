@@ -30,6 +30,8 @@ int ifield(char *data, char *name, int dflt) {
   return (int)(l!=(int)l? dflt: l);
 }
 
+// string-mode: if size>0 read that many characters of a string including adding a \0 at end
+// binary-mode: if size<0 read that many bytes (at most), no added \0 at end
 int snfield(char *ret, int size, char *data, char *name) {
   char *v= hasfield(data, name);
   if (!v) return -1;
@@ -38,13 +40,16 @@ int snfield(char *ret, int size, char *data, char *name) {
   char q= *v, *r= ret;
   if (q=='"' || q=='\'') v++; else q=' ';
   char c;
-  while((c= *v) && *v!=q) {
+  int left= size;
+  while(((c= *v) || (size<0)) && *v!=q) {
     if (c=='\\' && (c= *++v)=='n') c='\n';
-    if (ret && --size>0) *r++= c; else r++;
+    if (left>0) left--; // save for \0
+    if (ret && left) *r++= c; else r++;
+    if (left<0) left++;
     v++;
   }
-  if (ret) *r++= 0; else r++;
-  return r-ret;
+  if (ret && size>0) *r++= 0; else r++;
+  return r-ret; // workd with NULL!
 }
 
 char *sfield(char *data, char *name, char* dflt) {
