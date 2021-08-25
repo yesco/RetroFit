@@ -56,13 +56,13 @@ void plot(int r, int c, char ch, int w, int h, int bg, int fg) {
   if (ch>127) return;
   char *def = font8x8_basic[ch];
 
+  B(bg);
   for (int y=0; y < 8; y++) {
     //if (y==3 || y==5 || y==7) {r--;continue;}
     gotorc(r+y, c);
     char bits=def[y];
     for (int x=0; x < 8; x++) {
       //if (x==1 || x==4 || x==2) continue;
-      B(bg);
       if (bits & 1 << x)
         B(fg);
       else
