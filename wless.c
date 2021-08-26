@@ -116,7 +116,7 @@ void listshortcuts() {
 
 void logbookmark(int k, char *s) {
   //log(bms, url, offset, top, s);
-  gotorc(screen_rows-2, 0);
+  gotorc(screen_rows-1, 0);
   cleareos();
   dstr *ds= dstrprintf(NULL, "%s %s %d %d %c%s\n",
     isotime(), url,  -1, top, k, s);
@@ -217,7 +217,7 @@ void bookmark(int k) {
     return;
   }
 
-  gotorc(screen_rows-2, 0);
+  gotorc(screen_rows-1, 0);
   char prompt[2]= {k, 0};
   char* s= input(prompt);
   if (!s) return;
@@ -391,7 +391,7 @@ void display(int k) {
   // TODO: set message and show for X s?
   if (0) message("%3d %3d/%d = %d %d", top, right, tab, ntab-1, 4711, 12);
   
-  gotorc(screen_rows-2, 0);
+  gotorc(screen_rows-1, 0);
 }
 
 // --- ACTIONS
@@ -845,14 +845,17 @@ int main(void) {
       //error(!hit, 10, "history log entry not found: %d", t);
     }
 
-    display(k);
-    visited();
+    // avoid update if events waiting
+    if (!haskey()) {
+      display(k);
+      visited();
+    }
 
     // - read key & decode
-    //testkeys();
     int lastk= 0;
+    // loops capture menu drag events
     do {
-      gotorc(screen_rows-2, 0); clearend();
+      gotorc(screen_rows-1, 0); clearend();
 
       cursoron();
       // TODO: only " ', add commands?
@@ -884,6 +887,10 @@ int main(void) {
 
     k= command(k, line);
 
+    // system
+    if (k==CTRL+'C') break;
+    if (k==CTRL+'Z') kill(getpid(), SIGSTOP);
+
     // action
     if (k==CTRL+'U') opentab();
     if (k==CTRL+'L') clear();
@@ -893,8 +900,8 @@ int main(void) {
     //if (k==CTRL+'H') showHistory();
     //if (k==CTRL+'J') showDownloads();
 
-
     // --- Do stuff with page
+    // -- these are chrome's shortcuts
     // CTRL-P: print current webbpage ? save?
     // CTRL-S: save current webpage
     // ESC: stop loading webpage
@@ -929,15 +936,19 @@ int main(void) {
 
     if (k==CTRL+'X') listshortcuts();
 
-    // navigation
-    if (k==CTRL+'C') break;
-    if (k==CTRL+'Z') kill(getpid(), SIGSTOP);
-    // navigation
+    // small navigation
+    COUNT(top, DOWN, UP, nlines);
+    COUNT(top, CTRL+'N', CTRL+'P', nlines);
+    COUNT(top, RETURN,META+RETURN, nlines);
+    COUNT(top, SCROLL_UP, SCROLL_DOWN, nlines);
+    // big navigation
     if (k=='<' || kc==',') top= 0; // top
-    if (k=='>' || kc=='.') top= nlines-rows; // bottom
-    if (k==META+'V' || k==META+' ' || k==BACKSPACE || k==DEL) if ((top-= rows) < 0) top= 0;
-    if (k==CTRL+'V' || k==' ') if ((top+= rows) > nlines) top= nlines-1;
+    if (k=='>' || kc=='.') top= nlines;
+    if (k==META+'V' || k==META+' ' || k==BACKSPACE || k==DEL) top-= rows;
+    if (k==CTRL+'V' || k==' ') top+= rows;
 
+    if (top>nlines-rows) top= nlines-rows;
+    if (top<0) top= 0;
     // -- TABS
 
     if (k=='?' || k==CTRL+'H' || k==FUNC+1) {
@@ -1038,11 +1049,6 @@ int main(void) {
     //push(tab);
     //tab= ntab++;
     //}
-
-    COUNT(top, DOWN, UP, nlines);
-    COUNT(top, CTRL+'N', CTRL+'P', nlines);
-    COUNT(top, RETURN,META+RETURN, nlines);
-    COUNT(top, SCROLL_UP, SCROLL_DOWN, nlines);
 
     //COUNT(top, CTRL+'F', CTRL+'B', nlines);
     if (k==LEFT) tab--;
