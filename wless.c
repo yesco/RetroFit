@@ -828,9 +828,39 @@ void loadPageMetaData() {
   }
 }
 
+// CTRL
+// ==== 
+// ^A    bookmarks
+// ^B    ? back (viewd tabs), chrome-bookmarks
+// ^C    EXIT
+// ^D    ? del-tab, chrome: bookmark
+// ^E    ? edit file
+// ^F    ? forward (viewed tabs), chrome: search bar
+// ^G    ? goto-line, chrome: next match ^S-G previous
+// ^H    help, chrome: history
+// ^I    TAB
+// ^J    RETURN (can't change?), chrome: download-manager
+// ^K    KILL tab
+// ^L    ? list , chrome: location - no need!
+// ^M    RETURN
+// ^N    next-line, chrome: new window
+// ^O    ? , chrome: open file on computer
+// ^P    prev-line, chrome: print file
+// ^Q    qutable info about page
+// ^R    reload
+// ^S    search, emacs: search, search-next
+// ^T    ?   , chrome: new tab (we don't need)
+// ^U    ? clear-line   , chrome: display HTML
+// ^V    page-down, M-V page-up
+// ^W    close-tab/window (chrome: close tab)
+// ^X    list-links/shortcuts
+// ^Y    ? yank (undo tab kill)
+// ^Z    ZUSPEND/ZLEEP
+
 void keyAction(int k) {
   int kc= k & 0x7f; // only char
 
+  // -- bookmarks
   // w3m: Esc-b	View bookmarks
   // w3m: Esc-a	To bookmark
   // elinks: v load bookmark, ESc b
@@ -845,12 +875,29 @@ void keyAction(int k) {
 
   if (k==CTRL+'X') listshortcuts();
 
-  // small navigation
+  // -- page action
+  if (k==CTRL+'R') reload(url);
+  // chrome: CTRL-P: print current webbpage ? save?
+  // chrome: CTRL-S: save current webpage
+  // chrome: ESC: stop loading webpage
+  // chrome: ^U - display HTML
+  // chrome: ^O - open file on computer
+  // chrome: ALT-link (mouse) download link
+
+  // chrome:F7 : turn on caret browsing
+
+  // -- search
+  // chrome: ^F, F3: search bar
+  // chrome: ^G: next match
+  // chrome: ^S-G: prev match
+
+  // -- small navigation
   COUNT(top, DOWN, UP, nlines);
   COUNT(top, CTRL+'N', CTRL+'P', nlines);
   COUNT(top, RETURN,META+RETURN, nlines);
   COUNT(top, SCROLL_UP, SCROLL_DOWN, nlines);
-  // big navigation
+
+  // -- big navigation
   if (k=='<' || kc==',') top= 0; // top
   if (k=='>' || kc=='.') top= nlines;
   if (k==META+'V' || k==META+' ' || k==BACKSPACE || k==DEL) top-= rows;
@@ -858,18 +905,21 @@ void keyAction(int k) {
 
   if (top>nlines-rows) top= nlines-rows;
   if (top<0) top= 0;
-  // -- TABS
 
+  // -- TABS
   if (k=='?' || k==CTRL+'H' || k==FUNC+1) {
     push(tab);
     // open already existing?
     tab= newtab("wless.html");
   }
 
+  // TODO: cleanup (a-z A-Z used in editing), now abc RET is how to select link
   // clicking (new tab) a-z0-9
   //  a  open link in new tab and go
   //  A  open in background tab
   //  M-A open shortcut page 
+  //
+  // TODO: could use M-a too?
   if (isalnum(kc) && (k<127 || kc<='Z') && !(k&TERM)) {
     char keys[2]={kc,0};
     if (k==toupper(kc)) { // A-Z
@@ -882,54 +932,8 @@ void keyAction(int k) {
     }
   }
 
-  if (k==CTRL+'R') reload(url);
-
-  // Up/Down LOL?
-  if (k==CTRL+'U'); // Unread
-
-  // Chrome keybaord short-cut
-  // - https://support.google.com/chrome/answer/157179?hl=en&co=GENIE.Platform%3DDesktop#zippy=%2Ctab-and-window-shortcuts
-
-  // ^1-8 goto tab #
-  // ^9 go to righ most tab
-
-  // ^TAB; goto next open tab
-  // ^S-TAB: goto prev open tab
-
-  // M-LEFT: back browsing history
-  // M-RIGHT: forward browsing histor
-
-  // M-F, M-E: open menu
-  // ^S_B: show/hide bookmarks
-  // ^S_A: open bookmarks manager
-
-  // ^H: history page in new tab
-  // ^J: downloads manager
- 
-  // S-ESC: task manager
-  // ^F, F3: search bar
-  // ^G: next match
-  // ^S-G: prev match
-  // ^S-J: open dev tools
-    
-  // ^S-DEL: open delete history
-  // F1: help in new tab
-  // ^S-M: login as different user
-  // M-S-i: feedback form
-  // F7 : turn on caret browsing
-
-  // CTRL-P: print current webbpage ? save?
-  // CTRL-S: save current webpage
-  // ESC: stop loading webpage
-  // ^O - open file on computer
-  // ^U - display HTML
-
-  // ^D - save current page as bookmark
-  // ^S-D- save all open tabs as "folder"
-
-  // ALT-link (mouse) download link
-
-  // M-F, M-E: open menu
+  // chrome: ^1-8 goto tab #
+  // chrome: ^9 go to righ most tab
 
   // pop from deleted (chrome: ^S-T
   if (k==CTRL+'Y') {
@@ -960,6 +964,11 @@ void keyAction(int k) {
   //}
 
   //COUNT(top, CTRL+'F', CTRL+'B', nlines);
+  // chrome: ^TAB; goto next open tab
+  // chrome: ^S-TAB: goto prev open tab
+  // chrome: M-LEFT: back browsing history
+  // chrome: M-RIGHT: forward browsing histor
+  // chrome: ^H: history page in new tab
   if (k==LEFT) tab--;
   if (k==RIGHT) tab++;
   if (start_tab+tab<=1) tab= -start_tab+1;
@@ -969,6 +978,17 @@ void keyAction(int k) {
   //TODO: field? nfield
   // remove "right"
   //COUNT_WRAP(field, TAB, S_TAB, nfield);
+
+  // --- Chrome keybaord short-cut
+  // - https://support.google.com/chrome/answer/157179?hl=en&co=GENIE.Platform%3DDesktop#zippy=%2Ctab-and-window-shortcuts
+
+  // TODO: shortcuts "missing", to consider
+  // chrome: ^J: downloads manager
+  // chrome: S-ESC: task manager
+  // chrome: ^S-J: open dev tools
+  // chrome: ^S-DEL: open delete history
+  // chrome: ^S-M: login as different user
+  // chrome: M-S-i: feedback form
 }
 
 keycode editTillEvent() {
@@ -1043,9 +1063,12 @@ int main(void) {
 
     k= command(k, line);
 
-    // system
+    // -- system
     if (k==CTRL+'C') break;
     if (k==CTRL+'Z') kill(getpid(), SIGSTOP);
+
+    // chrome: M-F, M-E: open menu
+    // (I don't like it)
 
     keyAction(k);
 
