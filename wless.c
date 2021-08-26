@@ -17,6 +17,27 @@
 
 #define LOADING_FILE ".w/Cache/loading.html.ANSI"
 
+
+
+// generic functions?
+
+
+void message(char* format, ...) {
+  va_list argp;
+  va_start(argp, format);
+
+  save();
+  // last line
+  gotorc(screen_rows-2, 0);
+  int sbg= B(black), sfg= C(green);
+  vprintf(format, argp);
+  B(sbg); C(sfg);
+  clearend();
+  restore();
+  fflush(stdout);
+}
+
+
 // --- limits
 int nlines= 0, nright= 10;
 
@@ -35,6 +56,7 @@ char *file= NULL;
 char *url= NULL;
 
 dstr *line= NULL;
+
 
 int incdec(int v, int k, int ikey, int dkey, int min, int max, int min2val, int max2val) {
   if (k==ikey) v++;
@@ -124,6 +146,7 @@ void logbookmark(int k, char *s) {
   // print to screen w/o newline
   fputs(ds->s, fbookmarks);
   free(ds);
+  message("Saved bookmark '%c' = '%s'", k, s);
 }
 
 void listbookmarks(char *url, char *s) {
@@ -183,7 +206,7 @@ cursoron();
           C(yellow);
           printf("%.16s\n", isoago(date));
         } else {
-          C(blue);
+          C(cyan);
           if (strlen(simple)>right)
             printf("%.13s...\n", simple);
           else
@@ -206,10 +229,9 @@ cursoron();
   printf("\n%d Matching Lines", mcount);
   printf("\n(press key to continue)");
   fflush(stdout);
-  key();
 }
 
-void bookmark(int k) {
+void bookmark(int k, char *text) {
   int cpos= -1; // TODO
 
   if (k=='*' || k==CTRL+'D') {
@@ -218,21 +240,19 @@ void bookmark(int k) {
     return;
   }
 
-  gotorc(screen_rows-1, 0);
-  char prompt[2]= {k, 0};
-  char* s= input(prompt);
-  if (!s) return;
-
   // also logs searches!
-  logbookmark(k, s);
+  logbookmark(k, text);
 
   // search
   if (k=='=') {
     // TODO: make a loop around it allowing "incremental" search
-    listbookmarks(NULL, s);
+    listbookmarks(NULL, text);
+    k= -1;
   }
+}
 
-  free(s);
+void search(int k, char* text) {
+  message("to implement");
 }
 
 // start download in background
@@ -257,17 +277,6 @@ void reload(char* url) {
 
 
 // --- Display
-void message(char* format, ...) {
-  va_list argp;
-  va_start(argp, format);
-
-  // last line
-  reset();
-  gotorc(screen_rows-1, 0);
-  vprintf(format, argp);
-  clearend(); fflush(stdout);
-}
-
 void display(int k) {
 
   // -- header
@@ -483,18 +492,61 @@ keycode command(keycode k, dstr *ds) {
   int len= strlen(line);
   if (!*line) return k;
 
+  // SEARCHING
+  if (k==RETURN || k==CTRL+'S') {
+    switch(line[0]) {
+
+    case '=':
+      bookmark(line[0], &line[1]);
+      if (line[0]!='=') line[0]= 0;
+      return -1;
+
+    case '/':  case '&':
+      search(line[0], &line[1]);
+      // keep line to allow for more search
+      return -1;
+      
+    case '$': // TODO: string... search?
+    case '^': // TODO: ^top search
+    case '_': // TODO: _end search
+      break;
+    }
+  }
+  
+  // ACTIONS (save store go)
   if (k==RETURN) {
+
+    switch(line[0]) {
+
+    case '#': case '@':
+      bookmark(line[0], &line[1]);
+      while(!haskey());
+      return -1;
+
+    case '/':  case '&':
+      search(line[0], &line[1]);
+      // keep line to allow for more search
+      return -1;
+      
+    case '!': // TODO: shell command
+    case '$': // TODO: profit! ?
+    case '^': // TODO: move to top?
+    case '_': // TODO: bury? _ underline something?
+      break;
+    }
+
     // all a-z, maybe link click?
     if (strspn(line, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")==len) {
       tab= click(line);
       line[0]= 0;
-      return CTRL+'L';
+      return -1;
     }
+
     // url? or file? have /:.?
     if (strchr(line+1, '/') || strchr(line+1, ':') || strchr(line, '.')) {
       tab= newtab(line);
       line[0]= 0;
-      return CTRL+'L';
+      return -1;
     }
   }
 
@@ -760,12 +812,11 @@ int touchDispatch(int k) {
     // wait for other event
     while((k= key()) == lastk);
 
-  } else if (top && center) {
-    scrollStack();
-  } else if (top && left) {
-    scrollBookmarks();
+  }
+  //else if (top && center) scrollStack();
+  //else if (top && left) scrollBookmarks();
 
-  } else if (middle && left) {
+  else if (middle && left) {
     // history: back & forward
     k= (k & SCROLL_UP) ? LEFT : RIGHT;
   } else if (middle && center) {
@@ -773,14 +824,13 @@ int touchDispatch(int k) {
   } else if (middle && right) {
     // tabs: next & prev
     k= CTRL+ ((k & SCROLL_UP) ? LEFT : RIGHT);
-  } else if (bottom && left) {
-    scrollHistory();
-  } else if (bottom && center) {
+  }
+  //else if (bottom && left) scrollHistory();
+  else if (bottom && center) {
     scrollReadings();
-  } else if (bottom && right) {
-    //scrollTabs():
-
-  } else {
+  }
+  //else if (bottom && right) scrollTabs();
+  else {
     // No a drag-down defined
 
     showScroll(k, ar, ac);
@@ -834,14 +884,14 @@ void loadPageMetaData() {
 // ^B    ? back (viewd tabs), chrome-bookmarks
 // ^C    EXIT
 // ^D    ? del-tab, chrome: bookmark
-// ^E    ? edit file
+// ^E    ? emacs - edit file
 // ^F    ? forward (viewed tabs), chrome: search bar
 // ^G    ? goto-line, chrome: next match ^S-G previous
 // ^H    help, chrome: history
 // ^I    TAB
 // ^J    RETURN (can't change?), chrome: download-manager
 // ^K    KILL tab
-// ^L    ? list , chrome: location - no need!
+// ^L    ? list?    chrome: location - no need!
 // ^M    RETURN
 // ^N    next-line, chrome: new window
 // ^O    ? , chrome: open file on computer
@@ -849,7 +899,7 @@ void loadPageMetaData() {
 // ^Q    qutable info about page
 // ^R    reload
 // ^S    search, emacs: search, search-next
-// ^T    ?   , chrome: new tab (we don't need)
+// ^T    ? tabs list, chrome: new tab (we don't need)
 // ^U    ? clear-line   , chrome: display HTML
 // ^V    page-down, M-V page-up
 // ^W    close-tab/window (chrome: close tab)
@@ -857,7 +907,9 @@ void loadPageMetaData() {
 // ^Y    ? yank (undo tab kill)
 // ^Z    ZUSPEND/ZLEEP
 
-void keyAction(int k) {
+keycode keyAction(keycode k) {
+  if (k==-1) return k;
+
   int kc= k & 0x7f; // only char
 
   // -- bookmarks
@@ -869,11 +921,14 @@ void keyAction(int k) {
   // ^S_A: open bookmarks manager (chrome)
   // ^D - save current page as bookmark
   // ^S-D- save all open tabs as "folder" (chrome)
-  if (k==CTRL+'D' || strchr("=*#$", k)) bookmark(k);
-  if (k==CTRL+'A') listbookmarks(NULL, NULL);
-  if (k==CTRL+'Q') listbookmarks(url, NULL);
+  if (k==CTRL+'D' || (k<127 && strchr("=*#$", k))) {
+    bookmark(k, line->s);
+    k= -1;
+  }
+  if (k==CTRL+'A') listbookmarks(NULL, NULL),k=-1;;
+  if (k==CTRL+'Q') listbookmarks(url, NULL),k=-1;
 
-  if (k==CTRL+'X') listshortcuts();
+  if (k==CTRL+'X') listshortcuts(),k=-1;
 
   // -- page action
   if (k==CTRL+'R') reload(url);
@@ -997,15 +1052,22 @@ keycode editTillEvent() {
   do {
 
     // EDIT
-    gotorc(screen_rows-1, 0); clearend();
+    gotorc(screen_rows-1, 0); cleareos();
 
     cursoron();
-    // TODO: only " ', add commands?
-    k= edit(&line, -1, NULL, " *#@=");
+
+    //while(1) {
+    k= edit(&line, -1, NULL, NULL, " <>*");
+    //printf("\n>>> %s line>%s<\n", keystring(k), line->s);
+
     // Safe-way out!
     if (!strcmp(line->s, "QUIT")) exit(0);
     cursoroff();
-
+    // clear line
+    if (k==CTRL+'U') {
+      line->s[0]= 0;
+      continue;
+    }
 
     // TOUCH DRAG
     if (k & SCROLL)
@@ -1053,14 +1115,14 @@ int main(void) {
     loadPageMetaData();
 
     // avoid update if events waiting
-    if (!haskey()) {
+    // (setting k=-1 means no update screen)
+    if (!haskey() && k!=-1) {
       display(k);
       visited();
     }
 
     // - read special event & decode
     k= editTillEvent(line);
-
     k= command(k, line);
 
     // -- system
@@ -1070,11 +1132,7 @@ int main(void) {
     // chrome: M-F, M-E: open menu
     // (I don't like it)
 
-    keyAction(k);
-
-    // quit?
-    q= k<33 ? 0 : q*2 + k;
-    if (q=='q'*8+'u'*4+'i'*2+'t') break;;
+    k= keyAction(k);
   }
   printf("\r\n");
 

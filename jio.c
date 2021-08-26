@@ -357,10 +357,13 @@ void testkeys() {
 // Return string, len>1
 //   NULL on error, or empyt line.
 char* input(char* prompt) {
+  assert(!"jio.c: input disabled, not working, use edit!\n"); exit(1);
+
   return NULL;
-  char buf[256]= {0};
+
   clearend();
   cursoron();
+  char buf[256]= {0};
   if (prompt) printf("%s", prompt);
   fflush(stdout);
   // TODO: use for full editing
@@ -387,7 +390,7 @@ char* input(char* prompt) {
 //    This allows the user program to still handle short-cut keys!
 //    
 // See Play/edith.c for example
-keycode edit(dstr **dsp, int width, char *allowed, char *not) {
+keycode edit(dstr **dsp, int width, char *allowed, char *not, char *breaks) {
   // make sure have a pointer
   *dsp= dstrncat(*dsp, NULL, 1);
 
@@ -396,6 +399,7 @@ keycode edit(dstr **dsp, int width, char *allowed, char *not) {
   int k=0;
   while ((k= key())!=EOF) {
     int len= strlen((*dsp)->s);
+    if (breaks && strchr(breaks, k)) break;
     if (k>=32 && k<127) {
       if (allowed && !strchr(allowed, k)) break;
       if (not && strchr(not, k)) break;

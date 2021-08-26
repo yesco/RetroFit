@@ -40,6 +40,9 @@ void gotorc(int r, int c);
 void cursoroff();
 void cursoron();
 
+void save();
+void restore();
+
 //void fgcolor(int c);
 //void bgcolor(int c);
 
@@ -127,7 +130,7 @@ void testkeys();
 
 char* input(char* prompt);
 
-keycode edit(dstr **dsp, int width, char *allowed, char *not);
+keycode edit(dstr **dsp, int width, char *allowed, char *not, char *breaks);
 
 ////////////////////////////////////////
 // - files

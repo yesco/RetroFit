@@ -1,5 +1,7 @@
 # TODOs ideas for ./w
 
+- Start rendering as soon as file loads?
+
 - URL completion? log/extract every URL:
   unix> cut -d\  -f3 .whistory  | sort | uniq -c | sort -rn | grep " Te"    !!!
 
