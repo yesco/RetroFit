@@ -272,10 +272,8 @@ void display(int k) {
   // -- header
   reset();
   gotorc(0, 0);
-  clearend();
   B(black); C(white);
   printf("./w %.*s", screen_cols-5, url);
-  gotorc(0, 0);
   fflush(stdout);
 
   // wait for open of ANSI file
@@ -326,11 +324,9 @@ void display(int k) {
   reset();
   gotorc(0, 0);
   if (url) {
-    clearend();
     // TODO: app header reserved for tab-info?
     char *u= url, col;
     col= printf("./w ");
-    gotorc(0, col);
     // nprintf !!!
     char parts[10];
     int w= snprintf(parts, sizeof(parts), " %d/%d", (top+2)/rows+1, (nlines+0)/rows+1);
@@ -338,9 +334,8 @@ void display(int k) {
       // TODO: unicode?
       putchar(*u++);
       col++;
-      if (col+1 >= screen_cols-w) break;
+      if (col+1 >= screen_cols-5) break;
     }
-    clearend();
     // space out
     while (col++ < screen_cols-w) putchar(' ');
     printf("%s", parts);
