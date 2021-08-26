@@ -29,6 +29,7 @@ FILE *fhistory, *fbookmarks;
 
 int top, right, tab, start_tab;
 
+char *hit= NULL; // FREE!
 // DONT free (partof hit)
 char *file= NULL;
 char *url= NULL;
@@ -789,6 +790,225 @@ int touchDispatch(int k) {
   return k;
 }
 
+////////////////////////////////////////
+//
+
+void loadPageMetaData() {
+  int t= start_tab+tab;
+  if (hit) {
+    free(hit);
+    file= url= hit= NULL;
+  }
+
+  hit= fgetlinenum(fhistory, t);
+  if (hit) {
+    const char *W= "#=W ";
+    // extract file
+    file= strstr(hit, W);
+    if (file) {
+      int c;
+      file+= strlen(W);
+      // skip spaces
+      while(*file==' ') file++;
+
+      url= file;
+      // skip URL
+      while(*file && *file!=' ') file++;
+      if (*file) *file++= 0;
+
+      // skip spaces
+      while(*file==' ') file++;
+    }
+    error(!file, 10, "history log entry bad: '%s'\n", hit);
+  } else {
+    // TODO: add a way to reload or signal when done!
+    file= LOADING_FILE;
+
+    //error(!hit, 10, "history log entry not found: %d", t);
+  }
+}
+
+void keyAction(int k) {
+  int kc= k & 0x7f; // only char
+
+  // w3m: Esc-b	View bookmarks
+  // w3m: Esc-a	To bookmark
+  // elinks: v load bookmark, ESc b
+  // elinks: a, ESC a add current bookmark
+  // ^S_B: show/hide bookmarks (chrome)
+  // ^S_A: open bookmarks manager (chrome)
+  // ^D - save current page as bookmark
+  // ^S-D- save all open tabs as "folder" (chrome)
+  if (k==CTRL+'D' || strchr("=*#$", k)) bookmark(k);
+  if (k==CTRL+'A') listbookmarks(NULL, NULL);
+  if (k==CTRL+'Q') listbookmarks(url, NULL);
+
+  if (k==CTRL+'X') listshortcuts();
+
+  // small navigation
+  COUNT(top, DOWN, UP, nlines);
+  COUNT(top, CTRL+'N', CTRL+'P', nlines);
+  COUNT(top, RETURN,META+RETURN, nlines);
+  COUNT(top, SCROLL_UP, SCROLL_DOWN, nlines);
+  // big navigation
+  if (k=='<' || kc==',') top= 0; // top
+  if (k=='>' || kc=='.') top= nlines;
+  if (k==META+'V' || k==META+' ' || k==BACKSPACE || k==DEL) top-= rows;
+  if (k==CTRL+'V' || k==' ') top+= rows;
+
+  if (top>nlines-rows) top= nlines-rows;
+  if (top<0) top= 0;
+  // -- TABS
+
+  if (k=='?' || k==CTRL+'H' || k==FUNC+1) {
+    push(tab);
+    // open already existing?
+    tab= newtab("wless.html");
+  }
+
+  // clicking (new tab) a-z0-9
+  //  a  open link in new tab and go
+  //  A  open in background tab
+  //  M-A open shortcut page 
+  if (isalnum(kc) && (k<127 || kc<='Z') && !(k&TERM)) {
+    char keys[2]={kc,0};
+    if (k==toupper(kc)) { // A-Z
+      // open behind
+      click(keys);
+    } else { // a-z, M-A -- M-Z
+      // open now
+      push(tab);
+      tab= click(keys);
+    }
+  }
+
+  if (k==CTRL+'R') reload(url);
+
+  // Up/Down LOL?
+  if (k==CTRL+'U'); // Unread
+
+  // Chrome keybaord short-cut
+  // - https://support.google.com/chrome/answer/157179?hl=en&co=GENIE.Platform%3DDesktop#zippy=%2Ctab-and-window-shortcuts
+
+  // ^1-8 goto tab #
+  // ^9 go to righ most tab
+
+  // ^TAB; goto next open tab
+  // ^S-TAB: goto prev open tab
+
+  // M-LEFT: back browsing history
+  // M-RIGHT: forward browsing histor
+
+  // M-F, M-E: open menu
+  // ^S_B: show/hide bookmarks
+  // ^S_A: open bookmarks manager
+
+  // ^H: history page in new tab
+  // ^J: downloads manager
+ 
+  // S-ESC: task manager
+  // ^F, F3: search bar
+  // ^G: next match
+  // ^S-G: prev match
+  // ^S-J: open dev tools
+    
+  // ^S-DEL: open delete history
+  // F1: help in new tab
+  // ^S-M: login as different user
+  // M-S-i: feedback form
+  // F7 : turn on caret browsing
+
+  // CTRL-P: print current webbpage ? save?
+  // CTRL-S: save current webpage
+  // ESC: stop loading webpage
+  // ^O - open file on computer
+  // ^U - display HTML
+
+  // ^D - save current page as bookmark
+  // ^S-D- save all open tabs as "folder"
+
+  // ALT-link (mouse) download link
+
+  // M-F, M-E: open menu
+
+  // pop from deleted (chrome: ^S-T
+  if (k==CTRL+'Y') {
+    push(tab);
+    //tab= delpop();
+  }
+
+  if (k==CTRL+'W') { // close tab (^F4)
+    delpush(tab);
+    deltab();
+    //tab= pop();
+  }
+  if (k==CTRL+'K') { // kill forward
+    delpush(tab);
+    deltab();
+    //tab++;
+  }
+  if (k==CTRL+'D') { // delete tab back
+    delpush(tab);
+    deltab();
+    //tab++;
+  }
+
+  // TODO: open empty has no meaning...
+  //if (k==CTRL+'T') {
+  //push(tab);
+  //tab= ntab++;
+  //}
+
+  //COUNT(top, CTRL+'F', CTRL+'B', nlines);
+  if (k==LEFT) tab--;
+  if (k==RIGHT) tab++;
+  if (start_tab+tab<=1) tab= -start_tab+1;
+  if (tab>=ntab) tab= ntab-1;
+  //COUNT_WRAP(right, RIGHT, LEFT, nright);
+
+  //TODO: field? nfield
+  // remove "right"
+  //COUNT_WRAP(field, TAB, S_TAB, nfield);
+}
+
+keycode editTillEvent() {
+  int k;
+  // loops capture menu drag events
+  do {
+
+    // EDIT
+    gotorc(screen_rows-1, 0); clearend();
+
+    cursoron();
+    // TODO: only " ', add commands?
+    k= edit(&line, -1, NULL, " *#@=");
+    // Safe-way out!
+    if (!strcmp(line->s, "QUIT")) exit(0);
+    cursoroff();
+
+
+    // TOUCH DRAG
+    if (k & SCROLL)
+      k= touchDispatch(k);
+
+    // not scrolling in borders...
+    if (k & SCROLL) {
+      // Simplify to SCROLL_UP/DOWN
+      k &= SCROLL;
+      break;
+    }
+
+    // CLICK
+    if ((k & MOUSE) && !(k & SCROLL))
+      k= clickDispatch(k);
+
+    // set k= -1 to not update screen
+    // (good for menus/hilite)
+  } while (k<0);
+
+  return k;
+}
+
 // --- MAIN LOOP
 
 int main(void) {
@@ -805,45 +1025,12 @@ int main(void) {
   fbookmarks= fopen(".wbookmarks", "a+");
   start_tab= flines(fhistory);
   
-  char *hit= NULL; // FREE!
   int k= 0, q=0, last_tab;
   // string for editing/command
   line= dstrncat(NULL, NULL, 1);
   while(1) {
 
-    // load right page data
-    int t= start_tab+tab;
-    if (hit) {
-      free(hit);
-      file= url= hit= NULL;
-    }
-    hit= fgetlinenum(fhistory, t);
-
-    if (hit) {
-      const char *W= "#=W ";
-      // extract file
-      file= strstr(hit, W);
-      if (file) {
-        int c;
-        file+= strlen(W);
-        // skip spaces
-        while(*file==' ') file++;
-
-        url= file;
-        // skip URL
-        while(*file && *file!=' ') file++;
-        if (*file) *file++= 0;
-
-        // skip spaces
-        while(*file==' ') file++;
-      }
-      error(!file, 10, "history log entry bad: '%s'\n", hit);
-    } else {
-      // TODO: add a way to reload or signal when done!
-      file= LOADING_FILE;
-
-      //error(!hit, 10, "history log entry not found: %d", t);
-    }
+    loadPageMetaData();
 
     // avoid update if events waiting
     if (!haskey()) {
@@ -851,39 +1038,8 @@ int main(void) {
       visited();
     }
 
-    // - read key & decode
-    int lastk= 0;
-    // loops capture menu drag events
-    do {
-      gotorc(screen_rows-1, 0); clearend();
-
-      cursoron();
-      // TODO: only " ', add commands?
-      k= edit(&line, -1, NULL, " *#@=");
-      // Safe-way out!
-      if (!strcmp(line->s, "QUIT")) exit(0);
-      cursoroff();
-
-      // TOUCH DRAG
-      if (k & SCROLL)
-        k= touchDispatch(k);
-
-      // not scrolling in borders...
-      if (k & SCROLL) {
-        
-        // Simplify to SCROLL_UP/DOWN
-        // (remove b r c)
-        k &= SCROLL;
-        break;
-      }
-
-      // CLICK
-      if ((k & MOUSE) && !(k & SCROLL))
-        k= clickDispatch(k);
-
-    } while (k<0);
-
-    int kc= k & 0x7f; // only char
+    // - read special event & decode
+    k= editTillEvent(line);
 
     k= command(k, line);
 
@@ -891,175 +1047,7 @@ int main(void) {
     if (k==CTRL+'C') break;
     if (k==CTRL+'Z') kill(getpid(), SIGSTOP);
 
-    // action
-    if (k==CTRL+'U') opentab();
-    if (k==CTRL+'L') clear();
-
-    //if (k==CTRL+'S' || k=='/' || k=='%') searchPage();
-
-    //if (k==CTRL+'H') showHistory();
-    //if (k==CTRL+'J') showDownloads();
-
-    // --- Do stuff with page
-    // -- these are chrome's shortcuts
-    // CTRL-P: print current webbpage ? save?
-    // CTRL-S: save current webpage
-    // ESC: stop loading webpage
-    // ^O - open file on computer
-    // ^U - display HTML
-    // ^D - save current page as bookmark
-    // ^S-D- save all open tabs as "folder"
-    
-    // --- page functions
-    // print
-    // email
-    // save
-    // ! run command
-    // | pipe to program
-    // open file (^O)
-    // edit file (^E) in emacs!
-    // html (full, formatted, outline, loading log, headers))
-
-
-
-    // w3m: Esc-b	View bookmarks
-    // w3m: Esc-a	To bookmark
-    // elinks: v load bookmark, ESc b
-    // elinks: a, ESC a add current bookmark
-    // ^S_B: show/hide bookmarks (chrome)
-    // ^S_A: open bookmarks manager (chrome)
-    // ^D - save current page as bookmark
-    // ^S-D- save all open tabs as "folder" (chrome)
-    if (k==CTRL+'D' || strchr("=*#$", k)) bookmark(k);
-    if (k==CTRL+'A') listbookmarks(NULL, NULL);
-    if (k==CTRL+'Q') listbookmarks(url, NULL);
-
-    if (k==CTRL+'X') listshortcuts();
-
-    // small navigation
-    COUNT(top, DOWN, UP, nlines);
-    COUNT(top, CTRL+'N', CTRL+'P', nlines);
-    COUNT(top, RETURN,META+RETURN, nlines);
-    COUNT(top, SCROLL_UP, SCROLL_DOWN, nlines);
-    // big navigation
-    if (k=='<' || kc==',') top= 0; // top
-    if (k=='>' || kc=='.') top= nlines;
-    if (k==META+'V' || k==META+' ' || k==BACKSPACE || k==DEL) top-= rows;
-    if (k==CTRL+'V' || k==' ') top+= rows;
-
-    if (top>nlines-rows) top= nlines-rows;
-    if (top<0) top= 0;
-    // -- TABS
-
-    if (k=='?' || k==CTRL+'H' || k==FUNC+1) {
-      push(tab);
-      // open already existing?
-      tab= newtab("wless.html");
-    }
-
-    // clicking (new tab) a-z0-9
-    //  a  open link in new tab and go
-    //  A  open in background tab
-    //  M-A open shortcut page 
-    if (isalnum(kc) && (k<127 || kc<='Z') && !(k&TERM)) {
-      char keys[2]={kc,0};
-      if (k==toupper(kc)) { // A-Z
-        // open behind
-        click(keys);
-      } else { // a-z, M-A -- M-Z
-        // open now
-        push(tab);
-        tab= click(keys);
-      }
-    }
-
-    if (k==CTRL+'R') reload(url);
-
-    // Up/Down LOL?
-    if (k==CTRL+'U'); // Unread
-
-    // Chrome keybaord short-cut
-    // - https://support.google.com/chrome/answer/157179?hl=en&co=GENIE.Platform%3DDesktop#zippy=%2Ctab-and-window-shortcuts
-
-    // ^1-8 goto tab #
-    // ^9 go to righ most tab
-
-    // ^TAB; goto next open tab
-    // ^S-TAB: goto prev open tab
-
-    // M-LEFT: back browsing history
-    // M-RIGHT: forward browsing histor
-
-    // M-F, M-E: open menu
-    // ^S_B: show/hide bookmarks
-    // ^S_A: open bookmarks manager
-
-    // ^H: history page in new tab
-    // ^J: downloads manager
- 
-    // S-ESC: task manager
-    // ^F, F3: search bar
-    // ^G: next match
-    // ^S-G: prev match
-    // ^S-J: open dev tools
-    
-    // ^S-DEL: open delete history
-    // F1: help in new tab
-    // ^S-M: login as different user
-    // M-S-i: feedback form
-    // F7 : turn on caret browsing
-
-    // CTRL-P: print current webbpage ? save?
-    // CTRL-S: save current webpage
-    // ESC: stop loading webpage
-    // ^O - open file on computer
-    // ^U - display HTML
-
-    // ^D - save current page as bookmark
-    // ^S-D- save all open tabs as "folder"
-
-    // ALT-link (mouse) download link
-
-    // M-F, M-E: open menu
-
-    // pop from deleted (chrome: ^S-T
-    if (k==CTRL+'Y') {
-      push(tab);
-      //tab= delpop();
-    }
-
-    if (k==CTRL+'W') { // close tab (^F4)
-      delpush(tab);
-      deltab();
-      //tab= pop();
-    }
-    if (k==CTRL+'K') { // kill forward
-      delpush(tab);
-      deltab();
-      //tab++;
-    }
-    if (k==CTRL+'D') { // delete tab back
-      delpush(tab);
-      deltab();
-      //tab++;
-    }
-
-    // TODO: open empty has no meaning...
-    //if (k==CTRL+'T') {
-    //push(tab);
-    //tab= ntab++;
-    //}
-
-    //COUNT(top, CTRL+'F', CTRL+'B', nlines);
-    if (k==LEFT) tab--;
-    if (k==RIGHT) tab++;
-    if (start_tab+tab<=1) tab= -start_tab+1;
-    if (tab>=ntab) tab= ntab-1;
-    //COUNT_WRAP(right, RIGHT, LEFT, nright);
-
-    //TODO: field? nfield
-    // remove "right"
-    //COUNT_WRAP(field, TAB, S_TAB, nfield);
+    keyAction(k);
 
     // quit?
     q= k<33 ? 0 : q*2 + k;
