@@ -237,6 +237,7 @@ void bookmark(int k, char *text) {
   if (k=='*' || k==CTRL+'D') {
     // TODO: to save the seekpos too!
     logbookmark('*', "");
+    k= -1;
     return;
   }
 
@@ -520,7 +521,7 @@ keycode command(keycode k, dstr *ds) {
 
     case '#': case '@':
       bookmark(line[0], &line[1]);
-      while(!haskey());
+      line[0]= 0;
       return -1;
 
     case '/':  case '&':
@@ -528,7 +529,13 @@ keycode command(keycode k, dstr *ds) {
       // keep line to allow for more search
       return -1;
       
-    case '!': // TODO: shell command
+    case '!':
+      // TODO: can't input ls -l *.html LOL
+      // TODO: replace %u w URL
+      system(&line[1]);
+      return -1;
+
+    case '|': // TODO: pipe HTML/text
     case '$': // TODO: profit! ?
     case '^': // TODO: move to top?
     case '_': // TODO: bury? _ underline something?
