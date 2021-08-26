@@ -1,3 +1,4 @@
+
 // TODO: keep rereading file to displaY?
 // tail -f source:
 // - http://git.savannah.gnu.org/cgit/coreutils.git/tree/src/tail.c
@@ -754,8 +755,8 @@ int touchDispatch(int k) {
 // --- MAIN LOOP
 
 int main(void) {
-  // TODO: mouse init/jio
-  fprintf(stderr, "\e[?1000;1003;1006;1015h");
+  jio();
+
   cursoroff();
   system("echo '`date --iso=ns` #=WLESS`' >> .wlog");
   screen_init();
@@ -1025,9 +1026,6 @@ int main(void) {
 
   gotorc(9999,9999);
   printf("\nExiting...\n");
-  cursoron();
-  // TODO: deinit mouse/jio
-  fprintf(stderr, "\e[?1000;1003;1006;1015l");
-
+  // implicity calls _jio_exit();
   return 0;
 }

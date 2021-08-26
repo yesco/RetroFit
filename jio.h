@@ -11,6 +11,13 @@
 
 // misc system IO
 
+// call in main, first thing
+void jio(); 
+
+void _jio_exit(); // atexit() should do
+
+
+
 #define TRACE(exprs...) if (trace) printf(exprs);
 
 #define error(exp, exitcode, msg...) \

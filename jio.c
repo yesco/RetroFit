@@ -22,6 +22,41 @@ void screen_init() {
   screen_cols = w.ws_col;
 }
 
+struct termios _orig_termios, _jio_termios;
+
+void _jio_exit() {
+  tcsetattr(0, TCSANOW, &_orig_termios);
+
+  // deinit mouse/jio
+  fprintf(stderr, "\e[?1000;1003;1006;1015l");
+
+  // sanity
+  cursoron();
+}
+
+void jio() {
+  screen_init();
+
+  // xterm mouse init
+  fprintf(stderr, "\e[?1000;1003;1006;1015h");
+
+  tcgetattr(0, &_orig_termios);
+
+  // register cleanup handler
+  atexit(_jio_exit);
+
+  // modify
+  _jio_termios= _orig_termios;
+
+  // raw terminal in; catch ^C & ^Z
+  cfmakeraw(&_jio_termios);
+
+  // enable terminal out
+  _jio_termios.c_oflag |= OPOST;
+
+  tcsetattr(0, TCSANOW, &_jio_termios);
+}
+
 ////////////////////////////////////////
 // - ansi screen
 
@@ -176,15 +211,6 @@ keycode key() {
   // estimate: rows*10=???
   static char buf[2048]= {0};
 
-  struct termios old, tmp;
-  tcgetattr(0, &old);
-
-  // modify
-  tmp= old;
-  cfmakeraw(&tmp); // ^C & ^Z !
-  tmp.c_lflag &= ~ICANON & ~ECHO;
-  tcsetattr(0, TCSANOW, &tmp);
-
   // get next key
   if (_key_b>0) {
     memcpy(buf, &buf[1], _key_b--);
@@ -196,9 +222,6 @@ keycode key() {
   }
   int k= buf[0];
   buf[_key_b+1]= 0;
-
-  // restore
-  tcsetattr(0, TCSANOW, &old);
 
 //TDOO: BACKSPACE seems broken!
 // or at least in Play/testkeys.c...
