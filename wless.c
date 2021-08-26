@@ -1,4 +1,3 @@
-
 // TODO: keep rereading file to displaY?
 // tail -f source:
 // - http://git.savannah.gnu.org/cgit/coreutils.git/tree/src/tail.c
@@ -33,6 +32,8 @@ int top, right, tab, start_tab;
 // DONT free (partof hit)
 char *file= NULL;
 char *url= NULL;
+
+dstr *line= NULL;
 
 int incdec(int v, int k, int ikey, int dkey, int min, int max, int min2val, int max2val) {
   if (k==ikey) v++;
@@ -481,7 +482,7 @@ int click(char *keys) {
   return 0;
 }
 
-int command(keycode k, dstr *ds) {
+keycode command(keycode k, dstr *ds) {
   char *line= ds->s;
   int len= strlen(line);
   if (!*line) return k;
@@ -509,9 +510,66 @@ int command(keycode k, dstr *ds) {
 ////////////////////////////////////////
 // CLICK ACTIONS
 
-void speech() {
-  system("termux-toast \"`termux-speech-to-text`\"");
+char *speech() {
+  // show microphone
+  gotorc((screen_rows-screen_cols/2)/2, 0);
+  fflush(stdout);
+  system("Graphics/imcat/imcat Graphics/microphone-wired.png");
+
+  char *r= NULL;
+  // only works on Android
+  // ... -p  # gives continous output
+  // TODO: but it seem buffered?
+  // https://github.com/termux/termux-api/blob/master/app/src/main/java/com/termux/api/SpeechToTextAPI.java
+  FILE *f= popen("termux-speech-to-text -p", "r");
+  char buf[1024]= {0};
+  if (f) {
+    // read all lines, show, but pick last
+    while (fgets(buf, sizeof(buf), f)) {
+      printf("%s", buf);
+      clearend();
+    }
+
+    r= strdup(buf);
+    if (r && r[strlen(r)-1]=='\n')
+      r[strlen(r)-1]= 0;
+    fclose(f);
+  }
+  key();
+
+  // remove pending strokes (duplicate click?)
   while(haskey()) key();
+
+  return r;
+}
+
+// Definition of clickable regions
+char LEVELS[]= "N n   CC   s S";
+char DIST[]= "W CCC E";
+
+void showClickableRegions(int l, int d) {
+  for(int rr=0; rr<screen_rows; rr++){
+    for(int cc=0; cc<screen_cols; cc++){
+      int ll= (sizeof(LEVELS)-1)*rr/screen_rows;
+      int dd= (sizeof(DIST)-1)*cc/screen_cols;
+      if (LEVELS[ll]==' ' || DIST[dd]==' ') continue;
+      //if (ll!=-1 && ll!=l && dd!=d) continue;
+      gotorc(rr, cc);
+      B((ll==l && dd==d)? red : green);
+      spc();
+    }
+  }
+
+  // mark all regions
+  for(int rr=0; rr<screen_rows; rr++){
+    for(int cc=0; cc<screen_cols; cc++){
+      int ll= (sizeof(LEVELS)-1)*rr/screen_rows;
+      int dd= (sizeof(DIST)-1)*cc/screen_cols;
+      if (ll!=l && dd!=d) continue;
+      gotorc(rr, cc);
+      B(red);spc();
+    }
+  }
 }
 
 int clickDispatch(int k) {
@@ -520,59 +578,43 @@ int clickDispatch(int k) {
   int save_k= k;
   k= -1;
 
-  // Adjusted Row and Column
+  // Adjusted Row and Column (calibrate?)
   int ar= r-1, ac= c-1;
-  char LEVELS[]= "N n   CC   s S";
-  char DIST[]= "W CCC E";
-
-  // show all regions clickable
-  if(1)
-    for(int rr=0; rr<screen_rows; rr++){
-      for(int cc=0; cc<screen_cols; cc++){
-        int l= (sizeof(LEVELS)-1)*rr/screen_rows;
-        int d= (sizeof(DIST)-1)*cc/screen_cols;
-        if (l<0) l= 0; if (d<0) d=0;
-        if (l>=sizeof(LEVELS)-1) l=sizeof(LEVELS)-1;
-        if (d>=sizeof(DIST)-1) d=sizeof(DIST)-1;
-        if (LEVELS[l]==' ' || DIST[d]==' ')
-          continue;
-        gotorc(rr, cc);
-        B(green);spc();
-      }
-    }
+  if (ar<0) ar= 0; if (ac<0) ac= 0;
+  if (ar>=screen_rows) ar= screen_rows-1;
+  if (ac>=screen_cols) ac= screen_cols-1;
 
   // continue if not clickable region
   int l= (sizeof(LEVELS)-1)*ar/screen_rows;
   int d= (sizeof(DIST)-1)*ac/screen_cols;
-  if (l<0) l=0; if (d<0) d=0;
-  if (l>=sizeof(LEVELS)-1) l=sizeof(LEVELS)-1;
-  if (d>=sizeof(DIST)-1) d=sizeof(DIST)-1;
   if (LEVELS[l]==' ' || DIST[d]==' ')
     return -1; // keep waiting
 
-  // mark all regions
-  for(int rr=0; rr<screen_rows; rr++){
-    for(int cc=0; cc<screen_cols; cc++){
-      int ll= (sizeof(LEVELS)-1)*rr/screen_rows;
-      int dd= (sizeof(DIST)-1)*cc/screen_cols;
-      if (ll!=l || dd!=d) continue;
-      gotorc(rr, cc);
-      B(red);spc();
-    }
-  }
+  showClickableRegions(l, d);
 
+  // show exactly where clicked
   gotorc(ar, ac-1);
   B(red);C(white);
 
   char dir[3]={LEVELS[l], DIST[d],0};
   printf("%s",dir);
 
-  // --- click buttons
-  // TODO: replace by table?
+  // --- Click Buttons
 
   // MENU      SPEACH      CLOSE
   if (!strcmp(dir, "NW")) ;
-  if (!strcmp(dir, "NC")) speech();
+  if (!strcmp(dir, "NC")) {
+    char *r= speech();
+    if (r) {
+      // append to current edits
+      char *s= line->s;
+      if (s[0] && s[strlen(s)-1]!=' ')
+        line= dstrncat(line, " ", -1);
+      line= dstrncat(line, r, -1);
+      free(r);
+    }
+    return 0; // redraw
+  }
   if (!strcmp(dir, "NE")) drawX(),k= LEFT;
 
   // xxxx      xxxx        xxxx
@@ -771,7 +813,7 @@ int main(void) {
   char *hit= NULL; // FREE!
   int k= 0, q=0, last_tab;
   // string for editing/command
-  dstr *line= dstrncat(NULL, NULL, 1);
+  line= dstrncat(NULL, NULL, 1);
   while(1) {
 
     // load right page data
