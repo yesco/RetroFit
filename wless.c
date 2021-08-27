@@ -50,6 +50,8 @@ FILE *fhistory, *fbookmarks;
 
 int top, right, tab, start_tab;
 
+char *_search= NULL;
+
 char *hit= NULL; // FREE!
 // DONT free (partof hit)
 char *file= NULL;
@@ -253,7 +255,11 @@ void bookmark(int k, char *text) {
 }
 
 void search(int k, char* text) {
-  message("to implement");
+  if (!text || !strlen(text)) {
+    FREE(_search);
+  } else {
+    _search= strdup(text);
+  }
 }
 
 // start download in background
@@ -352,9 +358,10 @@ void display(int k) {
   if (fansi) {
     int c, n=top;
     fseek(fansi, 0, SEEK_SET);
-    while((c= fgetc(fansi)) != EOF) {
+    dstr *ln= dstrncat(NULL, NULL, 160);
+    while(c= fgetc(fansi)) {
       // TODO: cleanup when make the hidden lines simplier...
-      if (c=='\n') {
+      if (c=='\n' || c==EOF) {
         c= fgetc(fansi);
         if (c!='\n' && c!='#') {
           if (n<0) putchar('\n');
@@ -368,12 +375,47 @@ void display(int k) {
             if (c==EOF) break;
           }
         }
+
+        clearend();
+
+        if (_search) {
+          char* s= ln->s;
+          char* f= strcasestr(s, _search);
+          while(f) {
+            printf("%.*s", f-s, s);
+            B(red); C(white);
+            printf("%.*s", strlen(_search), f);
+            s= f+strlen(_search);
+            // guess
+            B(white); C(black);
+            // find next
+            f= strcasestr(s, _search);
+          }
+          // print remainding (or all if no match)
+          printf("%s", s);
+            //continue;
+            // no find, wait!
+            //top++; n++;
+        } else {
+          printf("%s", ln->s);
+        }
+        ln->s[0]= 0;
+        if (c==EOF) break;
       }
-      // TODO: hidden escape codes?
-      if (n<0) putchar(c);
+
+      // print actual content
+      if (n<0) {
+        //putchar(c);
+        char ch= c;
+        ln= dstrncat(ln, &c, 1);
+      }
       if (n<=-rows) break;
     }
 
+    putchar('\n');
+
+    // fill in with empty lines
+    B(black); C(white); cleareos();
     fclose(fansi);
   }
 
@@ -494,14 +536,16 @@ keycode command(keycode k, dstr *ds) {
       if (line[0]!='=') line[0]= 0;
       return -1;
 
-    case '/':  case '&':
-      search(line[0], &line[1]);
-      // keep line to allow for more search
-      return -1;
-      
-    case '$': // TODO: string... search?
     case '^': // TODO: ^top search
     case '_': // TODO: _end search
+      break;
+
+    case '/':  case '&':
+      search(line[0], &line[1]);
+      k=0;
+      break;
+    default: // page search
+      search(k, line);
       break;
     }
   }
@@ -511,7 +555,7 @@ keycode command(keycode k, dstr *ds) {
 
     switch(line[0]) {
 
-    case '#': case '@':
+    case '#': case '@': case '$':
       bookmark(line[0], &line[1]);
       line[0]= 0;
       return -1;
@@ -519,7 +563,7 @@ keycode command(keycode k, dstr *ds) {
     case '/':  case '&':
       search(line[0], &line[1]);
       // keep line to allow for more search
-      return -1;
+      break;
       
     case '!':
       // TODO: can't input ls -l *.html LOL
@@ -528,7 +572,6 @@ keycode command(keycode k, dstr *ds) {
       return -1;
 
     case '|': // TODO: pipe HTML/text
-    case '$': // TODO: profit! ?
     case '^': // TODO: move to top?
     case '_': // TODO: bury? _ underline something?
       break;
@@ -885,7 +928,7 @@ void loadPageMetaData() {
 // ^D    ? del-tab, chrome: bookmark
 // ^E    ? emacs - edit file
 // ^F    ? forward (viewed tabs), chrome: search bar
-// ^G    ? goto-line, chrome: next match ^S-G previous
+// ^G    cancel (clear-line/draw), chrome: next match ^S-G previous
 // ^H    help, chrome: history
 // ^I    TAB
 // ^J    RETURN (can't change?), chrome: download-manager
@@ -899,7 +942,7 @@ void loadPageMetaData() {
 // ^R    reload
 // ^S    search, emacs: search, search-next
 // ^T    ? tabs list, chrome: new tab (we don't need)
-// ^U    ? clear-line   , chrome: display HTML
+// ^U    ?    , chrome: display HTML
 // ^V    page-down, M-V page-up
 // ^W    close-tab/window (chrome: close tab)
 // ^X    list-links/shortcuts
@@ -1067,8 +1110,9 @@ keycode editTillEvent() {
     if (!strcmp(line->s, "QUIT")) exit(0);
     cursoroff();
     // clear line
-    if (k==CTRL+'U') {
+    if (k==CTRL+'G' || !line->s[0]) {
       line->s[0]= 0;
+      if (_search) FREE(_search);
       continue;
     }
 

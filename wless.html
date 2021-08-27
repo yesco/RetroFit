@@ -20,22 +20,26 @@
 M-V  M-SPC  DEL - page up
 UP  ^P          - up one line
 DN  ^N          - down one line
-&lt;  ","       - top
-&gt;  "."       - bottom
-^L              - redraw screen
+&lt;  M-&lt;          - top
+&gt;  M-&gt;          - bottom
+^G              - cancel/redraw screen
 ^R              - reload (download+render)
 
-a-z             - follow link in new tab
-A-Z             - open link in background
+ab RET          - follow link in new tab
+TODO: AB RET    - open in background tab
+</pre>
+
+<h3>Searching</h3>
+<pre>
+foo ^S          - search page for "foo"
+^G              - cancel search
 </pre>
 
 <h3>Tabs</h3>
 
 <pre>
-^U             - open URL in <i>new</i> tab
+http://foo      - open URL in <i>new</i> tab
 (^W             - close tab)
-
-A-Z            - follow link in <i>NEW</i> (TAB)
 
 M-A .. M-Z     - open user defined TAB
 M-0 .. M-9     - open user defined TAB
@@ -51,6 +55,7 @@ M-0 .. M-9     - open user defined TAB
 *              - star current page
 #hastag        - Add a hashtag
 $any comment   - Add a comment
+@G             - assign ALT-G to current page (create shortcut)
 
 =query         - Seach for query
 %regexp        - ... using regexp
