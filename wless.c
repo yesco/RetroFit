@@ -1118,7 +1118,6 @@ keycode editTillEvent() {
       _only= 0;
       line->s[0]= 0;
       if (_search) FREE(_search);
-      continue;
     }
 
     // TOUCH DRAG
