@@ -2,6 +2,11 @@
 
 - Start rendering as soon as file loads?
 
+- share/open in system browser
+- on alternative URIs do:
+  termux-open "mailto:foo@bar.com?cc=foo@bar&subject=headline&body=big+fishes"
+- how about alternative types? pdf? images? can detect without loading down? from URL (file endings? enctype?)
+
 - URL completion? log/extract every URL:
   unix> cut -d\  -f3 .whistory  | sort | uniq -c | sort -rn | grep " Te"    !!!
 
