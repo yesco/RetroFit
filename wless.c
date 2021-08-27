@@ -9,6 +9,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <assert.h>
+#include <time.h>
 
 #include "jio.h"
 
@@ -384,9 +385,6 @@ void display(int k) {
         }
         // print remainding (or all if no match)
         printf("%s", s);
-        //continue;
-        // no find, wait!
-        //top++; n++;
         ln->s[0]= 0;
 
         if (c==EOF) break;
@@ -416,11 +414,9 @@ void display(int k) {
       }
       if (n<=-rows) break;
     }
-    //putchar('\n');
-
     B(black); C(white); cleareos();
     fclose(fansi);
-  }
+  } 
 
   // read keyboard shortcuts, page links
   trunclinks(0);
@@ -789,38 +785,33 @@ void scrollTabs() {
 }
 
 void showScroll(int k, int r, int c) {
-  int kxy=0x0000ffff, lxy;
+  int lxy, kxy=k & 0x0000ffff;
   int n= 0, up= 0, dn= 0;
 
-  int d=-1;
-  int rsmax=0;
+  B(black); C(white);
+  // loop until different event
   do {
     // count scrolls
     if (k & SCROLL_UP) up++;
     if (k & SCROLL_DOWN) dn++;
     n++;
 
+    int d=dn-up;
+
     // draw line follow scroll
-    if (1) {
-      gotorc(r-up+dn, c);
-      B(blue); C(white); spc(); B(black); C(white);
-      gotorc(0, 0);
-    }
+    gotorc(r-up+dn, c);
+    B(yellow); spc(); B(black);
 
     // print info
     gotorc(0, 0);
-    B(black); C(white);
     printf("---SCROLL n=%d dn=%d up=%d     ", n, dn, up);
     fflush(stdout);
             
-    // TODO: this will waste an event,
-    // make it stateful func instaed of lop here!
-
-    // consume events while same xy
-    // (as these dont change)
-    // (no care up or down)
+    // location is stored in 2 lowest
     lxy= kxy;
     k= key();
+    gotorc(r-up+dn, c);
+    spc();
     kxy = k & 0x0000ffff;
   } while(lxy==kxy);
 }
