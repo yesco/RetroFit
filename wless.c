@@ -798,11 +798,10 @@ void scrollTabs() {
   // Now, WHAT happens when you create a branch by going back, clicking on a link. There is no forward from that branch?
 }
 
-void showScroll(int k, int r, int c) {
+keycode showScroll(keycode k, int r, int c) {
   int lxy, kxy=k & 0x0000ffff;
   int n= 0, up= 0, dn= 0;
 
-  B(black); C(white);
   // loop until different event
   do {
     // count scrolls
@@ -814,9 +813,10 @@ void showScroll(int k, int r, int c) {
 
     // draw line follow scroll
     gotorc(r-up+dn, c);
-    B(yellow); spc(); B(black);
+    B(yellow); spc();
 
     // print info
+    B(black); C(white);
     gotorc(0, 0);
     printf("---SCROLL n=%d dn=%d up=%d     ", n, dn, up);
     fflush(stdout);
@@ -828,63 +828,69 @@ void showScroll(int k, int r, int c) {
     spc();
     kxy = k & 0x0000ffff;
   } while(lxy==kxy);
+
+  // not ours!
+  return k;
 }
 
 int touchDispatch(int k) {
-  int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
+  // loop till no more scroll,
+  // or exit middle if content scroll
+  while (k & SCROLL) {
+    int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
 
-  // Adjusted Row and Column
-  int ar= r-1, ac= c-1;
+    // Adjusted Row and Column
+    int ar= r-1, ac= c-1;
 
-  // % start areas of interest
-  int pr= r*100/screen_rows;
-  int pc= c*100/screen_cols;
+    // % start areas of interest
+    int pr= r*100/screen_rows;
+    int pc= c*100/screen_cols;
 
-  int top= pr<15, bottom= pr>85;
-  int left= pc<20, right= pc>80;
+    int top= pr<15, bottom= pr>85;
+    int left= pc<20, right= pc>80;
 
-  int center= !left && !right;
-  int middle= !top && !bottom;
+    int center= !left && !right;
+    int middle= !top && !bottom;
 
-  // scrolling content region
-  if (center && middle) return k;
+    // scrolling content region
+    if (center && middle) return k;
 
-  // Drag starting locations
-  if (top && right) {
+    // Drag starting locations
+    if (top && right) {
 
-    // MENU
-    color COLORS[]={
-      yellow, green, cyan, blue, magenta, red, black};
-    // Not probable
-    // Maybe a scroll-pick-hilite-links?
-    char* TEXT[]={
-      "CLOSE", "STAR", "HASHTAB", "UNDO",
-      "LIST", "HISTORY", "QUIT"};
+      // MENU
+      color COLORS[]={
+        yellow, green, cyan, blue, magenta, red, black};
+      // Not probable
+      // Maybe a scroll-pick-hilite-links?
+      char* TEXT[]={
+        "CLOSE", "STAR", "HASHTAB", "UNDO",
+        "LIST", "HISTORY", "QUIT"};
 
-    drawPullDownMenu(COLORS, TEXT, ALEN(COLORS));
+      drawPullDownMenu(COLORS, TEXT, ALEN(COLORS));
+      keycode nk;
+      // wait till event with different coordinates
+      return waitScrollEnd(k);
+    }
+    //else if (top && center) scrollStack();
+    //else if (top && left) scrollBookmarks();
 
+    else if (middle && left) {
+      // history: back & forward
+      return (k & SCROLL_UP) ? LEFT : RIGHT;
+    } else if (middle && right) {
+      // tabs: next & prev
+      return CTRL+ ((k & SCROLL_UP) ? LEFT : RIGHT);
+    }
+    //else if (bottom && left) scrollHistory();
+    // else if (bottom && center) scrollReadings();
+    //else if (bottom && right) scrollTabs();
+    else {
+      // No specific drag-down defined
+      return showScroll(k, ar, ac);
+    }
   }
-  //else if (top && center) scrollStack();
-  //else if (top && left) scrollBookmarks();
 
-  else if (middle && left) {
-    // history: back & forward
-    return (k & SCROLL_UP) ? LEFT : RIGHT;
-  } else if (middle && center) {
-    // reserved: content scroll
-  } else if (middle && right) {
-    // tabs: next & prev
-    return CTRL+ ((k & SCROLL_UP) ? LEFT : RIGHT);
-  }
-  //else if (bottom && left) scrollHistory();
-  else if (bottom && center) {
-    scrollReadings();
-  }
-  //else if (bottom && right) scrollTabs();
-  else {
-    // No specific drag-down defined
-    showScroll(k, ar, ac);
-  }
   return NO_REDRAW;
 }
 
@@ -1125,7 +1131,7 @@ keycode editTillEvent() {
 
     // TOUCH DRAG
     if (k & SCROLL)
-      k= touchDispatch(k);
+      touchDispatch(k);
 
     // not scrolling in borders...
     if (k>0 && (k & SCROLL)) {

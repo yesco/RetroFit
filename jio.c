@@ -288,6 +288,12 @@ keycode key() {
   return k;
 }
 
+keycode waitScrollEnd(keycode k) {
+  keycode nk;
+  while((nk= key()) && (nk & 0xff00ffff)==(k & 0xff00ffff));
+  return nk;
+}
+
 // Returns a static string describing KEY
 // Note: next call may change previous returned value, NOT thread-safe
 char* keystring(int k) {

@@ -126,6 +126,7 @@ typedef enum keycode { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127,
 
 int haskey();
 keycode key();
+keycode waitScrollEnd(keycode k);
 
 char* keystring(int c);
 void testkeys();

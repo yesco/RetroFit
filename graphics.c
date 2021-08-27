@@ -226,7 +226,6 @@ void drawPullDownMenu(color *colors, char **labels, int n) {
       readablefg();
       printf("%s", str);
     }
-    while(haskey()) key();
   }
 }
 
