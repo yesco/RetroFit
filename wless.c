@@ -51,6 +51,7 @@ FILE *fhistory, *fbookmarks;
 int top, right, tab, start_tab;
 
 char *_search= NULL;
+int _only= 0;
 
 char *hit= NULL; // FREE!
 // DONT free (partof hit)
@@ -290,7 +291,7 @@ void display(int k) {
   reset();
   gotorc(0, 0);
   B(black); C(white);
-  printf("./w %.*s", screen_cols-5, url);
+  printf("./w %.*s", screen_cols-8, url);
   fflush(stdout);
 
   // wait for open of ANSI file
@@ -337,8 +338,8 @@ void display(int k) {
     char *u= url, col;
     col= printf("./w ");
     // nprintf !!!
-    char parts[10];
-    int w= snprintf(parts, sizeof(parts), " %d/%d", (top+2)/rows+1, (nlines+0)/rows+1);
+    char parts[15];
+    int w= snprintf(parts, sizeof(parts), " L%d %d/%d", top, (top+2)/rows+1, (nlines+0)/rows+1);
     while (*u) {
       // TODO: unicode?
       putchar(*u++);
@@ -362,10 +363,35 @@ void display(int k) {
     while(c= fgetc(fansi)) {
       // TODO: cleanup when make the hidden lines simplier...
       if (c=='\n' || c==EOF) {
+
+        char *s= ln->s;
+        char *f= _search ? strcasestr(s, _search) : NULL, *found= f;
+        if (_only && !f) *s= 0;
+
+        while(f) {
+          printf("%.*s", f-s, s);
+          B(red); C(white);
+          printf("%.*s", strlen(_search), f);
+          s= f+strlen(_search);
+          // guess
+          B(white); C(black);
+          // find next
+          f= strcasestr(s, _search);
+        }
+        // print remainding (or all if no match)
+        printf("%s", s);
+        //continue;
+        // no find, wait!
+        //top++; n++;
+        ln->s[0]= 0;
+
+        if (c==EOF) break;
+
         c= fgetc(fansi);
         if (c!='\n' && c!='#') {
-          if (n<0) putchar('\n');
-          n--;
+          if (n<0 && (!_only || found)) putchar('\n');
+          if (n>=0 || !_only || found) 
+            n--;
         } else {
           while(c=='\n' || c=='#') {
             // skip comment line
@@ -375,32 +401,7 @@ void display(int k) {
             if (c==EOF) break;
           }
         }
-
         clearend();
-
-        if (_search) {
-          char* s= ln->s;
-          char* f= strcasestr(s, _search);
-          while(f) {
-            printf("%.*s", f-s, s);
-            B(red); C(white);
-            printf("%.*s", strlen(_search), f);
-            s= f+strlen(_search);
-            // guess
-            B(white); C(black);
-            // find next
-            f= strcasestr(s, _search);
-          }
-          // print remainding (or all if no match)
-          printf("%s", s);
-            //continue;
-            // no find, wait!
-            //top++; n++;
-        } else {
-          printf("%s", ln->s);
-        }
-        ln->s[0]= 0;
-        if (c==EOF) break;
       }
 
       // print actual content
@@ -528,7 +529,7 @@ keycode command(keycode k, dstr *ds) {
   if (!*line) return k;
 
   // SEARCHING
-  if (k==RETURN || k==CTRL+'S') {
+  if (k==RETURN || k==CTRL+'S' || k==CTRL+'O') {
     switch(line[0]) {
 
     case '=':
@@ -541,10 +542,13 @@ keycode command(keycode k, dstr *ds) {
       break;
 
     case '/':  case '&':
+      // TODO: O only?
+      _only= (k==CTRL+'O');
       search(line[0], &line[1]);
       k=0;
       break;
     default: // page search
+      _only= (k==CTRL+'O');
       search(k, line);
       break;
     }
@@ -1111,6 +1115,7 @@ keycode editTillEvent() {
     cursoroff();
     // clear line
     if (k==CTRL+'G' || !line->s[0]) {
+      _only= 0;
       line->s[0]= 0;
       if (_search) FREE(_search);
       continue;
