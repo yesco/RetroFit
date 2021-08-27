@@ -294,17 +294,9 @@ void display(int k) {
   // file missing in cache
   // TODO: don't do every time...
   if (!fansi && !ftmp) {
-    // clear content with white (so no flicker)
-    gotorc(1, 0);
-    for(int i=rows; i; i--) {
-      B(white); C(blue);
-      for(int j=(rows-i)*(screen_cols-20-1)/rows; j; j--)
-        putchar(' ');
-      printf("\e[1m... reloading ...\n"); clearend();
-    }
+    drawReloading();
     gotorc(1, 0);
     download(url, 0);
-    
     fansi= fopen(file?file:".stdout", "r");
     ftmp= fopenext(file, ".TMP", "r");
   }
@@ -917,7 +909,7 @@ void loadPageMetaData() {
 keycode keyAction(keycode k) {
   if (k==-1) return k;
 
-  int kc= k & 0x7f; // only char
+  int kc= k & ~META & ~ CTRL;
 
   // -- bookmarks
   // w3m: Esc-b	View bookmarks
@@ -938,7 +930,11 @@ keycode keyAction(keycode k) {
   if (k==CTRL+'X') listshortcuts(),k=-1;
 
   // -- page action
-  if (k==CTRL+'R') reload(url);
+  if (k==CTRL+'R') {
+    drawReloading();
+    reload(url);
+    k= -1;
+  }
   // chrome: CTRL-P: print current webbpage ? save?
   // chrome: CTRL-S: save current webpage
   // chrome: ESC: stop loading webpage
@@ -1129,7 +1125,9 @@ int main(void) {
     }
 
     // - read special event & decode
+    //while(1){
     k= editTillEvent(line);
+    //printf("\n===> %s\n", keystring(k));}
     k= command(k, line);
 
     // -- system

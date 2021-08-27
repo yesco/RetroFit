@@ -390,6 +390,16 @@ char* input(char* prompt) {
 //    This allows the user program to still handle short-cut keys!
 //    
 // See Play/edith.c for example
+
+// TODO: generalize with pass in function
+//
+// validate(k, ds)
+//   =>  +2    accept
+//   =>  +1    accept & break
+//   =>   0    defer to default
+//   =>  -1 reject
+//   =>  -2 break;
+
 keycode edit(dstr **dsp, int width, char *allowed, char *not, char *breaks) {
   // make sure have a pointer
   *dsp= dstrncat(*dsp, NULL, 1);

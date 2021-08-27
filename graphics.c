@@ -32,13 +32,37 @@ int gsizex= 0, gsizey= 0;
 int gx= 0, gy= 0;
 int gbg= black, gfg= white;
 
-gscreen gcanvas() {
-  if (!_gscreen) {
-    gsizex= screen_cols*pixels_per_col;
-    gsizey= screen_rows*pixels_per_row;
-    _gscreen= calloc(gsizex*gsizey, 1);
-    _gscold= calloc(gsizex*gsizey, 1);
+void gallocate(int x, int y, int clear) {
+  gsizex= x;
+  gsizey= y;
+  gscreen old= _gscreen;
+  int size=gsizex*gsizey;
+  if (!old) {
+    _gscreen= malloc(size);
+    _gscold= malloc(size);
+    clear= 1;
   }
+  if (clear) {
+    memset(_gscreen, none, size);
+    memset(_gscold, none, size);
+//    gx= 0, gy= 0, gbg= black, gfg= white;
+  }
+}
+
+// TODO: generalize
+gscreen gclear() {
+  gallocate(
+    screen_cols*pixels_per_col,
+    screen_rows*pixels_per_row,
+    1);
+  return _gscreen;
+}
+
+gscreen gcanvas() {
+  gallocate(
+    screen_cols*pixels_per_col,
+    screen_rows*pixels_per_row,
+    0);
   return _gscreen;
 }
 
@@ -59,6 +83,7 @@ pixel gset(int x, int y, int c) {
 }
 
 void gupdate() {
+  save();
   pixel lastbg= black, lastfg= white;
   int lastr= -1, lastc= -1;
 
@@ -87,25 +112,30 @@ void gupdate() {
       pixel fg= MAX(a, MAX(b, MAX(c, d)));
       // decide bg color
       pixel bg= MIN(a, MIN(b, MIN(c, d)));
-      // TODO: messed up?
-      if (fg>7) fg= 7;
-      if (bg>7) bg= 7;
-      fg= gfg;
-      bg= black;
+
+      bg= gbg;
 
       // decide if fg
       // TODO: make better
-      int fa= !!a, fb= !!b;
-      int fc= !!c, fd= !!d;
+      int fa= a!=bg && a!=none;
+      int fb= b!=bg && b!=none;
+      int fc= c!=bg && c!=none;
+      int fd= d!=bg && d!=none;
+
+      // colors?
+      fg= fa? a : fb? b : fc? c : fd? d : gfg;
 
       // print quad-block
       const char* s= BLOCKS[fa*1+fb*2+fc*4+fd*8];
       if (bg!=lastbg) B(lastbg= bg);
       if (fg!=lastfg) C(lastfg= fg);
+      B(bg); C(fg);
       printf("%s", s);
     }
   }
   memcpy(_gscold, _gscreen, gsizey*gsizex);
+  restore();
+  fflush(stdout);
 }
 
 void gputc(char c) {
@@ -117,11 +147,10 @@ void gputc(char c) {
     for (int x=0; x<8; x++) {
       if (bits & 1<<x)
         gset(gx+x, gy+y, gfg);
-      //else
-      //gset(gx+x, gy+y, gbg);
+      else
+        gset(gx+x, gy+y, gbg);
     }
   }
-  gupdate();
 }
 
 void gputs(char *s) {
@@ -140,11 +169,17 @@ void gputs(char *s) {
   }
 }
 
+void drawCenteredText(char* s) {
+  int len= strlen(s);
+  gy= (gsizey-8*1)/2;
+  gx= (gsizex-8*len)/2;
+  if (gx<0) gy-=4,gx=0; // overflow... wrap
+  gputs(s);
+}
 
 
 ////////////////////////////////////////
 // figures
-
 
 
 
@@ -157,6 +192,17 @@ void drawX() {
     gotorc(rr, screen_cols-col-1); B(black); spaces(3);
   }
   usleep(10*1000);
+}
+
+void drawReloading() {
+  //gbg= white; gfg= black;
+  //gbg= white;
+  // TODO: bg not working!
+  gclear();
+  gfg= black;
+  gbg= white;
+  drawCenteredText("Loading");
+  gupdate();
 }
 
 void drawPullDownMenu(color *colors, char **labels, int n) {
@@ -229,9 +275,10 @@ int main(void) {
   screen_init();
   cursoroff();
 
-  gset(10, 10, 255);
-
-  switch(4) {
+  switch(6) {
+  case -1:
+    gset(10, 10, 255);
+    break;
 
   case 0: // X
     for(int y=0; y<gsizey; y++) {
@@ -242,12 +289,14 @@ int main(void) {
       gupdate();
     }
     break;
+
   case 1: // line
     for(int x=0; x<gsizex; x++) {
       gset(x, 0, 255);
       gupdate();
     }
     break;
+
   case 2: // block
     for(int x=0; x<gsizex; x++) {
       for(int y=0; y<gsizey; y++) {
@@ -256,6 +305,7 @@ int main(void) {
       gupdate();
     }
     break;
+
   case 3: // block horiz=faster
     for(int y=0; y<gsizey; y++) {
       for(int x=0; x<gsizex; x++) {
@@ -264,6 +314,7 @@ int main(void) {
       gupdate();
     }
     break;
+
   case 4: // plots
     // 23 s => 0.856s in highest reso
     // (opt of only update delta)
@@ -273,10 +324,17 @@ int main(void) {
     }
     
     break;
-  case 5:
-      gset(30,30,255);
-      gputc('X');
-      break;
+
+  case 5: // X
+    gfg= green;
+    gset(30,30,255);
+    gputc('X');
+    break;
+
+  case 6:
+    drawReloading();
+    //exit(1);
+    break;
   }
   gupdate();
   
