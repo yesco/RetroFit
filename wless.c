@@ -288,17 +288,7 @@ void reload(char* url) {
   download(url, 1);
 }
 
-
-// --- Display
-void display(int k) {
-
-  // -- header
-  reset();
-  gotorc(0, 0);
-  B(black); C(white);
-  printf("./w %.*s", screen_cols-8, url);
-  fflush(stdout);
-
+FILE *openOrReloadAnsi() {
   // wait for open of ANSI file
   FILE *fansi= fopen(file?file:".stdout", "r");
   FILE *ftmp= fopenext(file, ".TMP", "r");
@@ -309,7 +299,6 @@ void display(int k) {
     drawReloading();
     gotorc(1, 0);
     download(url, 0);
-    fansi= fopen(file?file:".stdout", "r");
     ftmp= fopenext(file, ".TMP", "r");
   }
   // wait if have .TMP till not there
@@ -330,11 +319,26 @@ void display(int k) {
     
     ftmp= fopenext(file, ".TMP", "r");
   }
-  nlines= fansi? flines(fansi) : -1;
   if (ftmp) fclose(ftmp);
 
   fansi= fopen(file?file:".stdout", "r");
+  nlines= fansi? flines(fansi) : -1;
+  return fansi;
+}
 
+// --- Display
+void display(int k) {
+
+  // -- header
+  reset();
+  gotorc(0, 0);
+  B(black); C(white);
+  printf("./w %.*s", screen_cols-16, url);
+  fflush(stdout);
+
+  FILE *fansi= openOrReloadAnsi();
+  if (!fansi) return;
+    
   // --- print header for real!
   reset();
   gotorc(0, 0);
@@ -344,12 +348,12 @@ void display(int k) {
     col= printf("./w ");
     // nprintf !!!
     char parts[15];
-    int w= snprintf(parts, sizeof(parts), " L%d %d/%d", top, (top+2)/rows+1, (nlines+0)/rows+1);
+    int w= snprintf(parts, sizeof(parts), " L%d %d/%d", top, (top+2)/rows+1, (nlines+rows/2)/rows);
     while (*u) {
       // TODO: unicode?
       putchar(*u++);
       col++;
-      if (col+1 >= screen_cols-5) break;
+      if (col+1 >= screen_cols-w) break;
     }
     // space out
     while (col++ < screen_cols-w) putchar(' ');
@@ -583,14 +587,14 @@ keycode command(keycode k, dstr *ds) {
     if (strspn(line, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")==len) {
       tab= click(line);
       line[0]= 0;
-      return NO_REDRAW;
+      return 0;
     }
 
     // url? or file? have /:.?
     if (strchr(line+1, '/') || strchr(line+1, ':') || strchr(line, '.')) {
       tab= newtab(line);
       line[0]= 0;
-      return NO_REDRAW;
+      return 0;
     }
   }
 
