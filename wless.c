@@ -38,6 +38,10 @@ void message(char* format, ...) {
 }
 
 
+// set k=NO_REDRAW to not update screen
+// (good for showing temporary information like menus/hilite)
+#define NO_REDRAW -1
+
 // --- limits
 int nlines= 0, nright= 10;
 
@@ -240,7 +244,7 @@ void bookmark(int k, char *text) {
   if (k=='*' || k==CTRL+'D') {
     // TODO: to save the seekpos too!
     logbookmark('*', "");
-    k= -1;
+    k= NO_REDRAW;
     return;
   }
 
@@ -251,7 +255,7 @@ void bookmark(int k, char *text) {
   if (k=='=') {
     // TODO: make a loop around it allowing "incremental" search
     listbookmarks(NULL, text);
-    k= -1;
+    k= NO_REDRAW;
   }
 }
 
@@ -533,7 +537,7 @@ keycode command(keycode k, dstr *ds) {
     case '=':
       bookmark(line[0], &line[1]);
       if (line[0]!='=') line[0]= 0;
-      return -1;
+      return NO_REDRAW;
 
     case '^': // TODO: ^top search
     case '_': // TODO: _end search
@@ -560,7 +564,7 @@ keycode command(keycode k, dstr *ds) {
     case '#': case '@': case '$':
       bookmark(line[0], &line[1]);
       line[0]= 0;
-      return -1;
+      return NO_REDRAW;
 
     case '/':  case '&':
       search(line[0], &line[1]);
@@ -571,7 +575,7 @@ keycode command(keycode k, dstr *ds) {
       // TODO: can't input ls -l *.html LOL
       // TODO: replace %u w URL
       system(&line[1]);
-      return -1;
+      return NO_REDRAW;
 
     case '|': // TODO: pipe HTML/text
     case '^': // TODO: move to top?
@@ -583,14 +587,14 @@ keycode command(keycode k, dstr *ds) {
     if (strspn(line, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")==len) {
       tab= click(line);
       line[0]= 0;
-      return -1;
+      return NO_REDRAW;
     }
 
     // url? or file? have /:.?
     if (strchr(line+1, '/') || strchr(line+1, ':') || strchr(line, '.')) {
       tab= newtab(line);
       line[0]= 0;
-      return -1;
+      return NO_REDRAW;
     }
   }
 
@@ -668,7 +672,7 @@ int clickDispatch(int k) {
   // TODO: make function/macro/API?
   int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
   int save_k= k;
-  k= -1;
+  k= NO_REDRAW;
 
   // Adjusted Row and Column (calibrate?)
   int ar= r-1, ac= c-1;
@@ -680,7 +684,7 @@ int clickDispatch(int k) {
   int l= (sizeof(LEVELS)-1)*ar/screen_rows;
   int d= (sizeof(DIST)-1)*ac/screen_cols;
   if (LEVELS[l]==' ' || DIST[d]==' ')
-    return -1; // keep waiting
+    return NO_REDRAW;
 
   showClickableRegions(l, d);
 
@@ -879,7 +883,7 @@ int touchDispatch(int k) {
 
     showScroll(k, ar, ac);
     // Show screen till next event
-    k= -1;
+    k= NO_REDRAW;
   }
   return k;
 }
@@ -952,7 +956,7 @@ void loadPageMetaData() {
 // ^Z    ZUSPEND/ZLEEP
 
 keycode keyAction(keycode k) {
-  if (k==-1) return k;
+  if (k==NO_REDRAW) return k;
 
   int kc= k & ~META & ~ CTRL;
 
@@ -967,18 +971,18 @@ keycode keyAction(keycode k) {
   // ^S-D- save all open tabs as "folder" (chrome)
   if (k==CTRL+'D' || (k<127 && strchr("=*#$", k))) {
     bookmark(k, line->s);
-    k= -1;
+    k= NO_REDRAW;
   }
-  if (k==CTRL+'A') listbookmarks(NULL, NULL),k=-1;;
-  if (k==CTRL+'Q') listbookmarks(url, NULL),k=-1;
+  if (k==CTRL+'A') listbookmarks(NULL, NULL),k=NO_REDRAW;
+  if (k==CTRL+'Q') listbookmarks(url, NULL),k=NO_REDRAW;
 
-  if (k==CTRL+'X') listshortcuts(),k=-1;
+  if (k==CTRL+'X') listshortcuts(),k=NO_REDRAW;
 
   // -- page action
   if (k==CTRL+'R') {
     drawReloading();
     reload(url);
-    k= -1;
+    k= NO_REDRAW;
   }
   // chrome: CTRL-P: print current webbpage ? save?
   // chrome: CTRL-S: save current webpage
@@ -1133,8 +1137,6 @@ keycode editTillEvent() {
     if ((k & MOUSE) && !(k & SCROLL))
       k= clickDispatch(k);
 
-    // set k= -1 to not update screen
-    // (good for menus/hilite)
   } while (k<0);
 
   return k;
@@ -1164,8 +1166,7 @@ int main(void) {
     loadPageMetaData();
 
     // avoid update if events waiting
-    // (setting k=-1 means no update screen)
-    if (!haskey() && k!=-1) {
+    if (!haskey() && k!=NO_REDRAW) {
       display(k);
       visited();
     }
