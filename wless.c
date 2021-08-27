@@ -383,8 +383,9 @@ void printAnsiLines(FILE *fansi, int top) {
     if (n<=-rows) break;
   }
 
-  // clear rest
+  // clear rest of screen
   B(black); C(white); cleareos();
+  fflush(stdout);
 }
 
 // --- Display
@@ -402,6 +403,7 @@ void display(int k) {
   if (!fansi) return;
     
   // --- print header for real!
+  // (we needed to wait for nlines)
   reset();
   gotorc(0, 0);
   if (url) {
@@ -425,9 +427,9 @@ void display(int k) {
   // -- main content
   B(white); C(black);
   gotorc(1, 0);
-  fflush(stdout);
 
   printAnsiLines(fansi, top);
+
   fclose(fansi);
 
   // read keyboard shortcuts, page links
@@ -844,12 +846,13 @@ int touchDispatch(int k) {
   int center= !left && !right;
   int middle= !top && !bottom;
 
-  // to differentiate new event
-  static int lastk= 0;
-  lastk= k;;
+  // scrolling content region
+  if (center && middle) return k;
 
-  // Drag down actions:
+  // Drag starting locations
   if (top && right) {
+
+    // MENU
     color COLORS[]={
       yellow, green, cyan, blue, magenta, red, black};
     // Not probable
@@ -860,21 +863,18 @@ int touchDispatch(int k) {
 
     drawPullDownMenu(COLORS, TEXT, ALEN(COLORS));
 
-    // wait for other event
-    while((k= key()) == lastk);
-
   }
   //else if (top && center) scrollStack();
   //else if (top && left) scrollBookmarks();
 
   else if (middle && left) {
     // history: back & forward
-    k= (k & SCROLL_UP) ? LEFT : RIGHT;
+    return (k & SCROLL_UP) ? LEFT : RIGHT;
   } else if (middle && center) {
     // reserved: content scroll
   } else if (middle && right) {
     // tabs: next & prev
-    k= CTRL+ ((k & SCROLL_UP) ? LEFT : RIGHT);
+    return CTRL+ ((k & SCROLL_UP) ? LEFT : RIGHT);
   }
   //else if (bottom && left) scrollHistory();
   else if (bottom && center) {
@@ -882,13 +882,10 @@ int touchDispatch(int k) {
   }
   //else if (bottom && right) scrollTabs();
   else {
-    // No a drag-down defined
-
+    // No specific drag-down defined
     showScroll(k, ar, ac);
-    // Show screen till next event
-    k= NO_REDRAW;
   }
-  return k;
+  return NO_REDRAW;
 }
 
 ////////////////////////////////////////
@@ -1103,6 +1100,7 @@ keycode keyAction(keycode k) {
 
 keycode editTillEvent() {
   int k;
+
   // loops capture menu drag events
   do {
 
@@ -1130,7 +1128,7 @@ keycode editTillEvent() {
       k= touchDispatch(k);
 
     // not scrolling in borders...
-    if (k & SCROLL) {
+    if (k>0 && (k & SCROLL)) {
       // Simplify to SCROLL_UP/DOWN
       k &= SCROLL;
       break;

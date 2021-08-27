@@ -133,25 +133,46 @@ Not really bugs, but behaviour that could be fixed:
 <li>Search cannot handle spaces, can't input! lol</li
 </ul>
 
+<li>Search will match numbers and data from hidden text, as well as link url and ESC ansi codes - how much do I care?</li>
+
 <h2 id="todo">TODO:</h2>
 <ul>
+
 <li>Handle image tag, show alt. Image maps too.</li>
+
 <li>Navigate to links by cursor movements.</li>
+
 <li> &lt; ordered lists!</li>
+
 <li>handle &lt;foo id="name"&gt; #name links, and be able to go to them; need to embed-hide it in the .ansi-file! (all id/name?) &lt;a name="foo"&gt; is <a href="https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigate">deprecated</a>.</li>
+
 </ul>
 
 <h2>Bugs in ./w</h2>
 <ul>
+
 <li>After &lt; h2 &lt; if there is no text following the h2 takes 2 lines (with same background color)</li>
+
 <li>Much improved, but...still word-wrap for unicode occasionally messes up some charact...? Tests/words.html</li>
+
 <li>headers than span more than one line, don't break lines correctly, this messess up the output of wdisplay...
+
 <li>URL#foo need to strip #foo when loading?</li>
+
 <li>Need to decode attributes: yahoo.com encodes href... - https:%26%23x2F%3b%26%23x2F%3bnews.yahoo.com%26%23x2F%3b.ansi LOL</li>
+
 <li>Wrap too early, and space missing, COLS=39:<br>aa b c d e f g h i j k l m n o p Q R s t u v w x y z</li>
+
 <li>ab cd ef gh ij kl mn op qr st uv wx yz</li>
+
 <li>when go to page, if cached it never updates</li>
+
 <li>rewrite /FOO/../ => /FOO/ test here=<a href="https://lysator.liu.se/foreningen/../lokaler">lysator.liu.se/foreningen/../lokaler</a>.</li>
+
 <li>Some things don't render, depending on URL like <a href="https://liu.se/biblioteket">liu.se/biblioteket</li> is ok, but not <a href="https://liu.se/biblioteket">https://liu.se/biblioteket</a>. ??? <a href="bbc.com">bbc.com</a> also gives trouble.</li>
+
 <li>headlines full-width characters doesincorrect wrapping (no insert \n) when text not fit on one line? (even if we counting?)</li>
+
+<li>searching doesn't find text in headers as they are fullwidth characters, could print it hidden with ^M so it'll match (but not visible) ^O would print it, but in either case: no hilite</li>
+
 </ul>

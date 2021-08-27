@@ -1,5 +1,9 @@
 # TODOs ideas for ./w
 
+- runeberg.org using iso-8850-1 latin-1? need translation (see js)
+
+- optimized the nlines, no need count all bytes every time?
+
 - Start rendering as soon as file loads?
 
 - share/open in system browser
