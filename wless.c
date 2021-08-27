@@ -789,7 +789,7 @@ void scrollTabs() {
 }
 
 void showScroll(int k, int r, int c) {
-  int kxy, lxy;
+  int kxy=0x0000ffff, lxy;
   int n= 0, up= 0, dn= 0;
 
   int d=-1;
