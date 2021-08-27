@@ -288,7 +288,8 @@ void reload(char* url) {
   download(url, 1);
 }
 
-FILE *openOrReloadAnsi() {
+// opens ansi file, or reloads it and waits, any key will return
+FILE *openOrWaitReloadAnsi() {
   // wait for open of ANSI file
   FILE *fansi= fopen(file?file:".stdout", "r");
   FILE *ftmp= fopenext(file, ".TMP", "r");
@@ -329,14 +330,15 @@ FILE *openOrReloadAnsi() {
 // --- Display
 void display(int k) {
 
-  // -- header
+  // -- update header
+  // (as it may have changed)
   reset();
   gotorc(0, 0);
   B(black); C(white);
   printf("./w %.*s", screen_cols-16, url);
   fflush(stdout);
 
-  FILE *fansi= openOrReloadAnsi();
+  FILE *fansi= openOrWaitReloadAnsi();
   if (!fansi) return;
     
   // --- print header for real!
