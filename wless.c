@@ -327,6 +327,66 @@ FILE *openOrWaitReloadAnsi() {
   return fansi;
 }
 
+void printAnsiLines(FILE *fansi, int top) {
+  int c, n=top;
+  fseek(fansi, 0, SEEK_SET);
+  dstr *ln= dstrncat(NULL, NULL, 160);
+  while(c= fgetc(fansi)) {
+    // TODO: cleanup when make the hidden lines simplier...
+    if (c=='\n' || c==EOF) {
+
+      char *s= ln->s;
+      char *f= _search ? strcasestr(s, _search) : NULL, *found= f;
+      if (_only && !f) *s= 0;
+
+      while(f) {
+        printf("%.*s", f-s, s);
+        B(red); C(white);
+        printf("%.*s", strlen(_search), f);
+        s= f+strlen(_search);
+        // guess
+        B(white); C(black);
+        // find next
+        f= strcasestr(s, _search);
+      }
+      // print remainder
+      printf("%s", s);
+      ln->s[0]= 0;
+
+      if (c==EOF) break;
+      c= fgetc(fansi);
+      if (c!='\n' && c!='#') {
+
+        // count of lines printed
+        if (n<0 && (!_only || found))
+          putchar('\n');
+        if (n>=0 || !_only || found)
+          n--;
+
+      } else {
+        // skip comment line(s)
+        while(c=='\n' || c=='#') {
+          if (c=='#')
+            while((c= fgetc(fansi)) != EOF && c!='\n');
+          c= fgetc(fansi);
+          if (c==EOF) break;
+        }
+      }
+      clearend();
+    }
+
+    // print actual char
+    if (n<0) {
+      char ch= c;
+      ln= dstrncat(ln, &c, 1);
+    }
+    if (n<=-rows) break;
+  }
+
+  // clear rest
+  B(black); C(white); cleareos();
+}
+
 // --- Display
 void display(int k) {
 
@@ -367,62 +427,8 @@ void display(int k) {
   gotorc(1, 0);
   fflush(stdout);
 
-  if (fansi) {
-    int c, n=top;
-    fseek(fansi, 0, SEEK_SET);
-    dstr *ln= dstrncat(NULL, NULL, 160);
-    while(c= fgetc(fansi)) {
-      // TODO: cleanup when make the hidden lines simplier...
-      if (c=='\n' || c==EOF) {
-
-        char *s= ln->s;
-        char *f= _search ? strcasestr(s, _search) : NULL, *found= f;
-        if (_only && !f) *s= 0;
-
-        while(f) {
-          printf("%.*s", f-s, s);
-          B(red); C(white);
-          printf("%.*s", strlen(_search), f);
-          s= f+strlen(_search);
-          // guess
-          B(white); C(black);
-          // find next
-          f= strcasestr(s, _search);
-        }
-        // print remainding (or all if no match)
-        printf("%s", s);
-        ln->s[0]= 0;
-
-        if (c==EOF) break;
-
-        c= fgetc(fansi);
-        if (c!='\n' && c!='#') {
-          if (n<0 && (!_only || found)) putchar('\n');
-          if (n>=0 || !_only || found) 
-            n--;
-        } else {
-          while(c=='\n' || c=='#') {
-            // skip comment line
-            if (c=='#')
-              while((c= fgetc(fansi)) != EOF && c!='\n');
-            c= fgetc(fansi);
-            if (c==EOF) break;
-          }
-        }
-        clearend();
-      }
-
-      // print actual content
-      if (n<0) {
-        //putchar(c);
-        char ch= c;
-        ln= dstrncat(ln, &c, 1);
-      }
-      if (n<=-rows) break;
-    }
-    B(black); C(white); cleareos();
-    fclose(fansi);
-  } 
+  printAnsiLines(fansi, top);
+  fclose(fansi);
 
   // read keyboard shortcuts, page links
   trunclinks(0);
