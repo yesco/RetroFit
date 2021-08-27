@@ -412,10 +412,8 @@ void display(int k) {
       }
       if (n<=-rows) break;
     }
+    //putchar('\n');
 
-    putchar('\n');
-
-    // fill in with empty lines
     B(black); C(white); cleareos();
     fclose(fansi);
   }
@@ -1150,7 +1148,7 @@ int main(void) {
   cursoroff();
   system("echo '`date --iso=ns` #=WLESS`' >> .wlog");
   screen_init();
-  rows = screen_rows-2;
+  rows = screen_rows-1;
 
   // --- Open files for persistent state
   // (append+ will create if need)
