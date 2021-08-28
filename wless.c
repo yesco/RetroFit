@@ -870,6 +870,10 @@ keycode flickMenu(keycode k) {
 }
 
 keycode touchDispatch(keycode k) {
+  // LOL: this function shadows "top"
+  // (TODO: maybe change global name?)
+  int current_line= top;
+
   // loop till no more scroll,
   // or exit middle if content scroll
   while (k & SCROLL) {
@@ -901,7 +905,15 @@ keycode touchDispatch(keycode k) {
       return (k & SCROLL_UP) ? LEFT : RIGHT;
     } else if (middle && right) {
       // tabs: next & prev
-      return CTRL+ ((k & SCROLL_UP) ? LEFT : RIGHT);
+
+      // show page numbers
+      gclear();
+      char parts[15];
+      snprintf(parts, sizeof(parts), " %d/%d ", (current_line+2)/rows+1, (nlines+rows/2)/rows);
+      drawCenteredText(parts);
+      gupdate();
+
+      return (k & SCROLL_UP) ? META+'V' : CTRL+'V';
     }
     //else if (bottom && left) k= scrollHistory();
     // else if (bottom && center) k= scrollReadings();

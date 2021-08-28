@@ -173,7 +173,7 @@ void gputs(char *s) {
 void drawCenteredText(char *s) {
   if (!s) return;
   int len= strlen(s);
-  gy= (gsizey-8*1)/2;
+  gy= (gsizey-8*1)/3; // upper 3rd
   gx= (gsizex-8*len)/2;
   if (gx<0) gy-=4,gx=0; // overflow... wrap
   gputs(s);
