@@ -1,5 +1,8 @@
 # TODOs ideas for ./w
 
+- when going back/forward in history skip several sequences of same URLs? (actully, they may have different positions/top?)  (or don't add?)
+- reload shouldn't (?) add to history?
+
 - show welcom splash screen at startup instead of blank
 
 - validate URL before calling wget
