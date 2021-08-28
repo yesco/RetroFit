@@ -1,5 +1,13 @@
 # TODOs ideas for ./w
 
+- w.x always log time it took for each file... this to find out extremes!
+
+- at 100x100 scrolling is slow. less -r is fast scrolling down, but struggle upwards! I'm guessing it prints line at end and scrolls, but upwards it redraws. Curiously, if you scroll slowly upwards it's fine. Fast down, ok, fast up, no ok.
+= Reading file each time from beginning is "stupid" cache, at least offset[lineno] need darray! or just read once for all (read twice first time, or only as when scrolls?).
+
+???? Research: how much is slowdown because of "reading" 100x100==10 000 chars on screen, maybe 3x with formatting, read all, printf all? same speed as getc?
+=== 300K ansi takes 8s to display on small screen, 11s on 97x109, this is captured output from loop 1..300 of wdisplay for each line full screen from top to bottom
+
 - when going back/forward in history skip several sequences of same URLs? (actully, they may have different positions/top?)  (or don't add?)
 - reload shouldn't (?) add to history?
 

@@ -154,6 +154,7 @@ void gputc(char c) {
 }
 
 void gputs(char *s) {
+  if (!s) return;
   int c;
   while((c= *s++)) {
     if (c=='\n' || gx+8>=gsizex) {
@@ -169,7 +170,8 @@ void gputs(char *s) {
   }
 }
 
-void drawCenteredText(char* s) {
+void drawCenteredText(char *s) {
+  if (!s) return;
   int len= strlen(s);
   gy= (gsizey-8*1)/2;
   gx= (gsizex-8*len)/2;

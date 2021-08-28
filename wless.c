@@ -3,6 +3,7 @@
 // - http://git.savannah.gnu.org/cgit/coreutils.git/tree/src/tail.c
 
 // partly from old imacs.c
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -337,6 +338,15 @@ FILE *openOrWaitReloadAnsi() {
 
   if (!fansi && netErr()) return NULL;
   
+//  -- no difference in speed...
+// wc: takes 0.01s
+// cat: takes 0.11s
+//
+//  static char *buffer= NULL;
+//  static int *size= 100*100*3;
+//  if (!buffer) buffer= malloc(size);
+//  if (fansi) setbuffer(fansi, buffer, size); // _IOFBF, size);
+
   nlines= fansi? flines(fansi) : -1;
   return fansi;
 }
@@ -847,7 +857,19 @@ keycode showScroll(keycode k, int r, int c) {
   return k;
 }
 
-int touchDispatch(int k) {
+keycode flickMenu(keycode k) {
+  // MENU
+  color COLORS[]={
+    yellow, green, cyan, blue, magenta, red, black};
+  char* TEXT[]={
+    "CLOSE", "STAR", "HASHTAB", "UNDO",  "LIST", "HISTORY", "QUIT"};
+
+  drawPullDownMenu(COLORS, TEXT, ALEN(COLORS));
+
+  return waitScrollEnd(k);
+}
+
+keycode touchDispatch(keycode k) {
   // loop till no more scroll,
   // or exit middle if content scroll
   while (k & SCROLL) {
@@ -870,22 +892,7 @@ int touchDispatch(int k) {
     if (center && middle) return k;
 
     // Drag starting locations
-    if (top && right) {
-
-      // MENU
-      color COLORS[]={
-        yellow, green, cyan, blue, magenta, red, black};
-      // Not probable
-      // Maybe a scroll-pick-hilite-links?
-      char* TEXT[]={
-        "CLOSE", "STAR", "HASHTAB", "UNDO",
-        "LIST", "HISTORY", "QUIT"};
-
-      drawPullDownMenu(COLORS, TEXT, ALEN(COLORS));
-      keycode nk;
-      // wait till event with different coordinates
-      return waitScrollEnd(k);
-    }
+    if (top && right) k= flickMenu(k);
     //else if (top && center) k= scrollStack();
     //else if (top && left) k= scrollBookmarks();
 
