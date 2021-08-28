@@ -194,15 +194,28 @@ void drawX() {
   usleep(10*1000);
 }
 
-void drawReloading() {
-  //gbg= white; gfg= black;
-  //gbg= white;
-  // TODO: bg not working!
+// clear only content area
+void wclear() {
   gclear();
-  gfg= black;
-  gbg= white;
-  drawCenteredText("Loading");
+  B(black); C(white);
+  for(int r=0; r<screen_rows-2; r++) {
+    clearend(); putchar('\n');
+  }
+  fflush(stdout);
+}
+
+void drawReloading() {
+  gclear(); gfg= black; gbg= white;
+  drawCenteredText(" Loading ");
   gupdate();
+  gotorc(0,0);
+}
+
+void drawNetErr() {
+  gclear(); gfg= black; gfg= red;
+  drawCenteredText("NetError");
+  gupdate();
+  gotorc(0,0);
 }
 
 void drawPullDownMenu(color *colors, char **labels, int n) {

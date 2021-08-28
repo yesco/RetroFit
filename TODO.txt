@@ -1,5 +1,15 @@
 # TODOs ideas for ./w
 
+- show welcom splash screen at startup instead of blank
+
+- validate URL before calling wget
+
+- indicate that a cashed version is shown "days old" (if too old reload autoamtically? Still show old first, then reload in background)
+
+- generlize .wnetdown to contain message? maybe just general error at loading from external program?
+
+- not give loading error on mailto: ?
+
 - runeberg.org using iso-8850-1 latin-1? need translation (see js)
 
 - optimized the nlines, no need count all bytes every time?

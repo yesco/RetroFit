@@ -13,6 +13,14 @@
 
 ./wbuild || exit $!
 
+# -- check internet connection
+# (for some reason can't do exactly this from C?)
+
+wget -O /dev/null example.com 2>/dev/null || (\
+  printf "\e[41;37m%% ./w: No internet connection!\e[40;37m\n\n\n" ;\
+  printf "(press RETURN to continue)\n" ;\
+  read foo)
+
 # -- download/refresh in background
 
 stty size >/dev/null
@@ -21,6 +29,9 @@ for f in "$@"
 do
   ./wdownload -d "$f" $LINES $COLUMNS &
 done
+
+# wait for wdownload to write to .whistory
+sleep 0.2
 
 # -- browse
 

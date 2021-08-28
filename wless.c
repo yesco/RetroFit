@@ -134,13 +134,14 @@ int loadshortcuts(char *file) {
 }
 
 // TODO: search prefixkey, or string
-void listshortcuts() {
+keycode listshortcuts() {
   clear();
   printf("\n=== BOOKMARKS ===\n\n");
   for(int i=0; i<nlinks; i++) 
     printf("%s\n", links[i]);
   printf("\n===Press key to continue\n");
   key();
+  return NO_REDRAW;
 }
 
 // TODO: research universal XML bookmarks format called XBEL, also supported by e.g. Galeon, various "always-have-my-bookmarks" websites and number of universal bookmark converters.
@@ -157,7 +158,7 @@ void logbookmark(int k, char *s) {
   message("Saved bookmark '%c' = '%s'", k, s);
 }
 
-void listbookmarks(char *url, char *s) {
+keycode listbookmarks(char *url, char *s) {
   char *line;
   clear();
   C(black); B(white);
@@ -237,29 +238,26 @@ cursoron();
   printf("\n%d Matching Lines", mcount);
   printf("\n(press key to continue)");
   fflush(stdout);
+  return NO_REDRAW;
 }
 
-void bookmark(int k, char *text) {
+keycode bookmark(int k, char *text) {
   int cpos= -1; // TODO
 
   if (k=='*' || k==CTRL+'D') {
-    // TODO: to save the seekpos too!
-    logbookmark('*', "");
-    k= NO_REDRAW;
-    return;
+    k= '*'; text= "";
   }
 
-  // also logs searches!
+  // log all including searches!
   logbookmark(k, text);
 
   // search
-  if (k=='=') {
-    // TODO: make a loop around it allowing "incremental" search
-    listbookmarks(NULL, text);
-    k= NO_REDRAW;
-  }
+  if (k=='=') listbookmarks(NULL, text);
+
+  return NO_REDRAW;
 }
 
+// search is performed in printAnsiLines()
 void search(int k, char* text) {
   if (!text || !strlen(text)) {
     FREE(_search);
@@ -286,6 +284,17 @@ void download(char* url, int force) {
 
 void reload(char* url) {
   download(url, 1);
+}
+
+int netErr() {
+  // net down?
+  FILE *f= fopen(".wnetdown", "r");
+  if (f) {
+    drawNetErr();
+    fclose(f);
+    return 1;
+  }
+  return 0;
 }
 
 // opens ansi file, or reloads it and waits, any key will return
@@ -318,11 +327,16 @@ FILE *openOrWaitReloadAnsi() {
       
     putchar('>'); fflush(stdout);
     
+    if (netErr()) return NULL;
+
     ftmp= fopenext(file, ".TMP", "r");
   }
   if (ftmp) fclose(ftmp);
 
   fansi= fopen(file?file:".stdout", "r");
+
+  if (!fansi && netErr()) return NULL;
+  
   nlines= fansi? flines(fansi) : -1;
   return fansi;
 }
@@ -872,8 +886,8 @@ int touchDispatch(int k) {
       // wait till event with different coordinates
       return waitScrollEnd(k);
     }
-    //else if (top && center) scrollStack();
-    //else if (top && left) scrollBookmarks();
+    //else if (top && center) k= scrollStack();
+    //else if (top && left) k= scrollBookmarks();
 
     else if (middle && left) {
       // history: back & forward
@@ -882,12 +896,12 @@ int touchDispatch(int k) {
       // tabs: next & prev
       return CTRL+ ((k & SCROLL_UP) ? LEFT : RIGHT);
     }
-    //else if (bottom && left) scrollHistory();
-    // else if (bottom && center) scrollReadings();
-    //else if (bottom && right) scrollTabs();
+    //else if (bottom && left) k= scrollHistory();
+    // else if (bottom && center) k= scrollReadings();
+    //else if (bottom && right) k= scrollTabs();
     else {
       // No specific drag-down defined
-      return showScroll(k, ar, ac);
+      k= showScroll(k, ar, ac);
     }
   }
 
@@ -979,10 +993,10 @@ keycode keyAction(keycode k) {
     bookmark(k, line->s);
     k= NO_REDRAW;
   }
-  if (k==CTRL+'A') listbookmarks(NULL, NULL),k=NO_REDRAW;
-  if (k==CTRL+'Q') listbookmarks(url, NULL),k=NO_REDRAW;
+  if (k==CTRL+'A') k= listbookmarks(NULL, NULL);
+  if (k==CTRL+'Q') k= listbookmarks(url, NULL);
 
-  if (k==CTRL+'X') listshortcuts(),k=NO_REDRAW;
+  if (k==CTRL+'X') k= listshortcuts();
 
   // -- page action
   if (k==CTRL+'R') {
@@ -1110,9 +1124,14 @@ keycode editTillEvent() {
   // loops capture menu drag events
   do {
 
-    // EDIT
-    gotorc(screen_rows-1, 0); cleareos();
+    // Update TABS info
+    char buf[32];
+    int w= snprintf(buf, sizeof(buf), "  T%d/%d", tab, ntab);
+    gotorc(screen_rows-1, screen_cols-w);
+    printf("%s", buf);
 
+    // EDIT
+    gotorc(screen_rows-1, 0);
     cursoron();
 
     //while(1) {
@@ -1131,7 +1150,7 @@ keycode editTillEvent() {
 
     // TOUCH DRAG
     if (k & SCROLL)
-      touchDispatch(k);
+      k= touchDispatch(k);
 
     // not scrolling in borders...
     if (k>0 && (k & SCROLL)) {
@@ -1158,6 +1177,7 @@ int main(void) {
   system("echo '`date --iso=ns` #=WLESS`' >> .wlog");
   screen_init();
   rows = screen_rows-1;
+  wclear();
 
   // --- Open files for persistent state
   // (append+ will create if need)
