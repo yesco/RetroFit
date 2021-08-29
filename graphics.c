@@ -206,16 +206,16 @@ void wclear() {
   fflush(stdout);
 }
 
-void drawReloading() {
+void gtoast(char *s) {
   gclear(); gfg= black; gbg= white;
-  drawCenteredText(" Loading ");
+  drawCenteredText(s);
   gupdate();
   gotorc(0,0);
 }
 
-void drawNetErr() {
-  gclear(); gfg= black; gfg= red;
-  drawCenteredText("NetError");
+void gtoasterr(char *s) {
+  gclear(); gfg= red; gbg= white;
+  drawCenteredText(s);
   gupdate();
   gotorc(0,0);
 }

@@ -291,7 +291,7 @@ int netErr() {
   // net down?
   FILE *f= fopen(".wnetdown", "r");
   if (f) {
-    drawNetErr();
+    gtoasterr("Net Down");
     fclose(f);
     return 1;
   }
@@ -307,10 +307,27 @@ FILE *openOrWaitReloadAnsi() {
   // file missing in cache
   // TODO: don't do every time...
   if (!fansi && !ftmp) {
-    drawReloading();
-    gotorc(1, 0);
-    download(url, 0);
-    ftmp= fopenext(file, ".TMP", "r");
+    FILE *ferr= fopenext(file, ".ERR", "r");
+    // error before
+    if (ferr) {
+      wclear();
+      char buf[80];
+      fgets(buf, sizeof(buf), ferr);
+      char *err= strstr(buf, "ERROR ");
+      if (err) {
+        char *end= strchr(err, '.');
+        if (end) *end= 0;
+        gtoasterr(err);
+      } else {
+        gtoasterr("Load Err");
+      }
+      fclose(ferr);
+    } else {
+      gtoast("Reloading");
+      gotorc(1, 0); // place of >>>
+      download(url, 0);
+      ftmp= fopenext(file, ".TMP", "r");
+    }
   }
   // wait if have .TMP till not there
   // that signals the end of .ANSI created
@@ -1019,7 +1036,7 @@ keycode keyAction(keycode k) {
 
   // -- page action
   if (k==CTRL+'R') {
-    drawReloading();
+    gtoast("Reloading");
     reload(url);
     k= NO_REDRAW;
   }
