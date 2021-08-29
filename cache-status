@@ -1,0 +1,20 @@
+(
+clear
+echo "========== CACHE BY NAME ========"
+./ls .w/Cache/
+echo
+echo "========== CACHE BY SIZE ========"
+./ls -Srh .w/Cache/
+echo "======"
+echo " `du -sh .w` - TOTAL"
+) | sed 's/%2f/\//g' \
+  | sed 's/%23/\#/g' \
+  | sed 's/%40/\@/g'
+
+echo "------"
+echo " `du -csh .w/*/*.ANSI | grep total` - ANSI"
+echo " `du -csh .w/*/*.DOWN | grep total` - DOWN"
+echo " `du -csh .w/*/*.LINKS | grep total` - LINKS"
+echo " `du -csh .w/*/*.URL | grep total` - URL"
+echo " `du -csh .w/*/*.LOG | grep total` - LOG"
+echo " `du -csh .w/*/*.WLOG | grep total` - WLOG"

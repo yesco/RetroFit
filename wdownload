@@ -74,15 +74,23 @@ if [[ ! -f "$CFILE.DOWN" ]]; then
 
    # - download
    # (.TMP indicates download started)
-   wget -q -O $CFILE.TMP -a $CFILE.LOG "$GO" >/dev/null \
-     || ( err=$? ; ./werror "./wdownload error: $err $GO" $ROWS $COLS ; rm $CFILE.TMP ; ( ( kill $foo_pid >/dev/null && wait $foo_pid ) 2>/dev/null 1>2& ) ; echo "$err" >.wnetdown ; exit $err) || exit $?
+
+  (wget -O $CFILE.TMP "$GO" || echo 0 ) 2>&1 | grep ERROR > $CFILE.ERR \
+    && (err=$? ; echo "WGET.ERROR $?" >> $CFILE.ERR ; exit $err) \
+   && rm $CFILE.TMP || rm $CFILE.ERR
+
+   # - kill the globe
+   ( kill $foo_pid && wait $foo_pid ) 2>/dev/null 1>&2
+
+   # -- we have .ERR if fail or .TMP if ok!
+
+   [ -f $CFILE.ERR ] && ./werror "./wdownload error: $err $GO" $ROWS $COLS && exit 
+
+#  ; rm $CFILE.TMP ; ( ( kill $foo_pid >/dev/null && wait $foo_pid ) 2>/dev/null 1>&2 ) ; echo "$err" >.wnetdown ; exit $err) || exit $?
 
    rm -f .wnetdown
 
    ./wmessage "./wdownload done: $GO" $ROWS $COLS
-
-   # - kill the globe
-   ( kill $foo_pid && wait $foo_pid ) 2>/dev/null 1>&2
 
    # - cat so get correct date on file
    # (wget gives file as of HEAD date!)

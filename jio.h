@@ -9,6 +9,8 @@
 //         jsk@yesco.org
 //
 
+#include <stdio.h>
+
 // misc system IO
 
 // call in main, first thing

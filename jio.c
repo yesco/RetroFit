@@ -246,7 +246,7 @@ keycode key() {
     int but, r, c, len= 0;
     char m;
     // this is only correct if everything is in the buffer... :-(
-    int n= sscanf(&buf[1], "%d;%d;%d%n%c", &but, &r, &c, &len, &m);
+    int n= sscanf(&buf[1], "%d;%d;%d%n%c", &but, &c, &r, &len, &m);
     if (n>0) {
       if (n==3) c='m'; // We get ^@0 byte?
       if (n==4) len++; //ok
@@ -254,7 +254,7 @@ keycode key() {
       //fprintf(stderr, "\n\n[n=%d ==>%d TOUCH.%s %d , %d \"%s\" ]", n, len, m=='M'?"down":"up", r, c, &buf[1]);
       // TODO: be limited to 0-256...?
       k= (m=='M'?MOUSE_DOWN:MOUSE_UP)
-        + (but<<16) + (c<<8) + r;
+        + (but<<16) + (r<<8) + c;
 
       if (but==64) k+= SCROLL_DOWN;
       if (but==65) k+= SCROLL_UP;
