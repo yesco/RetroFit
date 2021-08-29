@@ -45,7 +45,7 @@ void gallocate(int x, int y, int clear) {
   if (clear) {
     memset(_gscreen, none, size);
     memset(_gscold, none, size);
-//    gx= 0, gy= 0, gbg= black, gfg= white;
+    gx= 0, gy= 0, gbg= black, gfg= white;
   }
 }
 
@@ -138,9 +138,19 @@ void gupdate() {
   fflush(stdout);
 }
 
+void gnl() {
+  // TODO: should it paint over lines?
+  // not if bg= none
+  gy+= 8;
+  gx = 0;
+}
+
 void gputc(char c) {
   if (c<0 || c>127) return;
   char *def = font8x8_basic[c];
+
+  if (c=='\n' || gx+8>=gsizex) gnl();
+  if (c=='\n') return;
 
   for (int y=0; y<8; y++) {
     char bits=def[y];
@@ -151,23 +161,13 @@ void gputc(char c) {
         gset(gx+x, gy+y, gbg);
     }
   }
+  if ((gx+= 8)>=gsizex) gnl();
 }
 
 void gputs(char *s) {
   if (!s) return;
   int c;
-  while((c= *s++)) {
-    if (c=='\n' || gx+8>=gsizex) {
-      gy+= 8;
-      gx = 0;
-    }
-    if (c=='\n') continue;
-    gputc(c);
-    if ((gx+= 8)>=gsizex) {
-      gy+= 8;
-      gx = 0;
-    }
-  }
+  while((c= *s++)) gputc(c); 
 }
 
 void drawCenteredText(char *s) {

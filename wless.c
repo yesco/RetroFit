@@ -453,6 +453,14 @@ void display(int k) {
   printf("./w %.*s", screen_cols-4, url); clearend();
   fflush(stdout);
 
+  /* // print URL clearly before pain the screen */
+  /* gclear(); gbg= white; gfg= black; gy= 2; gx= 1; */
+  /* gputs(url); */
+  /* while(gy<gsizey) gputc(' '); */
+  /* gupdate(); */
+  /* fflush(stdout); */
+  /* usleep(100*1000); */
+  
   FILE *fansi= openOrWaitReloadAnsi();
   if (!fansi) return;
     
