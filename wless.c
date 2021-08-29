@@ -304,11 +304,12 @@ FILE *openOrWaitReloadAnsi() {
   FILE *fansi= fopen(file?file:".stdout", "r");
   FILE *ftmp= fopenext(file, ".TMP", "r");
   
-  // file missing in cache
-  // TODO: don't do every time...
+  //
   if (!fansi && !ftmp) {
     FILE *ferr= fopenext(file, ".ERR", "r");
-    // error before
+    // TODO: easy way to remov all this code: on error generate an .ANSI with error?
+    // error previously - report again
+    // this red error message is too much in the face?
     if (ferr) {
       wclear();
       char buf[80];
@@ -323,10 +324,22 @@ FILE *openOrWaitReloadAnsi() {
       }
       fclose(ferr);
     } else {
-      gtoast("Reloading");
-      gotorc(1, 0); // place of >>>
-      download(url, 0);
-      ftmp= fopenext(file, ".TMP", "r");
+      // file missing in cache
+      gtoast(" reload? ");
+
+      long startms= mstime();
+      // wait to see what action
+      long passed;
+      const long wait= 1000;
+      while(!haskey() && (passed= mstime()-startms)<=wait);
+
+      // if waited 1s then reload
+      if (passed>wait) {
+        gtoast("Reloading");
+        gotorc(1, 0); // place of >>>
+        download(url, 0);
+        ftmp= fopenext(file, ".TMP", "r");
+      }
     }
   }
   // wait if have .TMP till not there
@@ -437,7 +450,7 @@ void display(int k) {
   reset();
   gotorc(0, 0);
   B(black); C(white);
-  printf("./w %.*s", screen_cols-16, url);
+  printf("./w %.*s", screen_cols-4, url); clearend();
   fflush(stdout);
 
   FILE *fansi= openOrWaitReloadAnsi();

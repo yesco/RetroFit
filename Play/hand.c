@@ -2,21 +2,6 @@
 #include "../jio.c"
 #include "../graphics.c"
 
-#include <time.h>
-#include <sys/time.h>
-
-long utime() {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return tv.tv_usec + 1000000*tv.tv_sec;
-}
-
-long mstime() {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return tv.tv_usec/1000 + 1000*tv.tv_sec;
-}
-
 int main(void) {
   jio();
 

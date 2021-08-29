@@ -177,6 +177,8 @@ char* isotime();
 char *timeago(time_t epoch);
 char *isoago(char *iso);
 
+long utime();
+long mstime();
 
 ///////////////////////////////////
 // string goodies

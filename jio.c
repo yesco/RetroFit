@@ -5,6 +5,7 @@
 #include <strings.h>
 #include <termios.h>
 #include <time.h>
+#include <sys/time.h>
 #include <locale.h>
 #include <assert.h>
 #include <unistd.h>
@@ -721,6 +722,18 @@ char *isoago(char *iso) {
     return timeago(mktime(&tm));
   else
     return iso;
+}
+
+long utime() {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return tv.tv_usec + 1000000*tv.tv_sec;
+}
+
+long mstime() {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return tv.tv_usec/1000 + 1000*tv.tv_sec;
 }
 
 ///////////////////////////////////
