@@ -1,5 +1,7 @@
 # TODOs ideas for ./w
 
+- when URL is q=TEXT extract and "put" in command line? possibley with search prefix "PAGE/"
+
 - extract and log offset position in documetn of where viewed...
 - ^U view source, extract and goto offset position (as per hidden)
 - ^S step to next match (reverse?)

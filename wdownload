@@ -1,5 +1,5 @@
-echo "----DOWN UDIR=$UDIR"
-echo "----DOWN WPATH=$WPATH"
+#echo "----DOWN UDIR=$UDIR"
+#echo "----DOWN WPATH=$WPATH"
 
 WDIR=.w
 

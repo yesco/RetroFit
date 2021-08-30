@@ -290,7 +290,7 @@ int main(void) { /* ENDWCOUNT */
   screen_init();
   cursoroff();
 
-  switch(6) {
+  switch(7) {
   case -1:
     gset(10, 10, 255);
     break;
@@ -347,10 +347,56 @@ int main(void) { /* ENDWCOUNT */
     break;
 
   case 6:
-    drawReloading();
+    gtoast("Reloading");
     //exit(1);
     break;
+
+    case 7: {
+      int xx= 0;
+
+      clear();
+      gclear(); gfg= rgb(5, 1, 0); //RGB(0xff, 0xa5, 0x00);
+      gputs("Duck");
+      xx= gx;
+      gupdate();
+
+      gclear(); gfg= rgb(5, 3, 0); //RGB(0xff, 0xa5, 0x00);
+      gx= xx;
+      gputs("Duck");
+      xx= gx;
+      gupdate();
+
+      gclear(); gfg= rgb(0, 3, 0); //RGB(0xff, 0xa5, 0x00);
+      gx= xx;
+      gputs("Go");
+      gputc('\n');
+      xx= gx;
+      int yy= gy;
+      gupdate();
+
+      gclear(); gfg= rgb(5, 1, 0); //RGB(0xff, 0xa5, 0x00);
+      gx= xx;
+      gy= yy;
+      gputs("D");
+      xx= gx;
+      gupdate();
+
+      gclear(); gfg= rgb(5, 3, 0); //RGB(0xff, 0xa5, 0x00);
+      gx= xx;
+      gy= yy;
+      gputs("D");
+      xx= gx;
+      gupdate();
+
+      gclear(); gfg= rgb(0, 3, 0); //RGB(0xff, 0xa5, 0x00);
+      gx= xx;
+      gy= yy;
+      gputs("G");
+      xx= gx;
+      gupdate();
+      break; }
   }
+
   gupdate();
   
   gotorc(screen_rows-10, 0);

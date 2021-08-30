@@ -749,7 +749,7 @@ keycode command(keycode k, dstr *ds) {
       // Fallthrough (even if no space)
     }
 
-    if (strspn(line, "+-0123456789.eE+abcdefghijklmnopqrstuvwxyz() ")==len 
+    if (strspn(line, "+-0123456789.eE+lastijng() ")==len 
         && !strchr(line, '"') && !strchr(line, '\'')) {
       dstr *cmd= dstrprintf(NULL, "printf \"`echo \\\"%s\\\" | bc -l`\"", line);
       C(red);
@@ -793,8 +793,7 @@ char *speech() {
   if (f) {
     // read all lines, show, but pick last
     while (fgets(buf, sizeof(buf), f)) {
-      printf("%s", buf);
-      clearend();
+      //printf("%s", buf); clearend();
     }
 
     r= strdup(buf);
@@ -802,7 +801,6 @@ char *speech() {
       r[strlen(r)-1]= 0;
     fclose(f);
   }
-  key();
 
   // remove pending strokes (duplicate click?)
   while(haskey()) key();
@@ -870,16 +868,26 @@ int clickDispatch(int k) {
   // MENU      SPEACH      CLOSE
   if (!strcmp(dir, "NW")) ;
   if (!strcmp(dir, "NC")) {
+    char *ln= line->s;
     char *r= speech();
-    if (r) {
-      // append to current edits
-      char *s= line->s;
-      if (s[0] && s[strlen(s)-1]!=' ')
-        line= dstrncat(line, " ", -1);
-      line= dstrncat(line, r, -1);
+    gtoast(r);
+    keywait(1000);
+    // TODO: "generalify" more (void) commands
+    // use prefix? "duc duc dcu"
+    if (!strcmp("clear", r)) {
+      *ln= 0;
       free(r);
+      return REDRAW;
     }
-    return REDRAW;
+    if (!r) return REDRAW;
+
+    int empty = !*ln;
+    // append to current edits
+    if (ln[0] && ln[strlen(ln)-1]!=' ')
+      line= dstrncat(line, " ", -1);
+    line= dstrncat(line, r, -1);
+    free(r);
+    return empty? RETURN : REDRAW;
   }
   if (!strcmp(dir, "NE")) drawX(),k= LEFT;
 
@@ -898,6 +906,8 @@ int clickDispatch(int k) {
   if (!strcmp(dir, "sC")) ;
   if (!strcmp(dir, "sE")) k= META+' ';
   // xxxx      xxxx        PAGE DOWN
+  if (!strcmp(dir, "SW")) line->s[0]= 0;
+  if (!strcmp(dir, "SC")) ;
   if (!strcmp(dir, "SE")) k= ' ';
 
   if (k==NO_REDRAW)
@@ -1141,6 +1151,12 @@ keycode keyAction(keycode k) {
     reload(url);
     k= NO_REDRAW;
   }
+  if (k==CTRL+'U') {
+    dstr *cmd= dstrprintf(NULL, "less %s", file);
+    strcpy(strstr(cmd->s, ".ANSI"), ".DOWN");
+    reset(); B(black); C(white); clear(); fflush(stdout); B(black); C(white);
+    system(cmd->s);
+  }
   // chrome: CTRL-P: print current webbpage ? save?
   // chrome: CTRL-S: save current webpage
   // chrome: ESC: stop loading webpage
@@ -1234,8 +1250,9 @@ keycode keyAction(keycode k) {
   // chrome: M-RIGHT: forward browsing histor
   // chrome: ^H: history page in new tab
   
-  if (k==LEFT) tab--;
-  if (k==RIGHT) tab++;
+  if (k==LEFT || k==CTRL+'B') tab--;
+  if (k==RIGHT || k==CTRL+'F') tab++;
+
   if (start_tab+tab<=1) tab= -start_tab+1;
   if (tab>=ntab) tab= ntab-1;
 
