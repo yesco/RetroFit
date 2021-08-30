@@ -28,7 +28,7 @@ Here is a list of <i>features</i>:
 
 <li>Each tab is just a history entry in the file <tt>./whistory</tt> and it's append only.</li>
 
-<li>The <key>LEFT</key>-arrow goes <b>back<b> in the history, <key>RIGHT</key> goes forward.</li>
+<li>The <key>LEFT</key>-arrow goes <b>back</b> in the history, <key>RIGHT</key> goes forward.</li>
 
 <li>Any tabs opened before this session was started are numbered 0, -1, -2, and down.</li>
 
@@ -36,11 +36,98 @@ Here is a list of <i>features</i>:
 
 <li>Each directory where it's started from is it's own <i>profile</i> and session, and keeps separate history and cache.</li>
 
+<li>It's default mode is the <i>command line</i>. Just type the url and RET and it'll load in a new tab.</li>
+
 </ul>
+
+<h3>Keyboard navigation</h3>
+<p>Using the keyboard you navigate the pages, and history.</p>
+
+Short summary:
+<dl>
+
+<dt>SPACE</dt><dd>page down (also <key>^V</key>)</dd>
+<dt>M-SPACE</dt><dd>page up (also <key>M-V</key>)</dd>
+
+<dt>DOWN</dt><dd>scrolls down one row (also <key>RET</key> or <key>^N</key></dd>
+<dt>UP</dt><dd>scrolls up one row (also <key>M-RET</key> or <key>^P</key>)</dd>
+
+<dt>M-&gt;</dt><dd>Go to last page</dd>
+<dt>M-&lt;</dt><dd>Go to first page</dd>
+
+<dt>LEFT</dt><dd>go back (tab) in history</dd>
+<dt>RIGHT</dt><dd>go forward (tab) in history</dd>
+
+<dt>c RET</dt><dd>type any link short-cut and RETURN to open in new tab</dd>
+
+</ul>
+
+<h3>Command line</h3>
+<p>As all good tools, <tt>./w</tt> has a command line, it's its default interface. It's your information center. The folowing functions apply to the command line.</p>
+
+The editing is limited:
+<dl>
+<dt>BACKSPACE</dt><dd>rubout last type char</dd>
+<dt>^G</dt><dd>delete the line (and cancel &amp; redraw screen)</dd>
+</dl>
+
+<br>
+<b>Notice:</b> that you can only type one <key>SPACE</tt> and not at the first position. If there is no space one is added, if last is a space, it's <i>page down</i>!.
+<br>
+<p>Commands are activated by <key>RETURN</eky> or some special characters or keys, like <key>^S</key>. This is the list of command formats:</p>
+
+<dl>
+<dt>a RET</dt>
+<dt>ca RET</dt>
+  <dd>any short-link will open in new tab</dd>
+
+<dt>http://example.com</dt>
+<dt>yesco.org</dt>
+  <dd>URLs will be opened</dd>
+
+<dt>foobar fiefum</dt>
+  <dd>A DuckDuckGo search will be performed in new tab</dd>
+
+<dt>3+4*2</dt>
+  <dd>perform calculations with <code>bc -l</code>. Results are shown on the same line after <tt>==&gt;</tt>
+
+<dt>foo ^S</dt>
+  <dd>search current page for "foo"</dd>
+
+<dt>^G</dt>
+  <dd>cancels search and deletes the command</dd>
+
+<dt>foo ^O</dt>
+  <dd>narrow display to only matching lines. <key>^S</key> switches back to seach. </dd>
+  
+<dt>! ls</dt>
+  <dd><i>bang:</i> run the unix command. When finished press <key>^L</key> to redsplay page and continue editing the command or <key>^G to cancel</dd>
+
+<dt>#cool</dt>
+  <dd><b>hashtag:</b> (bookmark) the current page</dd>
+
+<dt>$write a note about the page</dt>
+  <dd><b>note:</b> make a searchable not</dd>
+
+<dt>=cool</dt>
+<dt>=cool ^S</dt>
+  <dd>search for mentions of cool in bookmarks (end with <key>RETURN</key> or <key>^S</key> </dd>
+
+<dt>#cool ^S</dt>
+  <dd>search for hashtag <key>#cool</key>.</dd>
+
+<dt>@G RET</dt>
+  <dd>assign a <b>shortcut-key</b> to the current page "google.com" (? and position). Last one rules. Activate with <keyt>ALT-G</. All <key>ALT-letter</key> are reserved for the user.</dd>
+
+<dt>/foo RET</dt>
+<dt>&amp;foo RET</dt>
+  <dd>same as <key>foo ^S</key> or <key>foo ^O</key> (from <tt>less</tt>)</dd>
+
+</dl>
 
 <h3>How does it work?</h3>
 
-<tt>./w</tt> has several components:
+<br><tt>./w</tt> has several components:</p>
 
   <ul>
     <li><tt>./w</tt> - overall starting script</li>
@@ -222,10 +309,13 @@ Not really bugs causing crashes or direct problems (features?), but behaviour th
 
 <li>rewrite /FOO/../ => /FOO/ test here=<a href="https://lysator.liu.se/foreningen/../lokaler">lysator.liu.se/foreningen/../lokaler</a>.</li>
 
-<li>Some things don't render, depending on URL like <a href="https://liu.se/biblioteket">liu.se/biblioteket</li> is ok, but not <a href="https://liu.se/biblioteket">https://liu.se/biblioteket</a>. ??? <a href="bbc.com">bbc.com</a> also gives trouble.</li>
+<li>Some things don't render, depending on URL like <a href="https://liu.se/biblioteket">liu.se/biblioteket</a></li> is ok, but not <a href="https://liu.se/biblioteket">https://liu.se/biblioteket</a>. ??? <a href="bbc.com">bbc.com</a> also gives trouble.</li>
 
 <li>headlines full-width characters doesincorrect wrapping (no insert \n) when text not fit on one line? (even if we counting?)</li>
 
 <li>searching doesn't find text in headers as they are fullwidth characters, could print it hidden with ^M so it'll match (but not visible) ^O would print it, but in either case: no hilite</li>
 
+</li>
+
 </ul>
+

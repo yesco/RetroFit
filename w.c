@@ -394,6 +394,7 @@ void nl() {
 
 void indent() {
   if (_pre) return;
+  _indent= MAX(0, MIN(10, _indent));
   while(_curx < _indent) {
     putchar(inx(' '));
   }
@@ -442,6 +443,7 @@ void p(int c) {
     return;
   }
 
+  // TODO: remove?
   if (_fullwidth) _pc(FLUSH_WORD);
   // collapse whitespace
   int tb= (c=='\t'); // TODO: table?
@@ -601,7 +603,7 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
   TRACE("--->%d %s %d %d\n", level, tag?*tag:NULL, f, b);
 
   // save colors
-  int sfg= _fg, sbg= _bg, spre= _pre, sskip= _skip, sindent=_indent; {
+  int sfg= _fg, sbg= _bg, spre= _pre, sskip= _skip, sindent=_indent, sreverse= _reverse; {
     // - START highlight
     if (f != none) C(f);
     if (b != none) B(b);
@@ -626,11 +628,24 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
     // italics
     if (strstr(IT, tag)) { printf("\e[3m"); fg(_fg); bg(_bg); };
     // fullwidth
-    if (strstr(HD, tag)) _fullwidth++;
+    if (strstr(HD, tag)) {
+      _fullwidth++;
+      // TODO: clean this hack
+      // this achieves bold white on black for h1
+      if (strstr(" h1 ", tag)) {
+        _reverse= !_reverse;
+        printf("\e[27;1m");
+        B(black); C(white);
+      } else {
+        // bold
+        printf("\e[7;1m");
+      }
+      recolor();
+    }
 
     // content
     //C(_fg); B(_bg);
-    if (strstr(" h1 ", tag)) p(HNL);
+    if (strstr(" h1 ", tag)) p(HNL); // one extra
     if (strstr(HD, tag)) p(HS);
     if (strstr(TT, tag)) p(HS);
     
@@ -660,12 +675,22 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
     // off italics
     if (strstr(IT, tag)) printf("\e[23m");
     // off fullwidth
-    if (strstr(HD, tag)) _fullwidth--;
+    if (strstr(HD, tag)) {
+      _fullwidth--;
+      //printf("\e[0m");
+      //recolor();
+    }
 
     // restore saved state (colors/pre/skip)
-  } _pre= spre; _skip= sskip; _indent= sindent;
+  } _pre= spre; _skip= sskip; _indent= sindent, _reverse= sreverse;
   if (strstr(NL, tag)) p(SNL);
   fg(sfg); bg(sbg); // TODO: recolor
+
+  // hack for bold headlines :-(
+  if (strstr(HD, tag)) {
+    printf("\e[0m");
+    recolor();
+  }
 
   level--;
   TRACE("<--%d %s\n", level, tag?*tag:NULL);
@@ -896,7 +921,7 @@ void process(TAG *end) {
       HI(" h1 ", white, black);
       HI(" h2 ", black, green);
       HI(" h3 ", black, yellow);
-      HI(" h4 ", black, blue);
+      HI(" h4 ", white, blue);
       HI(" h5 ", black, cyan);
       HI(" h6 ", black, white);
 

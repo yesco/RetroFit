@@ -58,6 +58,7 @@ void insertmode(int on);
 typedef enum color{black, red, green, yellow, blue, magenta, cyan, white, none} color;
 
 extern enum color _fg,  _bg;
+extern int _reverse;
 
 color fg(int c);
 color bg(int c);

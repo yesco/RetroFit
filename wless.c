@@ -699,11 +699,23 @@ keycode command(keycode k, dstr *ds) {
       // Fallthrough (even if no space)
     }
 
+    if (strspn(line, "+-0123456789.eE+abcdefghijklmnopqrstuvwxyz() ")==len 
+        && !strchr(line, '"') && !strchr(line, '\'')) {
+      dstr *cmd= dstrprintf(NULL, "printf \"`echo \\\"%s\\\" | bc -l`\"", line);
+      C(red);
+      fprintf(stderr, "   ==> ");
+      C(green); fflush(stdout);
+      system(cmd->s);
+      free(cmd);
+      C(white); fflush(stdout);
+      return NO_REDRAW;
+    }
     // SEARCH the web (duckduckgo)
     dstr *q= dstrcaturi(line);
     char query[strlen(INTERNET_SEARCH)+strlen(q->s)+1];
     sprintf(query, INTERNET_SEARCH, q->s);
     tab= newtab(query);
+    free(q);
     return REDRAW;
   }
 
