@@ -649,7 +649,11 @@ keycode command(keycode k, dstr *ds) {
     case '!':
       // TODO: can't input ls -l *.html LOL
       // TODO: replace %u w URL
+      _jio_exit();
       system(&line[1]);
+      jio();
+      printf("\n\n--- CTRL-L to redraw screen\n\n");
+      printf("\n\n--- CTRL-L to redraw screen\n\n");
       return NO_REDRAW;
 
     case '|': // TODO: pipe HTML/text
