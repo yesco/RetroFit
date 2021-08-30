@@ -440,6 +440,7 @@ void printAnsiLines(FILE *fansi, int top) {
 
   // clear rest of screen
   B(black); C(white); cleareos();
+  reset();
   fflush(stdout);
 }
 
@@ -649,10 +650,19 @@ keycode command(keycode k, dstr *ds) {
     case '!':
       // TODO: can't input ls -l *.html LOL
       // TODO: replace %u w URL
+      reset();
+      clear();
+      B(white); C(black);
+      printf("./w %s\n", line);
+      B(black); C(white);
+      printf("--- CTRL-L to redraw scree");
+      C(green);
+      cursoron(); fflush(stdout);
       _jio_exit();
+      system("clear");
       system(&line[1]);
+      cursoroff();
       jio();
-      printf("\n\n--- CTRL-L to redraw screen\n\n");
       printf("\n\n--- CTRL-L to redraw screen\n\n");
       return NO_REDRAW;
 
@@ -1245,6 +1255,7 @@ keycode editTillEvent() {
     // EDIT
     gotorc(screen_rows-1, 0);
     cursoron();
+    B(black); C(white);
 
     //while(1) {
     k= edit(&line, -1, NULL, NULL, " <>*");
