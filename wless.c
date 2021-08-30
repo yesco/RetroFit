@@ -18,7 +18,7 @@
 #include "graphics.c"
 
 #define LOADING_FILE ".w/Cache/loading.html.ANSI"
-
+#define INTERNET_SEARCH "https://duckduckgo.com/html?q=%s"
 
 
 // generic functions?
@@ -43,6 +43,7 @@ void message(char* format, ...) {
 // set k=NO_REDRAW to not update screen
 // (good for showing temporary information like menus/hilite)
 #define NO_REDRAW -1
+#define REDRAW 0
 
 // --- limits
 int nlines= 0, nright= 10;
@@ -602,7 +603,7 @@ keycode command(keycode k, dstr *ds) {
   int len= strlen(line);
   if (!*line) return k;
 
-  // SEARCHING
+  // SEARCHING in page
   if (k==RETURN || k==CTRL+'S' || k==CTRL+'O') {
     switch(line[0]) {
 
@@ -620,15 +621,17 @@ keycode command(keycode k, dstr *ds) {
       _only= (k==CTRL+'O');
       search(line[0], &line[1]);
       k=0;
-      break;
+      return k;
+
     default: // page search
+      if (k==RETURN) break;
       _only= (k==CTRL+'O');
       search(k, line);
-      break;
+      return k;
     }
   }
   
-  // ACTIONS (save store go)
+  // ACTIONS /  bookmarks (save store go)
   if (k==RETURN) {
 
     switch(line[0]) {
@@ -655,19 +658,39 @@ keycode command(keycode k, dstr *ds) {
       break;
     }
 
-    // all a-z, maybe link click?
-    if (strspn(line, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")==len) {
-      tab= click(line);
-      line[0]= 0;
-      return 0;
+    // If have SPC then NOT link/url
+    if (!strchr(line, ' ')) {
+
+      // CLICK link
+      // all a-z, maybe link click?
+      if (strspn(line, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")==len) {
+        int restab= click(line);
+        if (restab) {
+          tab= restab;
+          line[0]= 0;
+          return REDRAW;
+        }
+
+        // not a link name - do search!
+      }
+
+      // OPEN url
+      // url? or file? have /:.?
+      if (strchr(line+1, '/') || strchr(line+1, ':') || strchr(line, '.')) {
+        tab= newtab(line);
+        line[0]= 0;
+        return REDRAW;
+      }
+
+      // Fallthrough (even if no space)
     }
 
-    // url? or file? have /:.?
-    if (strchr(line+1, '/') || strchr(line+1, ':') || strchr(line, '.')) {
-      tab= newtab(line);
-      line[0]= 0;
-      return 0;
-    }
+    // SEARCH the web (duckduckgo)
+    dstr *q= dstrcaturi(line);
+    char query[strlen(INTERNET_SEARCH)+strlen(q->s)+1];
+    sprintf(query, INTERNET_SEARCH, q->s);
+    tab= newtab(query);
+    return REDRAW;
   }
 
   return k;
@@ -745,7 +768,7 @@ void showClick(keycode k, int r, int c) {
 }
 
 int clickDispatch(int k) {
-  if (k & MOUSE_UP) return 0;
+  if (k & MOUSE_UP) return REDRAW;
   // TODO: make function/macro/API?
   int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
   int save_k= k;
@@ -780,7 +803,7 @@ int clickDispatch(int k) {
       line= dstrncat(line, r, -1);
       free(r);
     }
-    return 0; // redraw
+    return REDRAW;
   }
   if (!strcmp(dir, "NE")) drawX(),k= LEFT;
 
@@ -1223,15 +1246,36 @@ keycode editTillEvent() {
     k= edit(&line, -1, NULL, NULL, " <>*");
     //printf("\n>>> %s line>%s<\n", keystring(k), line->s);
 
+    char *ln= line->s;
+
     // Safe-way out!
-    if (!strcmp(line->s, "QUIT")) exit(0);
+    if (!strcmp(ln, "QUIT")) exit(0);
+
     cursoroff();
+
+    // --- Editor extension!
+
     // clear line
-    if (k==CTRL+'G' || !line->s[0]) {
+    if (k==CTRL+'G' || !*ln) {
       _only= 0;
-      line->s[0]= 0;
+      *ln= 0;
       if (_search) FREE(_search);
     }
+
+    // space!
+    // ( if no test - PAGE DOWN )
+    // ( if standing at space - PAGE DOWN )
+    //
+    // this is almost DWIM!
+    if (k==' ' && *ln && ln[strlen(ln)-1]!=' ') {
+      line= dstrncat(line, " ", 1);
+      k= NO_REDRAW;
+      continue;
+    }
+
+    // --- Capture some events here
+    // (those that don't want redraw)
+    // TODO: may no longer be needed!)
 
     // TOUCH DRAG
     if (k & SCROLL)
@@ -1244,11 +1288,11 @@ keycode editTillEvent() {
       break;
     }
 
-    // CLICK
+    // (MOUSE) CLICK
     if ((k & MOUSE) && !(k & SCROLL))
       k= clickDispatch(k);
 
-  } while (k<0);
+  } while (k==NO_REDRAW);
 
   return k;
 }

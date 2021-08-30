@@ -188,3 +188,5 @@ void bs();
 void repeat(char c, int n);
 void spaces(int n);
 
+dstr *dstrcaturi(char *s);
+
