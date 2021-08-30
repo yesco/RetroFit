@@ -1,7 +1,17 @@
 rm core 2>/dev/null
 
-[[ -f $1 ]] && cc -DMAIN -g $1 && ./a.out || stty sane
-[[ -f Play/$1 ]] && cc -DMAIN -g Play/$1 && ./a.out || stty sane
-[[ -f Play/$1.c ]] && cc -DMAIN -g Play/$1.c && ./a.out || stty sane
+FIL=$1
+shift
+
+[[ -f $FIL ]] && FIL=$FIL
+[[ -f $FIL.c ]] && FIL=$FIL.c
+[[ -f Play/$FIL ]] && FIL=Play/$FIL
+[[ -f Play/$FIL.c ]] && FIL=Play/$FIL.c
+
+echo "FIL=$FIL"
+
+[[ -f $FIL ]] && cc -DMAIN -g $FIL && ./a.out $@
+stty sane
+
 
 

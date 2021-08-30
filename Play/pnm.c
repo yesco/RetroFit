@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #undef MAIN
 #include "../jio.c"
 #include "../graphics.c"
@@ -90,15 +92,17 @@ char *gloadpnm(char *fname, int tw, int th, int method) {
   return NULL;
 }
 
-
-int main(void) {
+int main(int argc, char *argv[]) {
+  printf("argc=%d\n", argc);
+  assert(argc==3);
   jio();
 
   //clear();
 
-  int tw= 16, th= 8;
-  int method= 2;
-  int f= 0;
+  int tw= 16, th= 8; // another method?
+
+  int f= atoi(argv[1]);
+  int method= atoi(argv[2]);
 
   char *files[]={
     "Graphics/fil.pnm", "Graphics/x.pnm", "Graphics/u.pnm"};
