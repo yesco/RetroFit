@@ -546,6 +546,13 @@ void display(int k) {
 
   fclose(fansi);
 
+  // favicon?
+  if (top==0) {
+    save(); gotorc(1, 0); fflush(stdout);
+    gicon(url);
+    restore(); fflush(stdout);
+  }
+
   // read keyboard shortcuts, page links
   trunclinks(0);
   loadshortcuts(".wkeys");

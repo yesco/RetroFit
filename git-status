@@ -1,5 +1,9 @@
 git status | cat - | grep "^	" | tac\
+| grep -Pv "#" \
+| grep -Pv "\s\." \
+| grep -Pv "Graphics/.*\.(pnm|gif|ico|jpeg|jpg|pbm|png)" \
 | GREP_COLORS='mt=01;32' grep --color=always -P "(new file:|$)" \
 | GREP_COLORS='mt=01;33' grep --color=always -P "(modified:|$)" \
 | GREP_COLORS='mt=01;31' grep --color=always -P "(remove|delete|$)" \
+| GREP_COLORS='mt=01;34' grep --color=always -P "(\w+\.([ch]|html|txt)\b|$)" \
 | cat -

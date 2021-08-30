@@ -1,6 +1,7 @@
 rm core 2>/dev/null
 
-[[ -f $1 ]] && cc -DMAIN -g $1 && ./a.out
-[[ -f Play/$1 ]] && cc -DMAIN -g Play/$1 && ./a.out
-[[ -f Play/$1.c ]] && cc -DMAIN -g Play/$1.c && ./a.out
+[[ -f $1 ]] && cc -DMAIN -g $1 && ./a.out || stty sane
+[[ -f Play/$1 ]] && cc -DMAIN -g Play/$1 && ./a.out || stty sane
+[[ -f Play/$1.c ]] && cc -DMAIN -g Play/$1.c && ./a.out || stty sane
+
 

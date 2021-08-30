@@ -377,7 +377,10 @@ void metadata(char* type, char* a, char* b, char* c, char* d) {
   }
 }
 
+int lines=0;
+
 void nl() {
+  lines++;
   printf("\e[K\n"); // workaround bug!
   // hidden source file offset
   printf("@%d:\r", offset);
@@ -394,10 +397,12 @@ void nl() {
 
 void indent() {
   if (_pre) return;
+  if (lines<=4) _indent+= 7;
   _indent= MAX(0, MIN(10, _indent));
   while(_curx < _indent) {
     putchar(inx(' '));
   }
+  if (lines<=4) _indent-= 7;
   _ws= 1;
 }
 

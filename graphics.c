@@ -220,6 +220,27 @@ void gtoasterr(char *s) {
   gotorc(0,0);
 }
 
+void gicon(char *url) {
+  if (!url) return;
+
+  // extract hostname
+  char *host= url;
+  host= sskip(host, "https://");
+  host= sskip(host, "http://");
+  char *end= strchr(host, '/');
+  if (!end) end= host+strlen(host);
+  if (!host) return;
+
+  // dangerous?
+  if (strchr(host, '`') || strchr(host, '\\') || strchr(host, '"')) return;
+
+  // build command
+  dstr *cmd= dstrprintf(NULL, "./wicon \"%.*s\"",  end-host, host);
+
+  system(cmd->s);
+  free(cmd);
+}
+
 void drawPullDownMenu(color *colors, char **labels, int n) {
   int cc= 40*screen_cols/100;
   int rows= 0;

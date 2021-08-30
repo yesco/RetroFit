@@ -1,0 +1,46 @@
+HOST=$1
+
+mkdir -p .w/Favicons
+
+cd .w/Favicons
+
+#ls -l $HOST/favicon.ico 
+
+../../Graphics/imcat/imcat $HOST*_* 2>/dev/null
+
+[[ -f $HOST.ANSI ]] && cat $HOST.ANSI && exit 0
+
+# use original site
+#[[ ! -f $HOST.ico ]] && wget -q -O $HOST.ico $HOST/favicon.ico
+
+# use DuckDuckGo???
+[[ ! -f $HOST.ico ]] && wget -q -O $HOST.ico https://icons.duckduckgo.com/ip3/$HOST.ico
+
+#icotool -l $HOST.ico 2>/dev/null
+icotool -x $HOST.ico 2>/dev/null
+
+#ls $HOST*_*
+
+# only show 16x16 sizes
+#ICO16=$HOST*_*16x16x*
+
+# enable for all sizes resized
+ICO16=$HOST*_*
+
+ICO16=`ls -1 $ICO16|tail -1`
+
+#../chafa/tools/chafa/chafa -d 0 --size 8x8 $ICO16  2>/dev/null
+#../chafa/tools/chafa/chafa -d 0 --size 8x8$ ICO16 --invert  2>/dev/null
+
+
+# -- seems "best"  2>/dev/null
+
+../../../chafa/tools/chafa/chafa --colors 16 -d 0.01  --size 8x8 $ICO16  2>/dev/null > $HOST.ANSI
+
+
+#../chafa/tools/chafa/chafa -d 0 --colors 16 --size 8x8 $ICO16 --invert  2>/dev/null
+
+# cannot restrict size
+
+../../Graphics/imcat/imcat $ICO16
+
