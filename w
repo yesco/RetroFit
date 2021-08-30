@@ -11,7 +11,20 @@
 # Usage:
 #  ./w [URL ...]
 
-./wbuild || exit $!
+export UDIR=`pwd`
+echo "UDIR=$UDIR"
+export WPATH=$(cd `dirname $BASH_SOURCE` ; pwd)
+echo "WPATH=$WPATH"
+
+# The script is stupid and assumes being run from the source code directory...
+
+# Build
+
+(cd $WPATH ; ./wbuild) || exit $!
+
+# just to be sure...
+
+cd $UDIR
 
 # -- check internet connection
 # (for some reason can't do exactly this from C?)
@@ -21,21 +34,27 @@ wget -O /dev/null example.com 2>/dev/null || (\
   printf "(press RETURN to continue)\n" ;\
   read foo)
 
+
+
 # -- download/refresh in background
 
 stty size >/dev/null
 
 for f in "$@"
 do
-  ./wdownload -d "$f" $LINES $COLUMNS &
+  $WPATH/wdownload -d "$f" $LINES $COLUMNS &
 done
 
 # wait for wdownload to write to .whistory
 sleep 0.2
 
+
+
 # -- browse
 
-./wless.x
+$WPATH/wless.x
+
+
 
 # --- reset screen after text
 
@@ -69,9 +88,11 @@ printf "\e[m\e[48;50m\e[38;57m"
 
 # --- show any errors
 
-cat .stderr 1>&2
+cat .stderr 2>/dev/null 1>&2
 
 # --- calculate LOCs
+
+cd $WPATH
 
 git show :w.c >.w.c
 git show :table.c >.table.c
@@ -120,3 +141,5 @@ rm .table.c
 rm .before-all.c
 rm .before-render.c
 rm .jio.c
+
+cd $UDIR

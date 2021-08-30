@@ -1,1 +1,1 @@
-perl wlinks.pl $1
+perl $WPATH/wlinks.pl $1

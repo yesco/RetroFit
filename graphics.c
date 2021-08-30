@@ -149,7 +149,7 @@ void gputc(char c) {
   if (c<0 || c>127) return;
   char *def = font8x8_basic[c];
 
-  if (c=='\n' || gx+8>=gsizex) gnl();
+  if (c=='\n' || gx+8>gsizex) gnl();
   if (c=='\n') return;
 
   for (int y=0; y<8; y++) {
@@ -161,7 +161,7 @@ void gputc(char c) {
         gset(gx+x, gy+y, gbg);
     }
   }
-  if ((gx+= 8)>=gsizex) gnl();
+  if ((gx+= 8)>gsizex) gnl();
 }
 
 void gputs(char *s) {
@@ -284,7 +284,8 @@ void plots(int r, int c, char *s, int w, int h, int bg, int fg) {
 }
 
 #ifdef MAIN
-int main(void) {
+int main(void) { /* ENDWCOUNT */
+
 //  jio();
   screen_init();
   cursoroff();

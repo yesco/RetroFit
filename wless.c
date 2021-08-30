@@ -723,24 +723,29 @@ void showClickableRegions(int l, int d) {
       if (LEVELS[ll]==' ' || DIST[dd]==' ') continue;
       //if (ll!=-1 && ll!=l && dd!=d) continue;
       gotorc(rr, cc);
-      B((ll==l && dd==d)? red : green);
+      //B((ll==l && dd==d)? black : rgb(3,3,3));
+      B(rgb(3,3,3)); // gray
       spc();
     }
   }
+}
 
-  // mark all regions
-  for(int rr=0; rr<screen_rows; rr++){
-    for(int cc=0; cc<screen_cols; cc++){
-      int ll= (sizeof(LEVELS)-1)*rr/screen_rows;
-      int dd= (sizeof(DIST)-1)*cc/screen_cols;
-      if (ll!=l && dd!=d) continue;
-      gotorc(rr, cc);
-      B(red);spc();
+void showClick(keycode k, int r, int c) {
+  // show a click block
+  for(int rr=-3; rr<=1; rr++) {
+    for(int cc=-5; cc<=3; cc++) {
+      // make ir round (need round rr?)
+      //if (rr*rr+cc*cc>4*4) continue;
+      gotorc(r+rr, c+cc);
+      //B((k && MOUSE_DOWN)? black : yellow);
+      B(black);
+      putchar(' ');
     }
   }
 }
 
 int clickDispatch(int k) {
+  if (k & MOUSE_UP) return 0;
   // TODO: make function/macro/API?
   int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
   int save_k= k;
@@ -757,12 +762,6 @@ int clickDispatch(int k) {
   int d= (sizeof(DIST)-1)*ac/screen_cols;
   if (LEVELS[l]==' ' || DIST[d]==' ')
     return NO_REDRAW;
-
-  showClickableRegions(l, d);
-
-  // show exactly where clicked
-  gotorc(ar, ac-1);
-  B(red);C(white);
 
   char dir[3]={LEVELS[l], DIST[d],0};
   printf("%s",dir);
@@ -794,6 +793,42 @@ int clickDispatch(int k) {
   if (!strcmp(dir, "CW")) k= LEFT;
   //   (CC: main content area)
   if (!strcmp(dir, "CE")) k= RIGHT;
+  if (k==LEFT || k==RIGHT) {
+    gclear(); gbg= white; gfg= black;
+
+    char buf[10]; sprintf(buf, "  Tab%+d  ", tab);
+    // print center
+    gy= 10;
+    gx= (gsizex-strlen(buf)*8)/2;
+    gputs(buf);
+    gnl(); gy+= 4;
+
+    // TODO: use FULLWIDTH? or small font
+    // host (URL)
+    char *u= url, *end;
+    u= sskip(u, "http://");
+    u= end= sskip(u, "https://");
+    while(*end && *end!='/') end++;
+    gx= (gsizex-8*(end-u))/2; gx= MAX(0, gx);
+    while(*u && *u!='/') gputc(*u++);
+    // print path
+    //if (*u) gputc(*u++);
+    //gnl();
+    //gputs(u);
+    //while(gy<gsizey) gputc(' ');
+
+    // line of <<<<< or >>>>>
+    gy= (gsizey-8)/2; // middle line
+    gx= (gsizex%8)/2; // center text
+    for(int i=gsizex/8; i; i--)
+      gputc(k==LEFT?'<':'>');
+    gnl();
+
+    gupdate();
+    showClick(k, r, c);
+    fflush(stdout);
+    usleep(300*1000);
+  }
 
   // xxxx      xxxx        PAGE UP
   if (!strcmp(dir, "sW")) ;
@@ -802,24 +837,17 @@ int clickDispatch(int k) {
   // xxxx      xxxx        PAGE DOWN
   if (!strcmp(dir, "SE")) k= ' ';
 
-  // show a click block
-  if(1)
-    for(int rr=-3; rr<=1; rr++) {
-      for(int cc=-5; cc<=3; cc++) {
-        gotorc(r+rr, c+cc);
-        if (k && MOUSE_DOWN)
-          B(red);
-        else 
-          B(green);
-        putchar(' ');
-      }
-    }
+  if (k==NO_REDRAW)
+    showClickableRegions(l, d);
 
-  // Show exact position of click
+  showClick(k, r, c);
+
+  // show exactly where clicked
   B(white); C(black); gotorc(ar, ac-2);
   printf(" %c%c ", LEVELS[l], DIST[d]);
   restore();
 
+// TODO: move to scroller?
   // simplify for up/down counters
   if (save_k & SCROLL) k = save_k & SCROLL;
 

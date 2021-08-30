@@ -11,7 +11,57 @@ This is a test of the <i>minimalist</i> <tt>./w</tt> web-browser written in C. I
 <p>In the morning of August 4th, 2021, in the morning: it was a total 370 lines. <b>pre/code</b> added 10 lines, <b>word-wrap</b> 40, misc formatting improvements &mdash; 10 lines. I added 36 for handling <b>HTML entities</b>. Now, I didn't want to count pure comment lines &amp; nor empty lines; so changed my counting script; Adding <b>numbered entities</b>: Hex and deciaml; there are <b>345 lines</b> of <i>C</i>; Adding parsing of <b>attributes</b> added a whole lot: 70 lines. But then I did a general cleanup of most code, and got it down to 30ish lines! With simple table support, it's about 550 lines.
 </p>
 
+<h2>Features</h2>
+<p><tt>./w</tt> isn't like other browsers. It's <i>new</i> and innovative, but it's <b>text</b> and <b>retro</b>, and it's specialized and generalized for the <em>user</em> &mdash; me!</p>
+
+<p>That's all silly and good. Hopefully it may be useful to others.</p>
+
+Here is a list of <i>features</i>:
+
+<ul>
+
+<li><tt>./w</tt> is modular and open, allwogin for customizations and extensions. It's <b>tiny</b> in size, but packs a buch!. The source is only <b>about 1000 LOC</b> (lines of code), plus 390 LOC (j)io-library, and an-ANSI graphics library (168 LOC).</li>
+
+</li>
+
+<li>It's a multi-tab browser. There is no limit on the number of tabs.</li>
+
+<li>Each tab is just a history entry in the file <tt>./whistory</tt> and it's append only.</li>
+
+<li>The <key>LEFT</key>-arrow goes <b>back<b> in the history, <key>RIGHT</key> goes forward.</li>
+
+<li>Any tabs opened before this session was started are numbered 0, -1, -2, and down.</li>
+
+<li>New tabs, links followed are numbered 1, 2, 3. We call these <i>future</i>-tabs, as they may have been unseen and are in the queue.</li>
+
+</ul>
+
+<h3>How does it work?</h3>
+
+<tt>./w</tt> has several components:
+
+  <ul>
+    <li><tt>./w</tt> - overall starting script</li>
+    <li><tt>./wdownload</tt> - downloads/co;ies a file and renders it</li>
+    <li>./w.x - html2ansi converter</li>
+    <li>./wless.x - an ANSI-file pager, UI, and what we'd call "the browser".</li>
+  </ul>
+
+Description the most important components:
+
+<li><tt>./wdownload</tt> uses <tt>wget</tt>, but could as easily use <tt>curl</tt>. It just seems wget is a bit more "friendly" and DWIMMy wheras curl is better for embedding as a library.</li>
+
+<li>The browser is <i>stateless</i>. It stoes no state that isn't made permanent. Eachnew tasb, scroll in a page, etc, logs and updates position permantly for that "tab".</li>
+
+<li>Each directory where it's started from gets it's own browser history and cache. It contains status info and </li>
+
+<li><tt>./w</tt> runs from its source code directory, It will automatically re-compile if the sources changed.</li>
+
+</ul>
+
 <h2>Individual Tests</h2>
+<p>There are no automated test yet, as it's still relatively heavy in development.</p>
+
 <ul id='list'>
 <li><a href='#entities'>HTML Entities</a></li>
 <li><a href='#list'>This is a List</a></li>
@@ -119,13 +169,13 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 
 <h2>Terminal issues:</h2>
 <ul>
-<li>When resizing in Termux, background losses color at en dof line.</li>
+<li>When resizing in Termux, background losses color at en dof line. Use CTRL-R to redraw. (TODO: automate getting new size and rerender ANSI)</li>
 <li>A test with <i>italic when ending with a 'd' like 3d=ddd</i> you can't see the last 'd' fully. Possible fix: if it's a space after, "move" the space inside the end-italics tag. Not easy the way we parse...</li>
 <li>Text background/underline wraps with nl, it's "correct" but ugly</li>
 </ul>
 
 <h2 id="annoy">Annoyances</h2>
-Not really bugs, but behaviour that could be fixed:
+Not really bugs causing crashes or direct problems (features?), but behaviour that could be fixed:
 <ul>
 <li><code>./w FILE</code> if open the same file as last, no need to add to history? Same with ALT-X?</li>
 <li>link spanning line-end will underline indented spaces, haha, and <tt>will overflow</tt> solution is a delayed reformatting()? like recolor()?</li>
@@ -133,7 +183,7 @@ Not really bugs, but behaviour that could be fixed:
 <li>Search cannot handle spaces, can't input! lol</li
 </ul>
 
-<li>Search will match numbers and data from hidden text, as well as link url and ESC ansi codes - how much do I care?</li>
+<li>Search will match numbers and data from hidden text, as well as link url and ESC ANSI codes - how much do I care?</li>
 
 <h2 id="todo">TODO:</h2>
 <ul>

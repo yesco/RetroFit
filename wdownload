@@ -1,3 +1,6 @@
+echo "----DOWN UDIR=$UDIR"
+echo "----DOWN WPATH=$WPATH"
+
 WDIR=.w
 
 mkdir -p $WDIR/Cache $WDIR/Session
@@ -10,15 +13,8 @@ GO=$1
 ROWS=${2:-}
 COLS=${3:-}
 
-if [[ -f $GO ]]; then
-  SAFE=`./wquote "$GO"`
-  FILE=$GO
-  CFILE=$WDIR/Cache/$SAFE
-else
-  SAFE=`./wquote "$GO"`
-  FILE=$WDIR/Cache/$SAFE
-  CFILE=$WDIR/Cache/$SAFE
-fi
+SAFE=`$WPATH/wquote "$GO"`
+CFILE=$WDIR/Cache/$SAFE
 
 # --- DOWNLOAD forces a new download
 
@@ -41,7 +37,7 @@ fi
 # (detect change of screen width?)
 
 #[ -f $CFILE.DOWN && ! $DOWNLOAD ] \
-#  && ./wmessage "./wdownload already have $O" $ROWS $COLS \
+#  && $WPATH/wmessage "./wdownload already have $O" $ROWS $COLS \
 #  && exit 0
 
 # --- log
@@ -65,9 +61,9 @@ echo "`date --iso=s` #=DOWN $GO $CFILE.ANSI" \
 # --- download if not local file
 if [[ ! -f "$CFILE.DOWN" ]]; then
    # - display spinning globe!
-   ./spin.x & foo_pid=$!
+   $WPATH/spin.x & foo_pid=$!
 
-   ./wmessage "./wdownload $GO" $ROWS $COLS
+   $WPATH/wmessage "./wdownload $GO" $ROWS $COLS
 
    # save original URL
    echo "$GO" > $CFILE.URL
@@ -84,13 +80,13 @@ if [[ ! -f "$CFILE.DOWN" ]]; then
 
    # -- we have .ERR if fail or .TMP if ok!
 
-   [ -f $CFILE.ERR ] && ./werror "./wdownload error: $err $GO" $ROWS $COLS && exit 
+   [ -f $CFILE.ERR ] && $WPATH/werror "./wdownload error: $err $GO" $ROWS $COLS && exit 
 
 #  ; rm $CFILE.TMP ; ( ( kill $foo_pid >/dev/null && wait $foo_pid ) 2>/dev/null 1>&2 ) ; echo "$err" >.wnetdown ; exit $err) || exit $?
 
    rm -f .wnetdown
 
-   ./wmessage "./wdownload done: $GO" $ROWS $COLS
+   $WPATH/wmessage "./wdownload done: $GO" $ROWS $COLS
 
    # - cat so get correct date on file
    # (wget gives file as of HEAD date!)
@@ -100,10 +96,10 @@ fi
 # TODO: handle render errors? 
 # (maybe add error message in file?)
 
-./w.x $CFILE.DOWN $GO $COLS > $CFILE.ANSI
+$WPATH/w.x $CFILE.DOWN $GO $COLS > $CFILE.ANSI
 
 # generate links list
-./wlinks $CFILE.ANSI > $CFILE.LINKS
+$WPATH/wlinks $CFILE.ANSI > $CFILE.LINKS
 
 rm -f $CFILE.TMP
 

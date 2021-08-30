@@ -1,5 +1,10 @@
 # TODOs ideas for ./w
 
+- extract and log offset position in documetn of where viewed...
+- ^U view source, extract and goto offset position (as per hidden)
+- ^S step to next match (reverse?)
+- ^O search and narrow for tags (currently not in text. Add hidden? <table> <h1> <h2> etc...
+
 - w.x always log time it took for each file... this to find out extremes!
 
 - at 100x100 scrolling is slow. less -r is fast scrolling down, but struggle upwards! I'm guessing it prints line at end and scrolls, but upwards it redraws. Curiously, if you scroll slowly upwards it's fine. Fast down, ok, fast up, no ok.
