@@ -842,42 +842,6 @@ int clickDispatch(int k) {
   if (!strcmp(dir, "CW")) k= LEFT;
   //   (CC: main content area)
   if (!strcmp(dir, "CE")) k= RIGHT;
-  if (k==LEFT || k==RIGHT) {
-    gclear(); gbg= white; gfg= black;
-
-    char buf[10]; sprintf(buf, "  Tab%+d  ", tab);
-    // print center
-    gy= 10;
-    gx= (gsizex-strlen(buf)*8)/2;
-    gputs(buf);
-    gnl(); gy+= 4;
-
-    // TODO: use FULLWIDTH? or small font
-    // host (URL)
-    char *u= url, *end;
-    u= sskip(u, "http://");
-    u= end= sskip(u, "https://");
-    while(*end && *end!='/') end++;
-    gx= (gsizex-8*(end-u))/2; gx= MAX(0, gx);
-    while(*u && *u!='/') gputc(*u++);
-    // print path
-    //if (*u) gputc(*u++);
-    //gnl();
-    //gputs(u);
-    //while(gy<gsizey) gputc(' ');
-
-    // line of <<<<< or >>>>>
-    gy= (gsizey-8)/2; // middle line
-    gx= (gsizex%8)/2; // center text
-    for(int i=gsizex/8; i; i--)
-      gputc(k==LEFT?'<':'>');
-    gnl();
-
-    gupdate();
-    showClick(k, r, c);
-    fflush(stdout);
-    usleep(300*1000);
-  }
 
   // xxxx      xxxx        PAGE UP
   if (!strcmp(dir, "sW")) ;
@@ -1113,6 +1077,7 @@ keycode keyAction(keycode k) {
   if (k==NO_REDRAW) return k;
 
   int kc= k & ~META & ~ CTRL;
+  int lasttab= tab;
 
   // -- bookmarks
   // w3m: Esc-b	View bookmarks
@@ -1230,10 +1195,51 @@ keycode keyAction(keycode k) {
   // chrome: M-LEFT: back browsing history
   // chrome: M-RIGHT: forward browsing histor
   // chrome: ^H: history page in new tab
+  
   if (k==LEFT) tab--;
   if (k==RIGHT) tab++;
   if (start_tab+tab<=1) tab= -start_tab+1;
   if (tab>=ntab) tab= ntab-1;
+
+  if (lasttab!=tab || k==LEFT || k==RIGHT) {
+    gclear(); gbg= white; gfg= black;
+
+    char buf[10]; sprintf(buf, " Tab%+d ", tab);
+    // print center
+    gy= 10;
+    gx= (gsizex-strlen(buf)*8)/2;
+    gputs(buf);
+    gnl(); gy+= 4;
+
+    // -- host (URL)
+    // clear
+    for(int i=gsizex/8; i; i--) gputc(' ');
+    // TODO: use FULLWIDTH? or small font
+    char *u= url, *end;
+    u= sskip(u, "http://");
+    u= end= sskip(u, "https://");
+    while(*end && *end!='/') end++;
+    gx= (gsizex-8*(end-u))/2; gx= MAX(0, gx);
+    while(*u && *u!='/' && gx<gsizex) gputc(*u++);
+    // print path
+    //if (*u) gputc(*u++);
+    //gnl();
+    //gputs(u);
+    //while(gy<gsizey) gputc(' ');
+
+    // line of <<<<< or >>>>>
+    gy= (gsizey-8)/2; // middle line
+    gx= (gsizex%8)/2; // center text
+    for(int i=gsizex/8; i; i--)
+      gputc(k==LEFT?'<':'>');
+    gnl();
+
+    gupdate();
+    fflush(stdout);
+    long startms= mstime();
+    while(!haskey() && mstime()-startms<300);
+  }
+
   //COUNT_WRAP(right, RIGHT, LEFT, nright);
 
   //TODO: field? nfield
