@@ -89,6 +89,7 @@ color readablefg();
 #define SQR(a) ((a)*(a))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 #define MAX(a,b) ((a)>(b)?(a):(b))
+#define ABS(a) ((a)<0?-(a):(a))
 
 #define FREE(var) (free(var), var=NULL)
 
@@ -129,6 +130,8 @@ typedef enum keycode { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127,
 
 int haskey();
 keycode key();
+int keywait(int ms);
+
 keycode waitScrollEnd(keycode k);
 
 char* keystring(int c);

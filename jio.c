@@ -289,6 +289,15 @@ keycode key() {
   return k;
 }
 
+// waits for a key to be pressed MAX milliseonds
+// Returns passed ms.
+int keywait(int ms) {
+  long startms= mstime();
+  long passed;
+  while(!haskey() && (passed= mstime()-startms)<=ms);
+  return passed;
+}
+
 keycode waitScrollEnd(keycode k) {
   keycode nk;
   while((nk= key()) && (nk & 0xff00ffff)==(k & 0xff00ffff));

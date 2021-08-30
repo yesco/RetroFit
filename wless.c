@@ -328,14 +328,8 @@ FILE *openOrWaitReloadAnsi() {
       // file missing in cache
       gtoast(" reload? ");
 
-      long startms= mstime();
-      // wait to see what action
-      long passed;
-      const long wait= 1000;
-      while(!haskey() && (passed= mstime()-startms)<=wait);
-
       // if waited 1s then reload
-      if (passed>wait) {
+      if (keywait(1000)>1000) {
         gtoast("Reloading");
         gotorc(1, 0); // place of >>>
         download(url, 0);
@@ -444,6 +438,61 @@ void printAnsiLines(FILE *fansi, int top) {
   fflush(stdout);
 }
 
+void displayPageNum() {
+  // show page numbers
+  gclear();
+  char parts[15];
+  // TODO: same calculation as display()
+  snprintf(parts, sizeof(parts), " %d/%d ", (top+2)/(rows-4)+1, (nlines-rows+2)/(rows-4)+1);
+
+  drawCenteredText(parts);
+  gupdate();
+  keywait(300);
+}
+
+void displayTabInfo(keycode k) {
+ gclear();
+ char buf[10]; sprintf(buf, " Tab%+d ", tab);
+
+ // print Tab-3 center white o black
+ gy= 10;
+ gx= (gsizex-strlen(buf)*8)/2;
+ gputs(buf);
+ gnl(); gy+= 4;
+ int sgy= gy;
+ gupdate();
+ 
+ // print host center black on white
+ gclear(); gbg= white; gfg= black;
+ gy= sgy;
+ // clear previous host
+ for(int i=gsizex/8; i; i--) gputc(' ');
+ // TODO: use FULLWIDTH? or small font
+ char *u= url, *end;
+ u= sskip(u, "http://");
+ u= end= sskip(u, "https://");
+ while(*end && *end!='/') end++;
+ gx= (gsizex-8*(end-u))/2; gx= MAX(0, gx);
+ while(*u && *u!='/' && gx<gsizex) gputc(*u++);
+ // print path
+ //if (*u) gputc(*u++);
+ //gnl();
+ //gputs(u);
+ //while(gy<gsizey) gputc(' ');
+ 
+ // line of <<<<< or >>>>>
+ gy= (gsizey-8)/2; // middle line
+ gx= (gsizex%8)/2; // center text
+ for(int i=gsizex/8; i; i--)
+   gputc(k==LEFT?'<':'>');
+ gnl();
+
+ gupdate();
+ fflush(stdout);
+ 
+ keywait(300);
+}
+
 // --- Display
 void display(int k) {
 
@@ -476,7 +525,8 @@ void display(int k) {
     col= printf("./w ");
     // nprintf !!!
     char parts[15];
-    int w= snprintf(parts, sizeof(parts), " L%d %d/%d", top, (top+2)/rows+1, (nlines+rows/2)/rows);
+    // TODO: same calculation as in displaPageNum
+    int w= snprintf(parts, sizeof(parts), " %d/%d ", (top+2)/(rows-4)+1, (nlines-rows+2)/(rows-4)+1);
     while (*u) {
       // TODO: unicode?
       putchar(*u++);
@@ -949,10 +999,6 @@ keycode flickMenu(keycode k) {
 }
 
 keycode touchDispatch(keycode k) {
-  // LOL: this function shadows "top"
-  // (TODO: maybe change global name?)
-  int current_line= top;
-
   // loop till no more scroll,
   // or exit middle if content scroll
   while (k & SCROLL) {
@@ -984,14 +1030,7 @@ keycode touchDispatch(keycode k) {
       return (k & SCROLL_UP) ? LEFT : RIGHT;
     } else if (middle && right) {
       // tabs: next & prev
-
-      // show page numbers
-      gclear();
-      char parts[15];
-      snprintf(parts, sizeof(parts), " %d/%d ", (current_line+2)/rows+1, (nlines+rows/2)/rows);
-      drawCenteredText(parts);
-      gupdate();
-
+      displayPageNum();
       return (k & SCROLL_UP) ? META+'V' : CTRL+'V';
     }
     //else if (bottom && left) k= scrollHistory();
@@ -1077,7 +1116,6 @@ keycode keyAction(keycode k) {
   if (k==NO_REDRAW) return k;
 
   int kc= k & ~META & ~ CTRL;
-  int lasttab= tab;
 
   // -- bookmarks
   // w3m: Esc-b	View bookmarks
@@ -1124,10 +1162,10 @@ keycode keyAction(keycode k) {
   COUNT(top, SCROLL_UP, SCROLL_DOWN, nlines);
 
   // -- big navigation
-  if (k=='<' || kc==',') top= 0; // top
-  if (k=='>' || kc=='.') top= nlines;
-  if (k==META+'V' || k==META+' ' || k==BACKSPACE || k==DEL) top-= rows;
-  if (k==CTRL+'V' || k==' ') top+= rows;
+  if (k==META+'<' || k==META+',' || k==META+UP) top= 0; // top
+  if (k==META+'>' || k==META+'.' || k==META+DOWN) top= nlines;
+  if (k==META+'V' || k==META+' ' || k==CTRL+UP) top-= rows+4;
+  if (k==CTRL+'V' || k==' ' || k==CTRL+DOWN) top+= rows+4;
 
   if (top>nlines-rows) top= nlines-rows;
   if (top<0) top= 0;
@@ -1201,45 +1239,6 @@ keycode keyAction(keycode k) {
   if (start_tab+tab<=1) tab= -start_tab+1;
   if (tab>=ntab) tab= ntab-1;
 
-  if (lasttab!=tab || k==LEFT || k==RIGHT) {
-    gclear(); gbg= white; gfg= black;
-
-    char buf[10]; sprintf(buf, " Tab%+d ", tab);
-    // print center
-    gy= 10;
-    gx= (gsizex-strlen(buf)*8)/2;
-    gputs(buf);
-    gnl(); gy+= 4;
-
-    // -- host (URL)
-    // clear
-    for(int i=gsizex/8; i; i--) gputc(' ');
-    // TODO: use FULLWIDTH? or small font
-    char *u= url, *end;
-    u= sskip(u, "http://");
-    u= end= sskip(u, "https://");
-    while(*end && *end!='/') end++;
-    gx= (gsizex-8*(end-u))/2; gx= MAX(0, gx);
-    while(*u && *u!='/' && gx<gsizex) gputc(*u++);
-    // print path
-    //if (*u) gputc(*u++);
-    //gnl();
-    //gputs(u);
-    //while(gy<gsizey) gputc(' ');
-
-    // line of <<<<< or >>>>>
-    gy= (gsizey-8)/2; // middle line
-    gx= (gsizex%8)/2; // center text
-    for(int i=gsizex/8; i; i--)
-      gputc(k==LEFT?'<':'>');
-    gnl();
-
-    gupdate();
-    fflush(stdout);
-    long startms= mstime();
-    while(!haskey() && mstime()-startms<300);
-  }
-
   //COUNT_WRAP(right, RIGHT, LEFT, nright);
 
   //TODO: field? nfield
@@ -1276,7 +1275,7 @@ keycode editTillEvent() {
     B(black); C(white);
 
     //while(1) {
-    k= edit(&line, -1, NULL, NULL, " <>*");
+    k= edit(&line, -1, NULL, NULL, " *");
     //printf("\n>>> %s line>%s<\n", keystring(k), line->s);
 
     char *ln= line->s;
@@ -1347,12 +1346,19 @@ int main(void) {
   fbookmarks= fopen(".wbookmarks", "a+");
   start_tab= flines(fhistory);
   
-  int k= 0, q=0, last_tab;
+  int k= 0, q=0, lasttab=-1, lasttop=-1;
   // string for editing/command
   line= dstrncat(NULL, NULL, 1);
   while(1) {
 
     loadPageMetaData();
+    if (tab!=lasttab)
+      displayTabInfo(k);
+    lasttab= tab;
+
+    if (ABS(top-lasttop)>rows-5)
+      displayPageNum();
+    lasttop= top;
 
     // avoid update if events waiting
     if (!haskey() && k!=NO_REDRAW) {
