@@ -18,15 +18,13 @@ node_modules
 a.out
 Graphics/font8x8/render
 
+# - temp files
+*#*
+
 # - copyrighted can't checkin
-Tests/yesco.org
 Tests/tables-advanced.moz
-Tests/runeberg.org
-Tests/lysator.liu.se
-Tests/ibm.com
 Tests/html.com.tables
-Tests/google.com
-Tests/forth.org
+
 Tests/*.com
 Tests/*.org
 Tests/*.se
@@ -39,3 +37,17 @@ Tests/*.simple
 .*.c
 .stdout
 .stderr
+.*
+
+Graphics/*.pnm
+Graphics/*.gif
+Graphics/*.ico
+Graphics/*.jpeg
+Graphics/*.jpg
+Graphics/*.pbm
+Graphics/*.png
+Graphics/*.ANSI
+
+
+
+
