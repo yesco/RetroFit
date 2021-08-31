@@ -138,11 +138,9 @@ int loadshortcuts(char *file) {
 // TODO: search prefixkey, or string
 keycode listshortcuts() {
   clear();
-  printf("\n=== BOOKMARKS ===\n\n");
+  printf("\n=== ShortCuts/Links ===\n\n");
   for(int i=0; i<nlinks; i++) 
     printf("%s\n", links[i]);
-  printf("\n===Press key to continue\n");
-  key();
   return NO_REDRAW;
 }
 
@@ -237,9 +235,8 @@ cursoron();
     }
   }
 
-  printf("\n%d Matching Lines", mcount);
-  printf("\n(press key to continue)");
-  fflush(stdout);
+  printf("\n%d Matching Lines\n", mcount);
+  printf("(CTRL-L to redraw)\n");
   return NO_REDRAW;
 }
 
@@ -1279,6 +1276,7 @@ keycode keyAction(keycode k) {
   // chrome: ^S-DEL: open delete history
   // chrome: ^S-M: login as different user
   // chrome: M-S-i: feedback form
+  return k;
 }
 
 keycode editTillEvent() {
