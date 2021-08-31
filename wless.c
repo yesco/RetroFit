@@ -43,7 +43,7 @@ void message(char* format, ...) {
 // set k=NO_REDRAW to not update screen
 // (good for showing temporary information like menus/hilite)
 #define NO_REDRAW -1
-#define REDRAW 0
+#define REDRAW (CTRL+'L')
 
 // --- limits
 int nlines= 0, nright= 10;
@@ -459,23 +459,25 @@ void displayTabInfo(keycode k) {
  int sgy= gy;
  gupdate();
  
- // print host center black on white
- gclear(); gbg= white; gfg= black;
- gy= sgy;
- // clear previous host
- for(int i=gsizex/8; i; i--) gputc(' ');
- // TODO: use FULLWIDTH? or small font
- char *u= url, *end;
- u= sskip(u, "http://");
- u= end= sskip(u, "https://");
- while(*end && *end!='/') end++;
- gx= (gsizex-8*(end-u))/2; gx= MAX(0, gx);
- while(*u && *u!='/' && gx<gsizex) gputc(*u++);
- // print path
- //if (*u) gputc(*u++);
- //gnl();
- //gputs(u);
- //while(gy<gsizey) gputc(' ');
+ if (url) {
+   // print host center black on white
+   gclear(); gbg= white; gfg= black;
+   gy= sgy;
+   // clear previous host
+   for(int i=gsizex/8; i; i--) gputc(' ');
+   // TODO: use FULLWIDTH? or small font
+   char *u= url, *end;
+   u= sskip(u, "http://");
+   u= end= sskip(u, "https://");
+   while(*end && *end!='/') end++;
+   gx= (gsizex-8*(end-u))/2; gx= MAX(0, gx);
+   while(*u && *u!='/' && gx<gsizex) gputc(*u++);
+   // print path
+   //if (*u) gputc(*u++);
+   //gnl();
+   //gputs(u);
+   //while(gy<gsizey) gputc(' ');
+ }
  
  // line of <<<<< or >>>>>
  gy= (gsizey-8)/2; // middle line
@@ -1153,7 +1155,7 @@ keycode keyAction(keycode k) {
   if (k==CTRL+'R') {
     gtoast("Reloading");
     reload(url);
-    k= NO_REDRAW;
+    k= REDRAW;
   }
   if (k==CTRL+'U') {
     dstr *cmd= dstrprintf(NULL, "less %s", file);

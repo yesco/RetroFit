@@ -353,6 +353,7 @@ char* keystring(int k) {
   }
   else if (k>=FUNC && k<=FUNC+12) sprintf(s, "F-%d", k-FUNC);
   else if (k>=META+' ') sprintf(s, "M-%c", k-META);
+  else sprintf(s, "\\u%04x", k);
   return s;
 }
 

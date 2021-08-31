@@ -397,12 +397,12 @@ void nl() {
 
 void indent() {
   if (_pre) return;
-  if (lines<=4) _indent+= 7;
+  if (lines<=5) _indent+= 7;
   _indent= MAX(0, MIN(10, _indent));
   while(_curx < _indent) {
     putchar(inx(' '));
   }
-  if (lines<=4) _indent-= 7;
+  if (lines<=5) _indent-= 7;
   _ws= 1;
 }
 

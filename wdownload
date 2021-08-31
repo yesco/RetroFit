@@ -1,3 +1,6 @@
+[ -n $UDIR ] && UDIR=`pwd`
+[ -n WPATH ] && WPATH=$UDIR
+
 #echo "----DOWN UDIR=$UDIR"
 #echo "----DOWN WPATH=$WPATH"
 
