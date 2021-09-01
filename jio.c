@@ -47,16 +47,11 @@ void jio() {
   fprintf(stderr, "\e[?1000;1003;1006;1015h");
 
   tcgetattr(0, &_orig_termios);
-
-  // register cleanup handler
   atexit(_jio_exit);
-
-  // modify
   _jio_termios= _orig_termios;
 
   // raw terminal in; catch ^C & ^Z
   cfmakeraw(&_jio_termios);
-
   // enable terminal out
   _jio_termios.c_oflag |= OPOST;
 
@@ -182,24 +177,12 @@ static int _key_b= 0;
 
 int haskey() {
   if (_key_b>0) return 1;
-  struct termios old, tmp;
-  tcgetattr(0, &old);
-  tmp= old;
-  // modify
-  cfmakeraw(&tmp); // ^C & ^Z !
-  tmp.c_lflag &= ~ICANON & ~ECHO;
-  tcsetattr(0, TCSANOW, &tmp);
 
   struct timeval tv = { 0L, 0L };
   fd_set fds;
   FD_ZERO(&fds);
   FD_SET(0, &fds);
-  int r= select(1, &fds, NULL, NULL, &tv);
-
-  // restore
-  tcsetattr(0, TCSANOW, &old);
-
-  return r;
+  return select(1, &fds, NULL, NULL, &tv);
 }
 
 // Wait and read a key stroke.
@@ -229,6 +212,12 @@ keycode key() {
     _key_b= read(0, &buf[0], sizeof(buf)) - 1;
   }
   int k= buf[0];
+
+  // TODO: how come I get ^J on RETURN?
+  // but not in Play/keys.c ???
+
+  //fprintf(stderr, " {%d} ", k);
+
   buf[_key_b+1]= 0;
 
 //TDOO: BACKSPACE seems broken!
