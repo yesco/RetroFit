@@ -135,12 +135,89 @@ int loadshortcuts(char *file) {
   fclose(flinks);
 }
 
+// score of string A matched to B
+//    INT_MAX  "FOO" to "FOO"
+//  INT_MAX/2  "foo" to "FOO"
+//      10000  "foo" to "fo"
+//       9993  "foo bar" to "bar"
+//       9990  "fo ba bar" to "bar"
+//          1  "foo" "foO"
+//          2  "fie foo fum" "foo fum"
+//          2  "fie foo foo bar" "foo bar"
+//
+// Returns  0  if no match
+//    INT_MAX  if equal (case match)
+//  IMT_MAX/2  if equal (case not)
+//      10000  if it's a prefix
+//       1000+ if substring (>= 1000)
+//          n  prefixwords matched
+int match(char* a, char* b) {
+  // equal
+  if (!strcmp(a, b)) return INT_MAX;
+  if (!strcasecmp(a, b)) return INT_MAX/2;
+
+  // prefix (TODO: case)
+  int l= lprefix(a, b);
+  if (l==strlen(b)) return 10000;
+
+  // substring
+  char* m= strcasestr(a, b);
+  // but start of word
+  if (m && m-a>0 && isalnum(*(m-1))) return 0;
+  if (m) return 9999- (m-a);
+
+  // matches prefixes to words in order
+  char* s= strchr(b, ' ');
+  int n= s? s-b : strlen(b);
+  int r= 0;
+  while (a && *a && b && *b) {
+    char* wd= NULL;
+    int l= 0;
+    sscanf(b, "%ms%n", &wd, &l);
+
+    // find it
+    m= strcasestr(a, wd);
+    if (wd) free(wd);
+    if (!m) return 0;
+    // but start of word
+    if (m && m-a>0 && isalnum(*(m-1))) return 0;
+    
+    // matched one
+    r++;
+
+    // next word
+    while(*b && *b!=' ') b++;
+    while(*b && *b==' ') b++;
+    if (!*b) return r;
+    
+    a= m+l;
+    while(*a && isalnum(*a)) a++;
+    while(*a && *a==' ') a++;
+    if (!*a) return 0;
+  }
+  return r;
+}
+
 // TODO: search prefixkey, or string
 keycode listshortcuts() {
   clear();
   printf("\n=== ShortCuts/Links ===\n\n");
   for(int i=0; i<nlinks; i++) 
     printf("%s\n", links[i]);
+
+  // try clever matching of command line
+  for(int i=0; i<nlinks; i++) {
+    int m= match(links[i], line->s);
+    if (0) ;
+    else if (m>10000) C(green);
+    else if (m>1000) C(yellow);
+    else if (m) C(cyan);
+    else continue;
+    printf("==> %5d %s\n", m, links[i]);
+  }
+  C(white);
+
+  printf("\n\n(press CTRL-L to see browser page)\n");
   return NO_REDRAW;
 }
 
