@@ -1027,8 +1027,8 @@ keycode touchDispatch(keycode k) {
     int pr= r*100/screen_rows;
     int pc= c*100/screen_cols;
 
-    int top= pr<15, bottom= pr>85;
-    int left= pc<20, right= pc>80;
+    int top= pr<10, bottom= pr>90;
+    int left= pc<10, right= pc>=90;
 
     int center= !left && !right;
     int middle= !top && !bottom;
