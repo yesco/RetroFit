@@ -10,13 +10,16 @@
 #include <assert.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <signal.h>
+//#include <sys/ioctl.h>
 
 #include "jio.h"
 
 
 int screen_rows= 24, screen_cols= 80;
 // https://stackoverflow.com/questions/1022957/getting-terminal-width-in-c
-void screen_init() {
+
+void screen_init(int sig) {
   struct winsize w;
   ioctl(0, TIOCGWINSZ, &w);
   screen_rows = w.ws_row;
@@ -36,7 +39,9 @@ void _jio_exit() {
 }
 
 void jio() {
-  screen_init();
+  // get screen size
+  screen_init(0);
+  signal(SIGWINCH, screen_init);
 
   // xterm mouse init
   fprintf(stderr, "\e[?1000;1003;1006;1015h");
@@ -56,6 +61,8 @@ void jio() {
   _jio_termios.c_oflag |= OPOST;
 
   tcsetattr(0, TCSANOW, &_jio_termios);
+
+  // catch window resize interrupts
 }
 
 ////////////////////////////////////////

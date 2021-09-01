@@ -30,7 +30,7 @@ void _jio_exit(); // atexit() should do
 
 extern int screen_rows, screen_cols;
 
-void screen_init();
+void screen_init(int sig);
 
 void reset();
 void clear();

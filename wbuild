@@ -20,7 +20,7 @@ if [[ w.c -nt w.x ]]; then
   echo "--- w.c changed, recompiling w.x..."
   echo "`date --iso=s` #=CC w.c" >> .wlog
   rm w.x 2>/dev/null
-  cc $OPT -g -w -lunistring jio.c w.c -o w.x || (printf "maybe need to install libunistring?\napt install libunistring\nbrew install libunistring\nyum install libunistring-devel\n" && exit 4711) || exit
+  cc $OPT -g -w -lunistring jio.c w.c -o w.x || (exit 4711) || exit
 fi
 
 # --- compile spinner.c

@@ -231,7 +231,7 @@ int inx(int c) {
   if (isfullwidth(c)) _curx++;
 
   _curx++; _nl= 0;
-  if (!_pre && _curx+rmargin == screen_cols) nl();
+  if (!_pre && _curx+rmargin >= screen_cols) nl();
   return c;
 }
 
@@ -954,7 +954,7 @@ void process(TAG *end) {
 
 int main(int argc, char**argv) {
   // get width for formatting
-  screen_init();
+  screen_init(0);
 
   if (argc<2 || !strlen(argv[1])) {
     fprintf(stderr, "Usage:\n  ./w [FIL] URL [COLS] # cols must be 3rd arg\n");

@@ -1300,6 +1300,10 @@ keycode editTillEvent() {
 
     //while(1) {
     k= edit(&line, -1, NULL, NULL, " *");
+
+    // terminal may have been resized!
+    rows = screen_rows-1;
+
     //printf("\n>>> %s line>%s<\n", keystring(k), line->s);
 
     char *ln= line->s;
@@ -1357,11 +1361,10 @@ keycode editTillEvent() {
 
 int main(void) {
   jio();
+  rows = screen_rows-1;
 
   cursoroff();
   system("echo '`date --iso=ns` #=WLESS`' >> .wlog");
-  screen_init();
-  rows = screen_rows-1;
   wclear();
 
   // --- Open files for persistent state
@@ -1374,7 +1377,6 @@ int main(void) {
   // string for editing/command
   line= dstrncat(NULL, NULL, 1);
   while(1) {
-
     loadPageMetaData();
     if (tab!=lasttab)
       displayTabInfo(k);
