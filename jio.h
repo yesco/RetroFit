@@ -91,7 +91,7 @@ color readablefg();
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define ABS(a) ((a)<0?-(a):(a))
 
-#define FREE(var) (free(var), var=NULL)
+#define FREE(var) (var?free(var):0, var=NULL)
 
 ////////////////////////////////////////
 // Dynamic STRings (see Play/dstrncat.c)

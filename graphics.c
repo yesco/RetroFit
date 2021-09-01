@@ -31,15 +31,21 @@ gscreen _gscreen= NULL, _gscold= NULL;
 int gsizex= 0, gsizey= 0;
 int gx= 0, gy= 0;
 int gbg= black, gfg= white;
+int gbytes= 0;
 
 void gallocate(int x, int y, int clear) {
   gsizex= x;
   gsizey= y;
-  gscreen old= _gscreen;
   int size=gsizex*gsizey;
+  if (gbytes!=size) {
+    FREE(_gscreen);
+    FREE(_gscold);
+  }
+  gscreen old= _gscreen;
   if (!old) {
     _gscreen= malloc(size);
     _gscold= malloc(size);
+    gbytes= size;
     clear= 1;
   }
   if (clear) {
@@ -237,6 +243,7 @@ void gicon(char *url) {
   // build command
   dstr *cmd= dstrprintf(NULL, "./wicon \"%.*s\"",  end-host, host);
 
+  gotorc(screen_rows-1, 0);
   system(cmd->s);
   free(cmd);
 }

@@ -1,5 +1,6 @@
 # opt?
-OPT=-O3
+# (don't optimize as debugging won't tell the truth!)
+#OPT=-O3
 
 # --- dependencies
 if [[ jio.c -nt w.x ]]; then

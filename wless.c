@@ -832,17 +832,32 @@ keycode command(keycode k, dstr *ds) {
       // Fallthrough (even if no space)
     }
 
-    if (strspn(line, "+-0123456789.eE+lastijng() ")==len 
+    if (strspn(line, "+-0123456789.eE+*/%^=-lastijng<>!()[] ")==len 
         && !strchr(line, '"') && !strchr(line, '\'')) {
       dstr *cmd= dstrprintf(NULL, "printf \"`echo \\\"%s\\\" | bc -l`\"", line);
+
+      // delete "microphone prompt"
+      display(k); fflush(stdout);
+
+      // calculate and print inline
+      gotorc(screen_rows-1, 0);
+      reset();
+      B(black); C(white);
+      printf("%s", line);
       C(red);
-      fprintf(stderr, "   ==> ");
+      printf("  ==> ", line);
+      clearend();
       C(green); fflush(stdout);
       system(cmd->s);
       free(cmd);
+      clearend();
       C(white); fflush(stdout);
+
+      while(!haskey());
+      
       return NO_REDRAW;
     }
+
     // SEARCH the web (duckduckgo)
     dstr *q= dstrcaturi(line);
     char query[strlen(INTERNET_SEARCH)+strlen(q->s)+1];
@@ -1372,23 +1387,18 @@ keycode editTillEvent() {
 
     // EDIT
     gotorc(screen_rows-1, 0);
-    cursoron();
     B(black); C(white);
-
-    //while(1) {
+    cursoron();
     k= edit(&line, -1, NULL, NULL, " *");
+    cursoroff();
 
     // terminal may have been resized!
     rows = screen_rows-1;
-
-    //printf("\n>>> %s line>%s<\n", keystring(k), line->s);
 
     char *ln= line->s;
 
     // Safe-way out!
     if (!strcmp(ln, "QUIT")) exit(0);
-
-    cursoroff();
 
     // --- Editor extension!
 
@@ -1406,6 +1416,11 @@ keycode editTillEvent() {
     // this is almost DWIM!
     if (k==' ' && *ln && ln[strlen(ln)-1]!=' ') {
       line= dstrncat(line, " ", 1);
+      k= NO_REDRAW;
+      continue;
+    }
+    if (k=='*' && *ln && isdigit(ln[strlen(ln)-1])) {
+      line= dstrncat(line, "*", 1);
       k= NO_REDRAW;
       continue;
     }
