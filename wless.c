@@ -463,12 +463,20 @@ FILE *openOrWaitReloadAnsi() {
 //  if len==0xff -> end of string
 int matchfinder(char *ln, char *pat) {
   if (!ln || !*ln || !pat || !*pat) return 0;
-pat= "\e]:";
   char *p= strcasestr(ln, pat);
   if (!p) return 0;
   int len= strlen(pat);
-  char *end= strcasestr(ln, "\e[24m"); // end underline, LOL
-  len= !end? 0xff : end-p;
+  return ((p-ln)<<8) + MIN(0xff, len);
+}
+
+int findlink(char *ln) {
+  // We find beginning of link by hidden text
+  char *p= strcasestr(ln,"\e]:A:");
+  if (!p) return 0;
+  // TODO: find better:
+  // end of link: end underline, LOL
+  char *end= strcasestr(ln, "\e[24m");
+  int len= !end? 0xff : end-p;
   return ((p-ln)<<8) + MIN(0xff, len);
 }
 
@@ -536,7 +544,7 @@ void printAnsiLines(FILE *fansi, int top) {
 
         // -- print match
         // test if click ON
-        if (_search) {// && !strcmp(_search, "LINKS")) {
+        if (_search && !strcmp(_search, "LINKS")) {
           int r= -n-1, c= visCol(ln->s, f);
           int vend= visCol(ln->s, f+len);
           //printf("{%d,%d}", c, vend);
@@ -547,7 +555,7 @@ void printAnsiLines(FILE *fansi, int top) {
               line= dstrncat(line, p++, 1);
             B(red); C(white);
           }
-        } else {
+        } else if (_search) {
           // hilite every match
           B(red); C(white);
         }
@@ -564,6 +572,7 @@ void printAnsiLines(FILE *fansi, int top) {
         f= len ? s+(m>>8) : NULL;
       }
       // print remainder
+      // (this will always be called, even for lines not to be displayed)
       printf("%s", s);
       ln->s[0]= 0;
 
