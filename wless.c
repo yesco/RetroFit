@@ -450,6 +450,17 @@ FILE *openOrWaitReloadAnsi() {
   return fansi;
 }
 
+// limited to matching 255 chars
+// Returns: pos*256 + len
+//          0 if no match
+int matchfinder(char *ln, char *pat) {
+  if (!ln || !*ln || !pat || !*pat) return 0;
+  char *p= strcasestr(ln, pat);
+  if (!p) return 0;
+  int len= strlen(pat);
+  return ((p-ln)<<8) + MIN(255, len);
+}
+
 void printAnsiLines(FILE *fansi, int top) {
   int c, n=top;
   fseek(fansi, 0, SEEK_SET);
@@ -457,20 +468,26 @@ void printAnsiLines(FILE *fansi, int top) {
   while(c= fgetc(fansi)) {
     // TODO: cleanup when make the hidden lines simplier...
     if (c=='\n' || c==EOF) {
-
+      // -- print accumulated line
       char *s= ln->s;
-      char *f= _search ? strcasestr(s, _search) : NULL, *found= f;
+      int m= matchfinder(s, _search);
+      char *f= m ? s+(m>>8) : NULL;
+      int len= m & 0xff;
+      char *found= f; // a flag!
       if (_only && !f) *s= 0;
 
+      // find and hilite each match
       while(f) {
         printf("%.*s", f-s, s);
         B(red); C(white);
-        printf("%.*s", strlen(_search), f);
-        s= f+strlen(_search);
-        // guess
+        printf("%.*s", len, f);
+        s= f + len;
+        // assume color (TODO search back?)
         B(white); C(black);
-        // find next
-        f= strcasestr(s, _search);
+        // find next match
+        m= matchfinder(s, _search);
+        len= m & 0xff;
+        f= len ? s+(m>>8) : NULL;
       }
       // print remainder
       printf("%s", s);
