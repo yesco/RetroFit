@@ -213,16 +213,19 @@ keycode listshortcuts() {
     printf("%s\n", links[i]);
 
   // try clever matching of command line
-  for(int i=0; i<nlinks; i++) {
-    int m= match(links[i], line->s);
-    if (0) ;
-    else if (m>10000) C(green);
-    else if (m>1000) C(yellow);
-    else if (m) C(cyan);
-    else continue;
-    printf("==> %5d %s\n", m, links[i]);
+  if (line->s[0]) {
+    for(int i=0; i<nlinks; i++) {
+      int m= match(links[i], line->s);
+      if (0) ;
+      else if (m>10000) C(green);
+      else if (m>1000) C(yellow);
+      else if (m) C(cyan);
+      else continue;
+      printf("==> %5d %s\n", m, links[i]);
+    }
+  
+    C(white);
   }
-  C(white);
 
   printf("\n\n(press CTRL-L to see browser page)\n");
   return NO_REDRAW;
@@ -457,18 +460,6 @@ FILE *openOrWaitReloadAnsi() {
   return fansi;
 }
 
-// limited to matching 255 chars
-// Returns: pos*256 + len
-//          0 if no match
-//  if len==0xff -> end of string
-int matchfinder(char *ln, char *pat) {
-  if (!ln || !*ln || !pat || !*pat) return 0;
-  char *p= strcasestr(ln, pat);
-  if (!p) return 0;
-  int len= strlen(pat);
-  return ((p-ln)<<8) + MIN(0xff, len);
-}
-
 int findlink(char *ln) {
   // We find beginning of link by hidden text
   char *p= strcasestr(ln,"\e]:A:");
@@ -477,6 +468,20 @@ int findlink(char *ln) {
   // end of link: end underline, LOL
   char *end= strcasestr(ln, "\e[24m");
   int len= !end? 0xff : end-p;
+  return ((p-ln)<<8) + MIN(0xff, len);
+}
+
+// limited to matching 255 chars
+// Returns: pos*256 + len
+//          0 if no match
+//  if len==0xff -> end of string
+int matchfinder(char *ln, char *pat) {
+  if (!ln || !*ln || !pat || !*pat) return 0;
+  if (!strcmp(pat, "LINKS"))
+    return findlink(ln);
+  char *p= strcasestr(ln, pat);
+  if (!p) return 0;
+  int len= strlen(pat);
   return ((p-ln)<<8) + MIN(0xff, len);
 }
 
@@ -521,6 +526,7 @@ int visCol(char *ln, char *end) {
 }
 
 void printAnsiLines(FILE *fansi, int top) {
+  int matchLink = _search && !strcmp(_search, "LINKS");
   gotorc(1, 0);
   int c, n=top;
   rows-=1;
@@ -532,7 +538,7 @@ void printAnsiLines(FILE *fansi, int top) {
     if (c=='\n' || c==EOF) {
       // -- print accumulated line
       char *s= ln->s;
-      int m= matchfinder(s, _search);
+      int m= matchLink? findlink(s) : matchfinder(s, _search);
       char *f= m ? s+(m>>8) : NULL;
       int len= m & 0xff;
       char *found= f; // a flag!
@@ -548,7 +554,7 @@ void printAnsiLines(FILE *fansi, int top) {
           int r= -n-1, c= visCol(ln->s, f);
           int vend= visCol(ln->s, f+len);
           //printf("{%d,%d}", c, vend);
-          if (_click_r==r && c<=_click_c && _click_c<=vend) {
+          if (_click_r==r+1 && c<=_click_c && _click_c<=vend) {
             char *p= sskip(f, "\e]:A:{");
             line->s[0]= 0;
             while(*p && !isspace(*p))
@@ -567,7 +573,7 @@ void printAnsiLines(FILE *fansi, int top) {
         // assume color (TODO search back?)
         B(white); C(black);
         // find next match
-        m= matchfinder(s, _search);
+        m= matchLink? findlink(s) : matchfinder(s, _search);
         len= m & 0xff;
         f= len ? s+(m>>8) : NULL;
       }
@@ -581,10 +587,13 @@ void printAnsiLines(FILE *fansi, int top) {
       if (c!='\n' && c!='#') {
 
         // count of lines printed
-        if (n<0 && (!_only || found))
+        if (n<0 && (!_only || found || matchLink)) {
+          clearend();
           putchar('\n');
-        if (n>=0 || !_only || found)
+        }
+        if (n>=0 || !_only || found || matchLink)
           n--;
+
         if (n<-rows) break;
 
       } else {

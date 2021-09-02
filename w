@@ -135,9 +135,9 @@ TOTAL   - LOC: `./wcode .all.c`	(`./wcode .before-all.c`)
 
 
 Usage: ./w
-       ./w F.NAME     (tries file first)
-       ./w URL        (if no file, wget)
-       ./w [URL ...]         (load many)
+       ./w F.NAME   (tries file first)
+       ./w URL      (if no file, wget)
+       ./w [URL ...]       (load many)
 "
 ) 1>&2
 
