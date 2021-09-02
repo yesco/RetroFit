@@ -625,6 +625,7 @@ void display(int k) {
   // favicon?
   if (top==0) {
     save(); gotorc(1, 0); fflush(stdout);
+    // no icon - use 2 first from nost
     if (!gicon(url)) {
       gclear(); gbg= white; gfg= black; gy= 3; gx= 1;
       char *u= url;
