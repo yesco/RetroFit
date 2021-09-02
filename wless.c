@@ -625,7 +625,15 @@ void display(int k) {
   // favicon?
   if (top==0) {
     save(); gotorc(1, 0); fflush(stdout);
-    gicon(url);
+    if (!gicon(url)) {
+      gclear(); gbg= white; gfg= black; gy= 3; gx= 1;
+      char *u= url;
+      u= sskip(u, "https://");
+      u= sskip(u, "http://");
+      char two[3]= {u[0], u[1], 0};
+      gputs(two);
+      gupdate();
+    }
     restore(); fflush(stdout);
   }
 
@@ -821,6 +829,32 @@ keycode command(keycode k, dstr *ds) {
         // not a link name - do search!
       }
 
+      // Calculate expression
+      if (strspn(line, "+-0123456789.eE+*/%^=-lastijng<>!()[] ")==len 
+          && !strchr(line, '"') && !strchr(line, '\'')) {
+        dstr *cmd= dstrprintf(NULL, "printf \"`echo \\\"%s\\\" | bc -l`\"", line);
+        // delete "microphone prompt"
+        display(k); fflush(stdout);
+
+        // calculate and print inline
+        gotorc(screen_rows-1, 0);
+        reset();
+        B(black); C(white);
+        printf("%s", line);
+        C(yellow);
+        printf("  ==> ", line);
+        clearend();
+        C(green); fflush(stdout);
+        system(cmd->s);
+        free(cmd);
+        clearend();
+        C(white); fflush(stdout);
+
+        while(!haskey());
+      
+        return NO_REDRAW;
+      }
+
       // OPEN url
       // url? or file? have /:.?
       if (strchr(line+1, '/') || strchr(line+1, ':') || strchr(line, '.')) {
@@ -830,33 +864,6 @@ keycode command(keycode k, dstr *ds) {
       }
 
       // Fallthrough (even if no space)
-    }
-
-    // Calculate expression
-    if (strspn(line, "+-0123456789.eE+*/%^=-lastijng<>!()[] ")==len 
-        && !strchr(line, '"') && !strchr(line, '\'')) {
-      dstr *cmd= dstrprintf(NULL, "printf \"`echo \\\"%s\\\" | bc -l`\"", line);
-
-      // delete "microphone prompt"
-      display(k); fflush(stdout);
-
-      // calculate and print inline
-      gotorc(screen_rows-1, 0);
-      reset();
-      B(black); C(white);
-      printf("%s", line);
-      C(red);
-      printf("  ==> ", line);
-      clearend();
-      C(green); fflush(stdout);
-      system(cmd->s);
-      free(cmd);
-      clearend();
-      C(white); fflush(stdout);
-
-      while(!haskey());
-      
-      return NO_REDRAW;
     }
 
     // SEARCH the web (duckduckgo)

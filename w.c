@@ -231,6 +231,7 @@ int inx(int c) {
   if (isfullwidth(c)) _curx++;
 
   _curx++; _nl= 0;
+  // TODO: handle overflow? It'll break display assumptions of lines
   if (!_pre && _curx+rmargin >= screen_cols) nl();
   return c;
 }
@@ -346,7 +347,6 @@ dstr* _url= NULL;
 
 void print_hidden_url() {
   if (!_url) return;
-  step_key();
   printf("\e]:A:{%s %s}\e\\", _keys, _url->s);
 }
 
@@ -468,7 +468,10 @@ void p(int c) {
   if (_fullwidth) {
     // cheat, no word-wrap, print now!
     if (c<128) {
-      putwchar(inx(0xff01 + c-33));
+      wchar_t w= 0xff01 + c-33;
+      putwchar(w);
+      // increase after, otherwise might wrap badly! (TODO: why?)
+      inx(w);
     } else {
       putchar(inx(c));
     }
@@ -753,6 +756,7 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
     }
 
     memcpy(link_tag, tag, sizeof(link_tag));
+    step_key();
     setLinkUrl(val);
     print_hidden_url();
 

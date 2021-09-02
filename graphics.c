@@ -226,8 +226,8 @@ void gtoasterr(char *s) {
   gotorc(0,0);
 }
 
-void gicon(char *url) {
-  if (!url) return;
+int gicon(char *url) {
+  if (!url) return 0;
 
   // extract hostname
   char *host= url;
@@ -235,17 +235,18 @@ void gicon(char *url) {
   host= sskip(host, "http://");
   char *end= strchr(host, '/');
   if (!end) end= host+strlen(host);
-  if (!host) return;
+  if (!host) return 0;
 
   // dangerous?
-  if (strchr(host, '`') || strchr(host, '\\') || strchr(host, '"')) return;
+  if (strchr(host, '`') || strchr(host, '\\') || strchr(host, '"')) return 0;
 
   // build command
   dstr *cmd= dstrprintf(NULL, "./wicon \"%.*s\"",  end-host, host);
 
   gotorc(screen_rows-1, 0);
-  system(cmd->s);
+  int r= system(cmd->s);
   free(cmd);
+  return !r;
 }
 
 void drawPullDownMenu(color *colors, char **labels, int n) {
