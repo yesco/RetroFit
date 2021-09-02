@@ -98,6 +98,7 @@ git show :w.c >.w.c
 git show :table.c >.table.c
 git show :wless.c >.wless.c
 git show :jio.c >.jio.c
+git show :graphics.c >.graphics.c
 
 cat .w.c .table.c .wless.c >.before-all.c
 cat w.c table.c wless.c >.all.c
@@ -121,9 +122,11 @@ TOTAL   Lines: `cat .all.c | wc`
 
 render  - LOC: `./wcode .render.c`	(`./wcode .before-render.c`)
 browser - LOC: `./wcode wless.c`	(`./wcode .wless.c`)
-[libary - LOC: `./wcode jio.c`	(`./wcode .jio.c`)]
 ---
-TOTAL   - LOC: `./wcode .all.c`	(`./wcode .before-all.c`) [+ `./wcode jio.c`]
+TOTAL   - LOC: `./wcode .all.c`	(`./wcode .before-all.c`)
+
+[libary - LOC: `./wcode jio.c`	(`./wcode .jio.c`)]
+[graphic- LOC: `./wcode graphics.c`	(`./wcode .graphics.c`)]
 
 
 Usage: ./w
@@ -141,5 +144,6 @@ rm .table.c
 rm .before-all.c
 rm .before-render.c
 rm .jio.c
+rm .graphics.c
 
 cd $UDIR
