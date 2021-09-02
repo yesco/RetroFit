@@ -63,7 +63,7 @@ void jio() {
 ////////////////////////////////////////
 // - ansi screen
 
-void reset() { printf("\e[48;5;0m\e[38;5;7m\e[23m\e[24m\e[0m"); }
+void reset() { printf("\e[48;5;0m\e[38;5;7m\e[23m\e[24m\e[0m"); recolor(); }
 
 //void cls() { printf("\e[H[2J[3J"); }
 
@@ -349,7 +349,7 @@ char* keystring(int k) {
   }
   else if (k>=FUNC && k<=FUNC+12) sprintf(s, "F-%d", k-FUNC);
   else if (k>=META+' ') sprintf(s, "M-%c", k-META);
-  else sprintf(s, "\\u%04x", k);
+  else sprintf(s, "\\u%06x", k);
   return s;
 }
 
@@ -484,6 +484,24 @@ char* fgetlinenum(FILE* f, long line) {
     if (c=='\n') line--;
   if (line > 1) return NULL;
   return fgetline(f);
+}
+
+// Quoted Print a string
+// >>>|foo %0abar%ffend|<<<#12<"
+void qprintstr(char *s) {
+  if (!s) {
+    printf("(null)");
+    fflush(stdout);
+    return;
+  }
+  printf(">>>|");
+  while(*s) {
+    if (*s>31) putchar(*s);
+    else printf("%%%02x", *s);
+    s++;
+  }
+  printf("|<<<#%d<", strlen(s));
+  fflush(stdout);
 }
 
 // Return true if S (!null) ends with END

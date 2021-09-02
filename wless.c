@@ -52,13 +52,16 @@ int ntab= 1; // number of newly openeed tabs + last
 
 int rows;
 
-// --- state
+// --- "global" browser state
 FILE *fhistory, *fbookmarks;
 
 int top, right, tab, start_tab;
 
 char *_search= NULL;
 int _only= 0;
+
+int _click_r=-100, _click_c=-100;
+
 
 char *hit= NULL; // FREE!
 // DONT free (partof hit)
@@ -85,7 +88,7 @@ int incdec(int v, int k, int ikey, int dkey, int min, int max, int min2val, int 
 
 // TODO: dynamic array? or read from file and match on every keystroke?
 // (some newspapers have 26*26*5++ links! [cee] )
-#define LINKS_MAX 25*25*25
+#define LINKS_MAX 26*26*26
 int nlinks= 0;
 char *links[LINKS_MAX] = {0};
 
@@ -113,6 +116,7 @@ FILE *fopenext(char *fname, char *ext, char *mode) {
 // Load bookmarks/keyboards from FILE
 // Returns number of items added
 int loadshortcuts(char *file) {
+  if (!file) return 0;
   FILE *flinks;
 
   // .ansi file - extract links
@@ -129,8 +133,10 @@ int loadshortcuts(char *file) {
   while (lk=fgetline(flinks)) {
     if (nlinks<LINKS_MAX)
       links[nlinks++]= lk;
-    else
-      error(LINKS_MAX>=nlinks, 77, "Getmore links! %d");
+    else if (LINKS_MAX>=nlinks) {
+      message("loadshortcuts: LINKS_MAX reached!");
+      //error(LINKS_MAX>=nlinks, 77, "Getmore links! %d");
+    }
   }
   fclose(flinks);
 }
@@ -173,6 +179,7 @@ int match(char* a, char* b) {
   while (a && *a && b && *b) {
     char* wd= NULL;
     int l= 0;
+    // TODO: malloc/free expensive?
     sscanf(b, "%ms%n", &wd, &l);
 
     // find it
@@ -453,16 +460,63 @@ FILE *openOrWaitReloadAnsi() {
 // limited to matching 255 chars
 // Returns: pos*256 + len
 //          0 if no match
+//  if len==0xff -> end of string
 int matchfinder(char *ln, char *pat) {
   if (!ln || !*ln || !pat || !*pat) return 0;
+pat= "\e]:";
   char *p= strcasestr(ln, pat);
   if (!p) return 0;
   int len= strlen(pat);
-  return ((p-ln)<<8) + MIN(255, len);
+  char *end= strcasestr(ln, "\e[24m"); // end underline, LOL
+  len= !end? 0xff : end-p;
+  return ((p-ln)<<8) + MIN(0xff, len);
+}
+
+const vistrace= 0;
+
+int visCol(char *ln, char *end) {
+  if (!ln) return -100;
+  int col= 0;
+  char c;
+  while ((c= *ln) && ln++<=end) {
+    if (c=='\r') col= 0; // ^M
+    else if (c=='\e') {
+      if (vistrace) {
+        B(black); C(white);        
+        printf(" {@%d} E", col);
+      }
+      if ((c= *ln)==']') {
+        if (vistrace) {printf("H>"); fflush(stdout);}
+        // skip hidden text
+        while ((c= *ln++) && c!='\e');
+        c=*ln++; // skip \\
+        if (vistrace) printf("<");
+      } else {
+        // skip till letter
+        if (vistrace) printf("e>");
+        while ((c= *ln++) && !isalpha(c));
+        if (vistrace) printf("<");
+      }
+      if (vistrace) {B(white); C(black);}
+    } else if (c<32) ;
+    else if (c>127) {
+      if (isstartutf8(c)) col++;
+      if (vistrace) putchar(c);
+    } else {
+      if (vistrace) if (c>=' ') putchar(c);
+      if (c>=' ') col++;
+      // TODO: detect fullwidth char? :-(
+    }
+  }
+  if (vistrace) printf("<<<\n");
+  return col;
 }
 
 void printAnsiLines(FILE *fansi, int top) {
+  gotorc(1, 0);
   int c, n=top;
+  rows-=1;
+
   fseek(fansi, 0, SEEK_SET);
   dstr *ln= dstrncat(NULL, NULL, 160);
   while(c= fgetc(fansi)) {
@@ -479,9 +533,29 @@ void printAnsiLines(FILE *fansi, int top) {
       // find and hilite each match
       while(f) {
         printf("%.*s", f-s, s);
-        B(red); C(white);
+
+        // -- print match
+        // test if click ON
+        if (_search) {// && !strcmp(_search, "LINKS")) {
+          int r= -n-1, c= visCol(ln->s, f);
+          int vend= visCol(ln->s, f+len);
+          //printf("{%d,%d}", c, vend);
+          if (_click_r==r && c<=_click_c && _click_c<=vend) {
+            char *p= sskip(f, "\e]:A:{");
+            line->s[0]= 0;
+            while(*p && !isspace(*p))
+              line= dstrncat(line, p++, 1);
+            B(red); C(white);
+          }
+        } else {
+          // hilite every match
+          B(red); C(white);
+        }
+
         printf("%.*s", len, f);
+        if (len==0xff) { f=NULL; break; } // all
         s= f + len;
+
         // assume color (TODO search back?)
         B(white); C(black);
         // find next match
@@ -502,6 +576,7 @@ void printAnsiLines(FILE *fansi, int top) {
           putchar('\n');
         if (n>=0 || !_only || found)
           n--;
+        if (n<-rows) break;
 
       } else {
         // skip comment line(s)
@@ -520,11 +595,14 @@ void printAnsiLines(FILE *fansi, int top) {
       char ch= c;
       ln= dstrncat(ln, &c, 1);
     }
-    if (n<=-rows) break;
   }
 
-  // clear rest of screen
-  B(black); C(white); cleareos();
+  // mark click position
+  save();
+  gotorc(_click_r, _click_c);
+  B(red); C(white);
+  putchar('*');
+  restore();
   reset();
   fflush(stdout);
 }
@@ -632,12 +710,14 @@ void display(int k) {
   }
 
   // -- main content
-  B(white); C(black);
-  gotorc(1, 0);
-
   printAnsiLines(fansi, top);
 
   fclose(fansi);
+
+  //  reset();
+  clearend(); // avoid ragged
+  C(white); B(black); clearend();
+  cleareos();
 
   // favicon?
   if (top==0) {
@@ -661,10 +741,6 @@ void display(int k) {
   loadshortcuts(file);
 
   //loadbookmarks(file?file:".wlinks");
-
-//  reset();
-  clearend(); C(white); B(black); clearend();
-  cleareos();
 
   // -- footer
   reset();
@@ -966,7 +1042,7 @@ void showClick(keycode k, int r, int c) {
 }
 
 int clickDispatch(int k) {
-  if (k & MOUSE_UP) return REDRAW;
+  // Don't redraw as we want hilite links
   // TODO: make function/macro/API?
   int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
   int save_k= k;
@@ -974,6 +1050,12 @@ int clickDispatch(int k) {
 
   // Adjusted Row and Column (calibrate?)
   int ar= r-1, ac= c-1;
+
+  _click_r= ar; _click_c= ac;
+  _search= strdup("LINKS"); // secret signal!
+  //if (k & MOUSE_UP) return NO_REDRAW;
+  return REDRAW;
+
   if (ar<0) ar= 0; if (ac<0) ac= 0;
   if (ar>=screen_rows) ar= screen_rows-1;
   if (ac>=screen_cols) ac= screen_cols-1;
@@ -1432,7 +1514,7 @@ keycode editTillEvent() {
     if (k==CTRL+'G' || !*ln) {
       _only= 0;
       *ln= 0;
-      if (_search) FREE(_search);
+      FREE(_search);
     }
 
     // space!
@@ -1509,6 +1591,10 @@ int main(void) {
       display(k);
       visited();
     }
+
+    // print "key" acted on
+    //gotorc(screen_rows-1, 0);
+    //printf("---%8x---%s\n", k, keystring(k));
 
     // - read special event & decode
     //while(1){

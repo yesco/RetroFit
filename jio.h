@@ -151,6 +151,8 @@ char* fgetlinenum(FILE* f, long line);
 ////////////////////////////////////////
 // - strings
 
+void qprintstr(char *s);
+
 int endswith(char* s, char* end);
 
 int isinsideutf8(int c);

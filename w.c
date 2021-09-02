@@ -625,6 +625,7 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
       underline();
       fg(_fg); bg(_bg); // needed?
       _capture++;
+      print_hidden_url();
     }
     if (strstr(" table ", tag)) {
       table= dstrncat(NULL, NULL, 1024);
@@ -758,7 +759,7 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
     memcpy(link_tag, tag, sizeof(link_tag));
     step_key();
     setLinkUrl(val);
-    print_hidden_url();
+    //print_hidden_url();
 
     // prelink + part of link fit?
     // let's say 6 text chars...

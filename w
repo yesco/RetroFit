@@ -52,8 +52,13 @@ sleep 0.2
 
 # -- browse
 
+#debug
+#gdb -q $WPATH/wless.x -ex run -ex bt -ex quit
+
+#normal
 $WPATH/wless.x
 
+stty sane
 
 
 # --- reset screen after text
