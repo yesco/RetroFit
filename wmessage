@@ -8,22 +8,22 @@ COLS=${3:-$COLUMNS}
 
 printf "\e7" # save
 
-printf "\e[$((ROWS-1));0H" # gotorc
-
-printf "\e[42;30m\e[K";
-printf "./w "
+# - print green mode-line ala emacs
+#printf "\e[$((ROWS-1));0H" # gotorc
+#
+#printf "\e[42;30m\e[K";
+#printf "./w "
 
 printf "\e[0m" # restore color
 
+# - print message on last line
 printf "\e[$((ROWS-0));0H" # gotorc
-
 #printf "\e[32m" # green
-printf "\e[37m" # green
+printf "\e[37m" # white
 
-printf "${MSG:0:$((COLS-2))}" # print message
+printf "${MSG:0:$((COLS-2))}"
 
 printf "\e[K" # clear end of line
-
 printf "\e[0m" # restore color
 
 printf "\e8" # restore

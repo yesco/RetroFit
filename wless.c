@@ -832,6 +832,7 @@ keycode command(keycode k, dstr *ds) {
       // Fallthrough (even if no space)
     }
 
+    // Calculate expression
     if (strspn(line, "+-0123456789.eE+*/%^=-lastijng<>!()[] ")==len 
         && !strchr(line, '"') && !strchr(line, '\'')) {
       dstr *cmd= dstrprintf(NULL, "printf \"`echo \\\"%s\\\" | bc -l`\"", line);
