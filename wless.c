@@ -70,6 +70,10 @@ char *url= NULL;
 
 dstr *line= NULL;
 
+void clearcmd() {
+  if (line) line->s[0]= 0;
+}
+
 
 int incdec(int v, int k, int ikey, int dkey, int min, int max, int min2val, int max2val) {
   if (k==ikey) v++;
@@ -245,6 +249,17 @@ void logbookmark(int k, char *s) {
   message("Saved bookmark '%c' = '%s'", k, s);
 }
 
+void loghistory(char *url, int ulen, char *file) {
+  dstr *ds= dstrprintf(NULL, "%s #=W %.*s %s\n",
+    isotime(), ulen, url, file);
+if (strstr(ds->s, "LINKTEXT")) {
+  printf("\n\n\n-------------loghistory- LINKTEXT!---->%s<\n", ds->s);
+  if (key()==CTRL+'C') assert(!"stop");
+}
+  fputs(ds->s, fhistory);
+  free(ds);
+}
+
 keycode listbookmarks(char *url, char *s) {
   char *line;
   clear();
@@ -358,14 +373,26 @@ void download(char* url, int force) {
   char *end= strpbrk(url, " \t\n");
   int ulen= end? end-url : strlen(url);
 
+  // quote & log
+  dstr *file= dstrncat(NULL, ".w/Cache/", -1);
+  file= dstrncaturi(file, url, ulen);
+  file= dstrncat(file, ".ANSI", -1);
+  loghistory(url, ulen, file->s);
+
+  FILE *f= force ? NULL : fopen(file, "r");
+  free(file);
+
+  // if .ANSI file exists, exit
+  if (f) {
+    fclose(f);
+    return;
+  }
+  
   // TODO: srip the script?
   dstr *cmd= dstrprintf(NULL, "./wdownload %s \"%.*s\" %d %d &",
     force?"-d":"", ulen, url, screen_rows, screen_cols);
   system(cmd->s);
   free(cmd);
-
-  // wait enough for .whistory to be updated...  and .TMP to be created
-  usleep(1000*1000);
 }
 
 void reload(char* url) {
@@ -416,7 +443,7 @@ FILE *openOrWaitReloadAnsi() {
       if (keywait(1000)>1000) {
         gtoast("Reloading");
         gotorc(1, 0); // place of >>>
-        download(url, 0);
+        download(url, 1);
         ftmp= fopenext(file, ".TMP", "r");
       }
     }
@@ -525,7 +552,10 @@ int visCol(char *ln, char *end) {
   return col;
 }
 
-void printAnsiLines(FILE *fansi, int top) {
+// Return: true if clicked (askin redo page)
+int printAnsiLines(FILE *fansi, int top) {
+  int clicked= 0;
+
   int matchLink = _search && !strcmp(_search, "LINKS");
   gotorc(1, 0);
   int c, n=top;
@@ -556,11 +586,16 @@ void printAnsiLines(FILE *fansi, int top) {
           //printf("{%d,%d}", c, vend);
           if (_click_r==r+1 && c<=_click_c && _click_c<=vend) {
             char *p= sskip(f, "\e]:A:{");
-            line->s[0]= 0;
+            ln->s[0]= 0;
             while(*p && !isspace(*p))
-              line= dstrncat(line, p++, 1);
+              ln= dstrncat(ln, p++, 1);
             // GO!
-            tab= click(line->s);
+            tab= click(ln->s);
+            // we could exit here, but we'd rather hilite first, maybe wait a bit to allow user to regret?
+            clicked= 1;
+            // make click pos inactive!
+            // TODO: cleaner?
+            FREE(_search);
 
             B(red); C(white);
           }
@@ -619,13 +654,18 @@ void printAnsiLines(FILE *fansi, int top) {
   }
 
   // mark click position
-  save();
-  gotorc(_click_r, _click_c);
-  B(red); C(white);
-  putchar('*');
-  restore();
+  if (matchLink) {
+    save();
+    gotorc(_click_r, _click_c);
+    B(red); C(white);
+    putchar('*');
+    restore();
+  }
+
   reset();
   fflush(stdout);
+
+  return clicked;
 }
 
 void displayPageNum() {
@@ -686,8 +726,9 @@ void displayTabInfo(keycode k) {
 }
 
 // --- Display
-void display(int k) {
 
+// Return true if tab changed (by click) TODO: eleganse? Hmmm
+int display(int k) {
   // -- update header
   // (as it may have changed)
   reset();
@@ -705,7 +746,8 @@ void display(int k) {
   /* usleep(100*1000); */
   
   FILE *fansi= openOrWaitReloadAnsi();
-  if (!fansi) return;
+  // display trunced by key-press
+  if (!fansi) return 0; 
     
   // --- print header for real!
   // (we needed to wait for nlines)
@@ -731,14 +773,16 @@ void display(int k) {
   }
 
   // -- main content
-  printAnsiLines(fansi, top);
-
+  int redo= printAnsiLines(fansi, top);
   fclose(fansi);
 
   //  reset();
   clearend(); // avoid ragged
   C(white); B(black); clearend();
   cleareos();
+
+  // click requesting redo page
+  if (redo) return redo;
 
   // favicon?
   if (top==0) {
@@ -759,9 +803,9 @@ void display(int k) {
   // read keyboard shortcuts, page links
   trunclinks(0);
   loadshortcuts(".wkeys");
+  // TODO: very expensive to do every time... (try Tests/links-many.html) 
+  // TODO: keep file open and delete/reload if changed?
   loadshortcuts(file);
-
-  //loadbookmarks(file?file:".wlinks");
 
   // -- footer
   reset();
@@ -810,7 +854,9 @@ void queue_read() {
 //
 // Return newly opened tab number
 int newtab(char* url) {
-  reload(url);
+  // TODO: force or not?
+  // TODO: maybe click shouldn't open new tab, at least not if already loaded in >tab! (only log if history and not future?)
+  download(url, 0);
 
   // open new tab, go to
   return ntab++;
@@ -848,8 +894,12 @@ int click(char *keys) {
 
       // skip spaces
       while(*u && (*u==' ' || *u=='\t')) u++;
+
+      // TODO: force or not?
+      // TODO: maybe click shouldn't open new tab, at least not if already loaded in >tab! (only log if history and not future?)
       int n= newtab(u);
-      line->s[0]= 0;
+
+      clearcmd();
       return n;
     }
   }
@@ -858,17 +908,17 @@ int click(char *keys) {
 }
 
 keycode command(keycode k, dstr *ds) {
-  char *line= ds->s;
-  int len= strlen(line);
-  if (!*line) return k;
+  char *ln= ds->s;
+  int len= strlen(ln);
+  if (!*ln) return k;
 
   // SEARCHING in page
   if (k==RETURN || k==CTRL+'S' || k==CTRL+'O') {
-    switch(line[0]) {
+    switch(ln[0]) {
 
     case '=':
-      bookmark(line[0], &line[1]);
-      if (line[0]!='=') line[0]= 0;
+      bookmark(ln[0], &ln[1]);
+      if (ln[0]!='=') clearcmd();
       return NO_REDRAW;
 
     case '^': // TODO: ^top search
@@ -878,14 +928,14 @@ keycode command(keycode k, dstr *ds) {
     case '/':  case '&':
       // TODO: O only?
       _only= (k==CTRL+'O');
-      search(line[0], &line[1]);
+      search(ln[0], &ln[1]);
       k=0;
       return k;
 
     default: // page search
       if (k==RETURN) break;
       _only= (k==CTRL+'O');
-      search(k, line);
+      search(k, ln);
       return k;
     }
   }
@@ -893,15 +943,15 @@ keycode command(keycode k, dstr *ds) {
   // ACTIONS /  bookmarks (save store go)
   if (k==RETURN) {
 
-    switch(line[0]) {
+    switch(ln[0]) {
 
     case '#': case '@': case '$':
-      bookmark(line[0], &line[1]);
-      line[0]= 0;
+      bookmark(ln[0], &ln[1]);
+      clearcmd();
       return NO_REDRAW;
 
     case '/':  case '&':
-      search(line[0], &line[1]);
+      search(ln[0], &ln[1]);
       // keep line to allow for more search
       break;
       
@@ -911,14 +961,14 @@ keycode command(keycode k, dstr *ds) {
       reset();
       clear();
       B(white); C(black);
-      printf("./w %s\n", line);
+      printf("./w %s\n", ln);
       B(black); C(white);
       printf("--- CTRL-L to redraw scree");
       C(green);
       cursoron(); fflush(stdout);
       _jio_exit();
       system("clear");
-      system(&line[1]);
+      system(&ln[1]);
       cursoroff();
       jio();
       printf("\n\n--- CTRL-L to redraw screen\n\n");
@@ -931,15 +981,16 @@ keycode command(keycode k, dstr *ds) {
     }
 
     // If have SPC then NOT link/url
-    if (!strchr(line, ' ')) {
+    if (!strchr(ln, ' ')) {
 
       // CLICK link
       // all a-z, maybe link click?
-      if (strspn(line, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")==len) {
-        int restab= click(line);
-        if (restab) {
-          tab= restab;
-          line[0]= 0;
+      if (strspn(ln, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")==len) {
+        int rtab= click(ln);
+        // short-cut matched
+        if (rtab) {
+          tab= rtab;
+          clearcmd();
           return REDRAW;
         }
 
@@ -947,19 +998,19 @@ keycode command(keycode k, dstr *ds) {
       }
 
       // Calculate expression
-      if (strspn(line, "+-0123456789.eE+*/%^=-lastijng<>!()[] ")==len 
-          && !strchr(line, '"') && !strchr(line, '\'')) {
-        dstr *cmd= dstrprintf(NULL, "printf \"`echo \\\"%s\\\" | bc -l`\"", line);
+      if (strspn(ln, "+-0123456789.eE+*/%^=-lastijng<>!()[] ")==len 
+          && !strchr(ln, '"') && !strchr(ln, '\'')) {
+        dstr *cmd= dstrprintf(NULL, "printf \"`echo \\\"%s\\\" | bc -l`\"", ln);
         // delete "microphone prompt"
-        display(k); fflush(stdout);
+        display(k);
 
         // calculate and print inline
         gotorc(screen_rows-1, 0);
         reset();
         B(black); C(white);
-        printf("%s", line);
+        printf("%s", ln);
         C(yellow);
-        printf("  ==> ", line);
+        printf("  ==> ");
         clearend();
         C(green); fflush(stdout);
         system(cmd->s);
@@ -973,10 +1024,10 @@ keycode command(keycode k, dstr *ds) {
       }
 
       // OPEN url
-      // url? or file? have /:.?
-      if (strchr(line+1, '/') || strchr(line+1, ':') || strchr(line, '.')) {
-        tab= newtab(line);
-        line[0]= 0;
+      // (url? or file? have /:.? )
+      if (strchr(ln+1, '/') || strchr(ln+1, ':') || strchr(ln, '.')) {
+        tab= newtab(ln);
+        clearcmd();
         return REDRAW;
       }
 
@@ -984,7 +1035,8 @@ keycode command(keycode k, dstr *ds) {
     }
 
     // SEARCH the web (duckduckgo)
-    dstr *q= dstrcaturi(line);
+    // TODO: change query to use dstr!
+    dstr *q= dstrncaturi(NULL, ln, -1);
     char query[strlen(INTERNET_SEARCH)+strlen(q->s)+1];
     sprintf(query, INTERNET_SEARCH, q->s);
     tab= newtab(query);
@@ -1115,8 +1167,8 @@ int clickDispatch(int k) {
     int empty = !*ln;
     // append to current edits
     if (ln[0] && ln[strlen(ln)-1]!=' ')
-      line= dstrncat(line, " ", -1);
-    line= dstrncat(line, r, -1);
+      ln= dstrncat(ln, " ", -1);
+    ln= dstrncat(ln, r, -1);
     free(r);
     return empty? RETURN : REDRAW;
   }
@@ -1137,7 +1189,7 @@ int clickDispatch(int k) {
   if (!strcmp(dir, "sC")) ;
   if (!strcmp(dir, "sE")) k= META+' ';
   // xxxx      xxxx        PAGE DOWN
-  if (!strcmp(dir, "SW")) line->s[0]= 0;
+  if (!strcmp(dir, "SW")) clearcmd();
   if (!strcmp(dir, "SC")) ;
   if (!strcmp(dir, "SE")) k= ' ';
 
@@ -1377,6 +1429,9 @@ keycode keyAction(keycode k) {
   if (k==CTRL+'X') k= listshortcuts();
 
   // -- page action
+
+  // TODO: how to only do RE-RENDER (w.x)?
+  // (twice in a row?, lol)
   if (k==CTRL+'R') {
     gtoast("Reloading");
     reload(url);
@@ -1622,7 +1677,7 @@ int main(void) {
   line= dstrncat(NULL, NULL, 1);
   while(1) {
     loadPageMetaData();
-    if (tab!=lasttab)
+    if (tab!=lasttab && k!=REDRAW)
       displayTabInfo(k);
     lasttab= tab;
 
@@ -1632,7 +1687,11 @@ int main(void) {
 
     // avoid update if events waiting
     if (!haskey() && k!=NO_REDRAW) {
-      display(k);
+      if (display(k)) {
+        keywait(30);
+        k= REDRAW; // quiet
+        continue;
+      }
       visited();
     }
 

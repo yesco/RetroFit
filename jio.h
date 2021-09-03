@@ -107,6 +107,7 @@ typedef struct dstr {
 
 dstr* dstrncat(dstr* d, char* add, int n);
 dstr* dstrprintf(dstr* d, char* fmt, ...);
+dstr *dstrncaturi(dstr *d, char *s, int len);
 
 ////////////////////////////////////////
 // - keyboard
@@ -195,6 +196,4 @@ void spc();
 void bs();
 void repeat(char c, int n);
 void spaces(int n);
-
-dstr *dstrcaturi(char *s);
 

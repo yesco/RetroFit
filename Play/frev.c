@@ -63,17 +63,16 @@ dstr *dstrfgetln(dstr *d, FILE *f) {
 dstr *dstrfrgetln(dstr *d, FILE *f) {
   // (bigger than 1024 not notic faster)
   static char nlbuf[1024];
-  static long max;
-  max= ftell(f);
-  //printf("MAX=%ld\n", max);
-  if (max<=1) return FREE(d);
-  static long pos;
-  pos= max;
+  long max= ftell(f);
+  printf("MAX=%ld\n", max);
+  if (max<0) return FREE(d);
+  long pos= max;
   static long bufpos;
   bufpos= pos*2; // after pos
 
   pos--;
-    
+  pos--;
+  
   // find prev line
   int c= 0;
   while (pos>0 && c>= 0 && c!='\n') {
@@ -84,6 +83,7 @@ dstr *dstrfrgetln(dstr *d, FILE *f) {
       
     if (pos<=bufpos) {
       bufpos= (pos/sizeof(nlbuf))*sizeof(nlbuf);
+      printf("READ @%ld (pos=%ld)\n", bufpos, pos);
       fseek(f, bufpos, SEEK_SET);
       int r= fread(nlbuf, 1, sizeof(nlbuf), f);
       //printf("%% @%d r=%d\n", bufpos, r);
@@ -93,27 +93,20 @@ dstr *dstrfrgetln(dstr *d, FILE *f) {
     assert(pos-bufpos<sizeof(nlbuf));
 
     c= nlbuf[pos-bufpos];
+    printf("%ld: '%c'\n", pos, c=='\n'?'N':c);
   }
-  if (pos<0) return FREE(d);
+  //if (pos<0) return FREE(d);
 
   // no newline before real "first"
   fseek(f, pos?pos+1:0, SEEK_SET);
 
-  // TODO: reads fewer bytes?
-  // a./ouit | wc less than wc orig
-  //printf("@%ld ", pos);
-  if (0) {
-    char buf[1024]={0};
-    if (fgets(buf, sizeof(buf), f)) {
-      printf("- %s", buf);
-    }
-  } else {
-    d= dstrfgetln(d, f);
-    //printf("- >%s<\n", d?d->s:"(null)");
-  }
+  printf("@%ld ", pos);
+  d= dstrfgetln(d, f);
 
+  //printf("- >%s<\n", d?d->s:"(null)");
   // go "back"
   fseek(f, pos+1, SEEK_SET);
+  //if (!max && !pos) return FREE(d);
   return d;
 }
 
@@ -128,15 +121,18 @@ int main() {
   dstr *d = NULL;
   fseek(f, 0, SEEK_SET);
   while((d= dstrfgetln(d, f))) {
+    printf("@%ld ", ftell(f));
     printf("= %s\n", d->s);
   }
   FREE(d);
   printf("============\n");
   fseek(f, 0, SEEK_END);
+
   while((d= dstrfrgetln(d, f))) {
     printf("= %s\n", d->s);
   }
-  printf("-----------\n");
+
+  printf("\n-----------SHOULD BE BEFORE\n");
   while((d= dstrfrgetln(d, f))) {
     printf("= %s\n", d->s);
   }

@@ -1,5 +1,10 @@
 # TODOs ideas for ./w
 
+- TODO: how to only do RE-RENDER (w.x)?
+  (twice in a row?, lol)
+
+- IDEA: auto-hilite link middle on page when do CTRL-P CTRL-N (line movement?), how about many links on same line? tab? (only if buffer=0 or last is space? lol)
+
 - what is the /Tests/b.html on local filesystem? (-> ./Tests.b.html
 <li><a href="/Tests/b.html">bbbbbbbbbbbbbbbbbb</a></li>
 

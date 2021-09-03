@@ -29,8 +29,14 @@ CFILE=$WDIR/Cache/$SAFE
 [ $DOWNLOAD ] && ( \
   echo "`date --iso=s` #=W $GO $CFILE.ANSI" \
     | tee -a .wlog \
-    | tee -a $CFILE.WLOG \
-    >> .whistory )
+    | tee -a $CFILE.WLOG )
+    
+# TODO: it's now done in wless.c
+# but it would be nice to have this one to 
+# ENQUE itmes to read async
+# TODO: detect changes to .wbookmarks in wles.c (keep fseek pos and keep reading/updating, ntabs))
+# don't log to history anymore! Hmmm
+#    >> .whistory )
 
 # --- local file (always copy)
 
