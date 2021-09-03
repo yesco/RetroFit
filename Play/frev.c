@@ -65,6 +65,8 @@ dstr *dstrfrgetln(dstr *d, FILE *f) {
   static char nlbuf[1024];
   static long max;
   max= ftell(f);
+  //printf("MAX=%ld\n", max);
+  if (max<=1) return FREE(d);
   static long pos;
   pos= max;
   static long bufpos;
@@ -99,7 +101,7 @@ dstr *dstrfrgetln(dstr *d, FILE *f) {
 
   // TODO: reads fewer bytes?
   // a./ouit | wc less than wc orig
-  printf("@%ld ", pos);
+  //printf("@%ld ", pos);
   if (0) {
     char buf[1024]={0};
     if (fgets(buf, sizeof(buf), f)) {
@@ -107,7 +109,7 @@ dstr *dstrfrgetln(dstr *d, FILE *f) {
     }
   } else {
     d= dstrfgetln(d, f);
-    printf("- >%s<\n", d?d->s:"(null)");
+    //printf("- >%s<\n", d?d->s:"(null)");
   }
 
   // go "back"
