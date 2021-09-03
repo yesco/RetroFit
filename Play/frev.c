@@ -70,7 +70,7 @@ dstr *dstrfrgetln(dstr *d, FILE *f) {
   static long bufpos;
   bufpos= pos*2; // after pos
 
-  //pos--;
+  pos--;
     
   // find prev line
   int c= 0;
