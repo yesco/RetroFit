@@ -91,6 +91,8 @@ color readablefg();
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define ABS(a) ((a)<0?-(a):(a))
 
+// free:s variable VAR if not null, and sets it to NULL.
+// Note: var is evaluated maybe 3 times...
 #define FREE(var) (var?free(var):0, var=NULL)
 
 ////////////////////////////////////////

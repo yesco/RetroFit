@@ -1,4 +1,5 @@
 rm core 2>/dev/null
+rm a.out 2>/dev/null
 
 FIL=$1
 shift
