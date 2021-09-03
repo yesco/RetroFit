@@ -123,6 +123,10 @@ int main() {
   //FILE *f= fopen(".w/Cache/Tests%2flinks-many.html.ANSI", "r");
   FILE *f= fopen("Play/1-10.txt", "r");
   fseek(f, 0, SEEK_END);
-  dstrfrgetln(f);
+  dstr *d= NULL;
+  while((d= dstrfrgetln(d, f))) {
+    printf("= %s\n", d);
+  }
+  FREE(d);
   fclose(f);
 }
