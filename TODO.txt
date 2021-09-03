@@ -1,5 +1,7 @@
 # TODOs ideas for ./w
 
+- honor NOCACHE? CACHE directives? EXPIRE?
+
 - TODO: how to only do RE-RENDER (w.x)?
   (twice in a row?, lol)
 

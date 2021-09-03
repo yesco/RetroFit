@@ -437,13 +437,14 @@ FILE *openOrWaitReloadAnsi() {
       fclose(ferr);
     } else {
       // file missing in cache
-      gtoast(" reload? ");
+      gtoast(" Download? ");
 
       // if waited 1s then reload
       if (keywait(1000)>1000) {
-        gtoast("Reloading");
+        gtoast("  Download  ");
         gotorc(1, 0); // place of >>>
         download(url, 1);
+        keywait(300);
         ftmp= fopenext(file, ".TMP", "r");
       }
     }
@@ -756,6 +757,7 @@ int display(int k) {
   if (url) {
     // TODO: app header reserved for tab-info?
     char *u= url, col;
+    B(black); C(white);
     col= printf("./w ");
     // nprintf !!!
     char parts[15];
