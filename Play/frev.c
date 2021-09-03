@@ -46,16 +46,21 @@ void slow() {
 dstr *dstrfgetln(dstr *d, FILE *f) {
   if (d) d->s[0]= 0;
   int c; char ch;
-  while((c= fgetc(f))!=EOF && c!='\n') {
-    char ch= c;
+  do {
+    c= fgetc(f);
+    if (c==EOF) return d && strlen(d->s) ? d : FREE(d);
+    ch= c;
     d= dstrncat(d, &ch, 1);
-  }
-  if (c==EOF) FREE(d);
+  } while (ch!='\n');
+  // remove newline
+  int len= d? strlen(d->s) : 0;
+  if (len && d->s[len-1]=='\n')
+    d->s[len-1]= 0;
   return d;
 }
 
 // read lines backwards from pos
-dstr *dstrfrgetln(FILE *f) {
+dstr *dstrfrgetln(dstr *d, FILE *f) {
   // (bigger than 1024 not notic faster)
   static char nlbuf[1024];
   static long max;
@@ -65,55 +70,49 @@ dstr *dstrfrgetln(FILE *f) {
   static long bufpos;
   bufpos= pos*2; // after pos
 
-  dstr *d= NULL;
-
   pos--;
-  while(pos>0) {
     
-    // find prev line
-    int c= 0;
-    while (pos>0 && c>= 0 && c!='\n') {
-      // read previous block
-      pos--;
-      if (pos<0) break;
+  // find prev line
+  int c= 0;
+  while (pos>0 && c>= 0 && c!='\n') {
+    pos--;
+
+    // read previous block
+    if (pos<0) return FREE(d);
       
-      if (pos<=bufpos) {
-        bufpos= (pos/sizeof(nlbuf))*sizeof(nlbuf);
-        fseek(f, bufpos, SEEK_SET);
-        int r= fread(nlbuf, 1, sizeof(nlbuf), f);
-        //printf("%% @%d r=%d\n", bufpos, r);
-        assert(r==sizeof(nlbuf) || r==max%sizeof(nlbuf));
-      }
-      assert(pos>=bufpos);
-      assert(pos-bufpos<sizeof(nlbuf));
-
-      c= nlbuf[pos-bufpos];
-      // -- if not use buffer very slow
-      // (but it must already have BUFSIZE in memory?)
-      //fseek(f, pos, SEEK_SET);
-      // c= fgetc(f);
+    if (pos<=bufpos) {
+      bufpos= (pos/sizeof(nlbuf))*sizeof(nlbuf);
+      fseek(f, bufpos, SEEK_SET);
+      int r= fread(nlbuf, 1, sizeof(nlbuf), f);
+      //printf("%% @%d r=%d\n", bufpos, r);
+      //assert(r==sizeof(nlbuf) || r==max%sizeof(nlbuf));
     }
-    if (pos<0) break;
-    // no newline before last
-    fseek(f, pos?pos+1:0, SEEK_SET);
+    assert(pos>=bufpos);
+    assert(pos-bufpos<sizeof(nlbuf));
 
-    // TODO: reads fewer bytes?
-    // a./ouit | wc less than wc orig
-    printf("@%d ", pos);
-    if (0) {
-      char buf[1024]={0};
-      if (fgets(buf, sizeof(buf), f)) {
-        printf("- %s", buf);
-      }
-    } else {
-      d= dstrfgetln(d, f);
-      printf("- %s\n", d?d->s:"(null)");
-      //FREE(d);
-    }
-
-    // go "back"
-    fseek(f, pos, SEEK_SET);
+    c= nlbuf[pos-bufpos];
   }
+  if (pos<0) return FREE(d);
+
+  // no newline before real "first"
+  fseek(f, pos?pos+1:0, SEEK_SET);
+
+  // TODO: reads fewer bytes?
+  // a./ouit | wc less than wc orig
+  printf("@%ld ", pos);
+  if (0) {
+    char buf[1024]={0};
+    if (fgets(buf, sizeof(buf), f)) {
+      printf("- %s", buf);
+    }
+  } else {
+    d= dstrfgetln(d, f);
+    printf("- >%s<\n", d?d->s:"(null)");
+  }
+
+  // go "back"
+  fseek(f, pos+1, SEEK_SET);
+  return d;
 }
 
 int main() {
@@ -121,12 +120,25 @@ int main() {
 
   //  FILE *f= fopen(".whistory", "r");
   //FILE *f= fopen(".w/Cache/Tests%2flinks-many.html.ANSI", "r");
+
   FILE *f= fopen("Play/1-10.txt", "r");
-  fseek(f, 0, SEEK_END);
-  dstr *d= NULL;
-  while((d= dstrfrgetln(d, f))) {
-    printf("= %s\n", d);
+
+  dstr *d = NULL;
+  fseek(f, 0, SEEK_SET);
+  while((d= dstrfgetln(d, f))) {
+    printf("= %s\n", d->s);
   }
   FREE(d);
+  printf("============\n");
+  fseek(f, 0, SEEK_END);
+  while((d= dstrfrgetln(d, f))) {
+    printf("= %s\n", d->s);
+  }
+  printf("-----------\n");
+  while((d= dstrfrgetln(d, f))) {
+    printf("= %s\n", d->s);
+  }
+  FREE(d);
+
   fclose(f);
 }

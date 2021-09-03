@@ -500,7 +500,7 @@ void qprintstr(char *s) {
     else printf("%%%02x", *s);
     s++;
   }
-  printf("|<<<#%d<", strlen(s));
+  printf("|<<<#%ld<", strlen(s));
   fflush(stdout);
 }
 
@@ -685,7 +685,7 @@ dstr *dstrcaturi(char *s) {
   dstr *d= dstrncat(NULL, NULL, (s?strlen(s):1)*11/10);
   
   while (s && *s) {
-    if (*s<' ' || *s>127 || strchr(" -+\:\\/;<=>?@[]^{}~`", *s)) {
+    if (*s<' ' || *s>127 || strchr(" -+:\\/;<=>?@[]^{}~`", *s)) {
       char hex[8]; sprintf(hex, "%%%02x", (unsigned char)*s);
       d= dstrncat(d, hex, -1);
     } else {
