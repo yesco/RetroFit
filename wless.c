@@ -559,6 +559,9 @@ void printAnsiLines(FILE *fansi, int top) {
             line->s[0]= 0;
             while(*p && !isspace(*p))
               line= dstrncat(line, p++, 1);
+            // GO!
+            tab= click(line->s);
+
             B(red); C(white);
           }
         } else if (_search) {
@@ -845,7 +848,9 @@ int click(char *keys) {
 
       // skip spaces
       while(*u && (*u==' ' || *u=='\t')) u++;
-      return newtab(u);
+      int n= newtab(u);
+      line->s[0]= 0;
+      return n;
     }
   }
   message("\[31mNo such link: %s", keys);
@@ -1061,18 +1066,20 @@ void showClick(keycode k, int r, int c) {
 
 int clickDispatch(int k) {
   // Don't redraw as we want hilite links
+  // TODO: lol, opposite?
+  if (k & MOUSE_DOWN) return REDRAW;
+
   // TODO: make function/macro/API?
   int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
   int save_k= k;
-  k= NO_REDRAW;
+  k= REDRAW;
 
   // Adjusted Row and Column (calibrate?)
   int ar= r-1, ac= c-1;
 
   _click_r= ar; _click_c= ac;
   _search= strdup("LINKS"); // secret signal!
-  //if (k & MOUSE_UP) return NO_REDRAW;
-  return REDRAW;
+  //return REDRAW;
 
   if (ar<0) ar= 0; if (ac<0) ac= 0;
   if (ar>=screen_rows) ar= screen_rows-1;
@@ -1082,7 +1089,7 @@ int clickDispatch(int k) {
   int l= (sizeof(LEVELS)-1)*ar/screen_rows;
   int d= (sizeof(DIST)-1)*ac/screen_cols;
   if (LEVELS[l]==' ' || DIST[d]==' ')
-    return NO_REDRAW;
+    return k;
 
   char dir[3]={LEVELS[l], DIST[d],0};
   printf("%s",dir);
@@ -1570,6 +1577,25 @@ keycode editTillEvent() {
     if ((k & MOUSE) && !(k & SCROLL))
       k= clickDispatch(k);
 
+    // url completion
+    if (k==TAB) {
+      printf("\n====================\n");
+      if (1) {
+        dstr *cmd= dstrprintf(NULL, "cut -d\\  -f3 .whistory  | sort | uniq -c | sort -n | GREP_COLORS='mt=01;32' grep --color=always -iP \"%s\" ", line->s);
+        system(cmd->s);
+        printf("\n\n(ctrl-L to redraw)\n");
+        free(cmd);
+      }
+
+      if (1) {
+        printf("\n====================\n");
+        dstr *cmd= dstrprintf(NULL, "cut -d\\  -f3 .whistory  | sort | uniq -c | sort -n | GREP_COLORS='mt=01;32' grep --color=always -P \" %s\" ", line->s);
+        system(cmd->s);
+        printf("\n\n(ctrl-L to redraw)\n");
+        free(cmd);
+        k= NO_REDRAW;
+      }
+    }
   } while (k==NO_REDRAW);
 
   return k;
