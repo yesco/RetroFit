@@ -113,7 +113,7 @@ dstr *dstrfrgetln(dstr *d, FILE *f) {
   }
 
   // go "back"
-  fseek(f, pos, SEEK_SET);
+  fseek(f, pos+1, SEEK_SET);
   return d;
 }
 
