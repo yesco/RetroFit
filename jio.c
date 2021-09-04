@@ -63,6 +63,9 @@ void jio() {
 ////////////////////////////////////////
 // - ansi screen
 
+// good ref
+// - https://www.ibm.com/docs/en/aix/7.1?topic=x-xterm-command#xterm__mouse
+
 void reset() { printf("\e[48;5;0m\e[38;5;7m\e[23m\e[24m\e[0m"); recolor(); }
 
 //void cls() { printf("\e[H[2J[3J"); }

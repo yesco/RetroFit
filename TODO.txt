@@ -1,5 +1,12 @@
 # TODOs ideas for ./w
 
+- ask cursor pos
+  $ printf "\e[6n" ; cat >fil
+  "^[[36;1R"
+
+- use scroll region FROMLINE-TOLINE:
+  printf "\e[3;33r" to protect top/bottom!
+
 - honor NOCACHE? CACHE directives? EXPIRE?
 
 - TODO: how to only do RE-RENDER (w.x)?
@@ -110,4 +117,3 @@ https://m.facebook.com/groups/GNUEmacsUsers/?notif_t=group_r2j_approved&notif_id
 
 
 - use field format for log files? keep fiexed fields?
-
