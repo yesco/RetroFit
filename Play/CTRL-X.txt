@@ -1,0 +1,247 @@
+# possible CTRL-X commands from emacs
+
+C-x C-z         suspend-frame
+C-x C-b         list-buffers
+C-x C-c         save-buffers-kill-terminal
+C-x C-f         find-file
+C-x C-p         mark-page
+C-x C-r         find-file-read-only
+C-x C-s         save-buffer
+C-x C-v         find-alternate-file
+C-x C-q         read-only-mode
+C-x C-w         write-file
+C-x i           insert-file
+C-x k           kill-buffer
+C-x s           save-some-buffers
+C-x b           switch-to-buffer
+C-x <C-left>    previous-buffer
+C-x <C-right>   next-buffer
+C-x <left>      previous-buffer
+C-x <right>     next-buffer
+C-x 4 C-o       display-buffer
+
+TABS
+C-x t C-f       find-file-other-tab
+C-x t RET       tab-bar-select-tab-by-name
+C-x t 0         tab-close
+C-x t 1         tab-close-other
+C-x t 2         tab-new
+C-x t b         switch-to-buffer-other-tab
+C-x t d         dired-other-tab
+C-x t f         find-file-other-tab
+C-x t m         tab-move
+C-x t o         tab-next
+C-x t r         tab-rename
+
+WINDOWS
+C-x +           balance-windows
+C-x -           shrink-window-if-larger-than-buffer
+C-x 0           delete-window
+C-x 1           delete-other-windows
+C-x 2           split-window-below
+C-x 3           split-window-right
+C-x 4           ctl-x-4-prefix
+C-x 5           ctl-x-5-prefix
+C-x 6           2C-command
+C-x ^           enlarge-window
+C-x o           other-window
+C-x {           shrink-window-horizontally
+C-x }           enlarge-window-horizontally
+C-x 4 C-f       find-file-other-window
+C-x 4 0         kill-buffer-and-window
+C-x 4 b         switch-to-buffer-other-window
+C-x 4 c         clone-indirect-buffer-other-window
+C-x 4 f         find-file-other-window
+C-x 4 r         find-file-read-only-other-window
+C-x 5 C-f       find-file-other-frame
+C-x 5 C-o       display-buffer-other-frame
+
+DISPLAY, SELECTIVE / NAVIGATION
+C-x $           set-selective-display
+C-x C-o         delete-blank-lines
+C-x <           scroll-left
+C-x =           what-cursor-position
+C-x >           scroll-right
+C-x [           backward-page
+C-x ]           forward-page
+C-x `           next-error
+C-x l           count-lines-page
+C-x C-+         text-scale-adjust
+C-x C--         text-scale-adjust
+C-x C-0         text-scale-adjust
+C-x C-=         text-scale-adjust
+C-x n d         narrow-to-defun
+C-x n n         narrow-to-region
+C-x n p         narrow-to-page
+C-x n w         widen
+
+SEARCHING & FINDING & LOOKUP
+C-x 4 .         xref-find-definitions-other-window
+
+POINT & MARK
+C-x C-x         exchange-point-and-mark
+C-x SPC         rectangle-mark-mode
+C-x C-@         pop-global-mark
+C-x h           mark-whole-buffer
+C-x C-SPC       pop-global-mark
+C-x RET X       set-next-selection-coding-system
+C-x r C-@       point-to-register
+C-x r SPC       point-to-register
+C-x r +         increment-register
+C-x r M         bookmark-set-no-overwrite
+C-x r N         rectangle-number-lines
+C-x r o         open-rectangle
+C-x r r         copy-rectangle-to-register
+C-x r s         copy-to-register
+C-x r t         string-rectangle
+C-x r x         copy-to-register
+C-x r y         yank-rectangle
+C-x r C-SPC     point-to-register
+
+BOOKMARKS
+C-x r b         bookmark-jump
+C-x r l         bookmark-bmenu-list
+C-x r m         bookmark-set
+
+EDITING / INPUT
+C-x '           expand-abbrev
+C-x .           set-fill-prefix
+C-x u           undo
+C-x z           repeat
+C-x DEL         backward-kill-sentence
+C-x C-;         comment-line
+C-x RET C-\     set-input-method
+C-x 8 RET       insert-char
+C-x r c         clear-rectangle
+C-x r d         delete-rectangle
+C-x r g         insert-register
+C-x r i         insert-register
+C-x r j         jump-to-register
+C-x r k         kill-rectangle
+
+C-x a C-a       add-mode-abbrev
+C-x a '         expand-abbrev
+C-x a +         add-mode-abbrev
+C-x a -         inverse-add-global-abbrev
+C-x a e         expand-abbrev
+C-x a g         add-global-abbrev
+C-x a i         Prefix Command
+C-x a l         add-mode-abbrev
+C-x a n         expand-jump-to-next-slot
+C-x a p         expand-jump-to-previous-slo
+
+OTHER FUHCTIONS / APPS
+
+C-x *           calc-dispatch
+C-x C-d         list-directory
+C-x d           dired
+C-x m           compose-mail
+C-x 4 a         add-change-log-entry-other-window
+C-x 4 d         dired-other-window
+C-x 4 m         compose-mail-other-window
+
+META FUNCTIONS
+C-x ESC ESC     repeat-complex-command
+C-x M-:         repeat-complex-command
+
+VERSION CONTROL
+C-x v +         vc-update
+C-x v =         vc-diff
+C-x v D         vc-root-diff
+C-x v G         vc-ignore
+C-x v I         vc-log-incoming
+C-x v L         vc-print-root-log
+C-x v M         Prefix Command
+C-x v O         vc-log-outgoing
+C-x v P         vc-push
+C-x v a         vc-update-change-log
+C-x v b         vc-switch-backend
+C-x v d         vc-dir
+C-x v g         vc-annotate
+C-x v h         vc-region-history
+C-x v i         vc-register
+C-x v l         vc-print-log
+C-x v m         vc-merge
+C-x v r         vc-retrieve-tag
+C-x v s         vc-create-tag
+C-x v u         vc-revert
+C-x v v         vc-next-action
+C-x v x         vc-delete-file
+C-x v ~         vc-revision-other-window
+C-x v M D       vc-diff-mergebase
+C-x v M L       vc-log-mergebase
+
+----------------------------------------
+
+Global Bindings Starting With C-x:
+key             binding
+---             -------
+C-x C-e         eval-last-sexp
+C-x TAB         indent-rigidly
+C-x C-k         kmacro-keymap
+C-x C-l         downcase-region
+C-x RET         Prefix Command
+C-x C-n         set-goal-column
+C-x C-t         transpose-lines
+C-x C-u         upcase-region
+C-x ESC         Prefix Command
+C-x (           kmacro-start-macro
+C-x )           kmacro-end-macro
+
+C-x 8           Prefix Command
+C-x ;           comment-set-column
+C-x a           Prefix Command
+C-x e           kmacro-end-and-call-macro
+C-x f           set-fill-column
+C-x n           Prefix Command
+C-x q           kbd-macro-query
+C-x r           Prefix Command
+C-x t           Prefix Command
+C-x v           vc-prefix-map
+
+C-x C-k C-a     kmacro-add-counter
+C-x C-k C-c     kmacro-set-counter
+C-x C-k C-d     kmacro-delete-ring-head
+C-x C-k C-e     kmacro-edit-macro-repeat
+C-x C-k C-f     kmacro-set-format
+C-x C-k TAB     kmacro-insert-counter
+C-x C-k C-k     kmacro-end-or-call-macro-repeat
+C-x C-k C-l     kmacro-call-ring-2nd-repeat
+C-x C-k RET     kmacro-edit-macro
+C-x C-k C-n     kmacro-cycle-ring-next
+C-x C-k C-p     kmacro-cycle-ring-previous
+C-x C-k C-s     kmacro-start-macro
+C-x C-k C-t     kmacro-swap-ring
+C-x C-k C-v     kmacro-view-macro-repeat
+C-x C-k SPC     kmacro-step-edit-macro
+C-x C-k b       kmacro-bind-to-key
+C-x C-k e       edit-kbd-macro
+C-x C-k l       kmacro-edit-lossage
+C-x C-k n       kmacro-name-last-macro
+C-x C-k q       kbd-macro-query
+C-x C-k r       apply-macro-to-region-lines
+C-x C-k s       kmacro-start-macro
+C-x C-k x       kmacro-to-register
+
+C-x RET F       set-file-name-coding-system
+C-x RET c       universal-coding-system-argument
+C-x RET f       set-buffer-file-coding-system
+C-x RET k       set-keyboard-coding-system
+C-x RET l       set-language-environment
+C-x RET p       set-buffer-process-coding-system
+C-x RET r       revert-buffer-with-coding-system
+C-x RET t       set-terminal-coding-system
+C-x RET x       set-selection-coding-system
+
+C-x r ESC       Prefix Command
+C-x r f         frameset-to-register
+C-x r n         number-to-register
+C-x r w         window-configuration-to-register
+
+
+C-x a i g       inverse-add-global-abbrev
+C-x a i l       inverse-add-mode-abbrev
+
+C-x r M-w       copy-rectangle-as-kill
+
+

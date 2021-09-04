@@ -413,7 +413,7 @@ int netErr() {
 // opens ansi file, or reloads it and waits, any key will return
 FILE *openOrWaitReloadAnsi() {
   // wait for open of ANSI file
-  FILE *fansi= fopen(file?file:".stdout", "r");
+  FILE *fansi= fopen(file, "r");
   FILE *ftmp= fopenext(file, ".TMP", "r");
   
   //
@@ -441,7 +441,7 @@ FILE *openOrWaitReloadAnsi() {
 
       // if waited 1s then reload
       if (keywait(1000)>1000) {
-        gtoast("  Download  ");
+        gtoast("  Loading  ");
         gotorc(1, 0); // place of >>>
         download(url, 1);
         keywait(300);
