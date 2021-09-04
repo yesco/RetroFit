@@ -1690,7 +1690,7 @@ int main(void) {
     // avoid update if events waiting
     if (!haskey() && k!=NO_REDRAW) {
       if (display(k)) {
-        keywait(30);
+        keywait(40);
         k= REDRAW; // quiet
         continue;
       }
