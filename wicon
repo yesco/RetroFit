@@ -44,7 +44,7 @@ cd .w/Favicons
 
 timg  -bwhite --color8 --loops=1 --frames=1 -t1 -g8x8 $HOST.ico  2>/dev/null | tee $HOST.ANSI
 
-[[ ! -s $HOST.ANSI ]] && exit 1
+[[ -s $HOST.ANSI ]] && exit 0
 
 #../chafa/tools/chafa/chafa -d 0 --colors 16 --size 8x8 $ICO16 --invert  2>/dev/null | tee $HOST.ANSI
 

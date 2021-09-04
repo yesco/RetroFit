@@ -226,6 +226,10 @@ void gtoasterr(char *s) {
   gotorc(0,0);
 }
 
+// Print ANSI host icon at (1,0)
+// (download+generate if not cached)
+//
+// Returns 0 if no icon
 int gicon(char *url) {
   if (!url) return 0;
 
@@ -240,13 +244,28 @@ int gicon(char *url) {
   // dangerous?
   if (strchr(host, '`') || strchr(host, '\\') || strchr(host, '"')) return 0;
 
-  // build command
-  dstr *cmd= dstrprintf(NULL, "./wicon \"%.*s\"",  end-host, host);
+  gotorc(1, 0);
 
-  gotorc(screen_rows-1, 0);
-  int r= system(cmd->s);
-  free(cmd);
-  return !r;
+  // cached?
+  dstr *ansi= dstrprintf(NULL, ".w/Favicons/%.*s.ANSI", end-host, host);
+  FILE *f= fopen(ansi->s, "r");
+  free(ansi);
+  if (f) {
+    int c, n= 0;
+    while((c= fgetc(f))!=EOF) {
+      putchar(c);
+      n++;
+    }
+    fclose(f);
+    return n;
+  } else {
+    // generate
+    dstr *cmd= dstrprintf(NULL, "./wicon \"%.*s\"",  end-host, host);
+
+    int r= system(cmd->s);
+    free(cmd);
+    return !r;
+  }
 }
 
 void drawPullDownMenu(color *colors, char **labels, int n) {
