@@ -684,6 +684,9 @@ dstr* dstrprintf(dstr* d, char* fmt, ...) {
 // encode for URI
 // we quote any char required plus
 // any that may cause trouble in bash
+//
+// WARNING: has to be in sync with
+//    ./wquote
 dstr *dstrncaturi(dstr *d, char *s, int size) {
   d= dstrncat(d, NULL, ((size<0 && s)? strlen(s) : size)*11/10);
   

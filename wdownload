@@ -104,7 +104,7 @@ if [[ ! -f "$CFILE.DOWN" ]]; then
    # - cat so get correct date on file
    # (wget gives file as of HEAD date!)
    cat $CFILE.TMP > $CFILE.DOWN
-   # ls -l $CFILE.*
+   #   ls -l $CFILE.*
 fi
 
 # TODO: handle render errors? 

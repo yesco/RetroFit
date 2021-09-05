@@ -442,6 +442,7 @@ FILE *openOrWaitReloadAnsi() {
       }
       fclose(ferr);
     } else {
+      gotorc(1,0);
       // file missing in cache
       gtoast(" Download? ");
 
