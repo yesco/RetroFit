@@ -801,8 +801,14 @@ void addContent() {
 void process(TAG *end) {
   int c;
   while (STEP) {
-
-    if (c=='\e') { // let ansi through
+ 
+    if (c==CTRL+'D') {
+      // == EOF (interactive)
+      // exit the hard way!
+      printf("\n---EOF\n");
+      fflush(stdout);
+      exit(0);
+    } else if (c=='\e') { // let ansi through
       _pc(FLUSH_WORD);
       do {
         putchar(c);
@@ -970,7 +976,7 @@ int main(int argc, char**argv) {
     fprintf(stderr, "Usage:\n  ./w [FIL] URL [COLS] # cols must be 3rd arg\n");
     return 0;
   }
-  file= argv[1];
+  file= argc>1 ? argv[1] : "-";
   url= argc>2 ? argv[2] : file;
   // override if run from script
   if (argc>3) screen_cols= atoi(argv[3]);
@@ -1005,13 +1011,22 @@ int main(int argc, char**argv) {
   printf("%s", u); nl();
 
   // detect preformatted text
-  if (endswith(u, ".txt") || endswith(u, ".ANSI") || endswith(u, ".ANSI"))
+  if (endswith(u, ".txt") || endswith(u, ".ANSI") || endswith(u, ".ANSI")) {
     _pre++;
+  }
   
   // get HTML
   char* wget= calloc(strlen(url) + strlen(WGET) + 1, 1);
   sprintf(wget, WGET, url);
-  f= fopen(file, "r");
+  // if stdin, make "interactive"
+  if (!strcmp(file, "-")) {
+    jio();
+    f= stdin;
+    // TODO: maybe
+    // _pre++;
+  } else {
+    f= fopen(file, "r");
+  }
   urlIsFile= f && file==url;
   // TODO: remove? make pure renderer?
   if (!f)
