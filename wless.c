@@ -1389,36 +1389,79 @@ void loadPageMetaData() {
 // CTRL
 // ==== 
 // ^A    bookmarks
-// ^B    ? back (viewd tabs), chrome-bookmarks
+// ^B    back, chrome:bookmarks
 // ^C    EXIT
 // ^D    ? del-tab, chrome: bookmark
-// ^E    ? emacs - edit file
-// ^F    ? forward (viewed tabs), chrome: search bar
+// ^E    emacs, edit HTML and ANSI
+// ^F    forward tab (history), chrome: search bar
 // ^G    cancel (clear-line/draw), chrome: next match ^S-G previous
-// ^H    help, chrome: history
-// ^I    TAB
+// ^H    help (also ?), chrome: history
+// ^I    TAB (completion-list of URLs)
 // ^J    RETURN (can't change?), chrome: download-manager
 // ^K    KILL tab
-// ^L    ? list?    chrome: location - no need!
+// ^L    redraw screen,  chrome: location - go edit URL
 // ^M    RETURN
-// ^N    next-line, chrome: new window
+// ^N    scroll-down, chrome: new window
 // ^O    ? , chrome: open file on computer
-// ^P    prev-line, chrome: print file
-// ^Q    qutable info about page
+// ^P    scroll-up, chrome: print file
+// ^Q    quotable info about page
 // ^R    reload
-// ^S    search, emacs: search, search-next
-// ^T    ? tabs list, chrome: new tab (we don't need)
-// ^U    ?    , chrome: display HTML
+// ^S    search (search-next?)
+// ^T    ? tabs list, chrome: new tab
+// ^U    (urls) list-links/shortcuts, chrome: display HTML (use ^E)
 // ^V    page-down, M-V page-up
-// ^W    close-tab/window (chrome: close tab)
-// ^X    list-links/shortcuts
+// ^W    close-tab, chrome: close tab
+// ^X    ? reserve for extra
 // ^Y    ? yank (undo tab kill)
 // ^Z    ZUSPEND/ZLEEP
+
+void listCXActions() {
+  wclear();
+  // TODO: open help screen for CTRL-X?
+}
+
+keycode ctrlXAction(keycode xk) {
+  keycode k= REDRAW; // default
+
+  switch(xk){
+
+  case CTRL+'G': break; // cancel
+  case CTRL+'?': listCXActions(); return NO_REDRAW;
+  case CTRL+'R': // real-reload
+    // TODO: delete cached files!
+    gtoast("Reloading");
+    reload(url);
+    return REDRAW;
+
+    // Map to themselves:
+  case CTRL+'Z': case CTRL+'C':
+    return xk;
+
+    // TODO:------------:TODO
+  case CTRL+'X': // exchange point&mark
+  case CTRL+'T': // tail -f file
+  case CTRL+'D': // directory
+
+  default: message("C-x %s not recognized", keystring(xk)); return NO_REDRAW;
+  }
+
+  return k;
+}
 
 keycode keyAction(keycode k) {
   if (k==NO_REDRAW) return k;
 
   int kc= k & ~META & ~ CTRL;
+  
+  // Do this first so it can map to other key actions!
+  if (k==CTRL+'X') {
+    reset();
+    gotorc(screen_rows-1, 0); clearend();
+    printf("C-x "); cursoron(); fflush(stdout);
+
+    k= ctrlXAction(key());
+    cursoroff();
+  }
 
   // -- bookmarks
   // w3m: Esc-b	View bookmarks
@@ -1436,7 +1479,7 @@ keycode keyAction(keycode k) {
   if (k==CTRL+'A') k= listbookmarks(NULL, NULL);
   if (k==CTRL+'Q') k= listbookmarks(url, NULL);
 
-  if (k==CTRL+'X') k= listshortcuts();
+  if (k==CTRL+'U') k= listshortcuts();
 
   // -- page action
 
@@ -1447,9 +1490,12 @@ keycode keyAction(keycode k) {
     reload(url);
     k= REDRAW;
   }
-  if (k==CTRL+'U') {
-    dstr *cmd= dstrprintf(NULL, "less %s", file);
+  // TODO: generalize all to systemf()
+  // Edit HTM (and ANSI)L with emacs
+  if (k==CTRL+'E') {
+    dstr *cmd= dstrprintf(NULL, "emacs %s", file);
     strcpy(strstr(cmd->s, ".ANSI"), ".DOWN");
+    cmd= dstrprintf(cmd, " %s", file);
     reset(); B(black); C(white); clear(); fflush(stdout); B(black); C(white);
     system(cmd->s);
   }
@@ -1685,6 +1731,8 @@ int main(void) {
   int k= 0, q=0, lasttab=-1, lasttop=-1;
   // string for editing/command
   line= dstrncat(NULL, NULL, 1);
+
+  // main loop
   while(1) {
     loadPageMetaData();
     if (tab!=lasttab && k!=REDRAW)
@@ -1710,19 +1758,26 @@ int main(void) {
     //printf("---%8x---%s\n", k, keystring(k));
 
     // - read special event & decode
-    //while(1){
     k= editTillEvent(line);
-    //printf("\n===> %s\n", keystring(k));}
+
     k= command(k, line);
+    k= keyAction(k);
 
     // -- system
     if (k==CTRL+'C') break;
-    if (k==CTRL+'Z') kill(getpid(), SIGSTOP);
-
-    // chrome: M-F, M-E: open menu
-    // (I don't like it)
-
-    k= keyAction(k);
+    if (k==CTRL+'Z') {
+      reset(); 
+      _jio_exit();
+      gotorc(9999,9999);
+      printf("\nSuspending...\n");
+      printf("\n(Type another ^Z ; fg to come back)\n");
+      // TODO: why kill doesn't work?
+      //kill(getpid(), SIGSTOP);
+      kill(getpid(), SIGTSTP);
+      printf("\nWaking up...\n");
+      jio();
+      
+    }
   }
   printf("\r\n");
 

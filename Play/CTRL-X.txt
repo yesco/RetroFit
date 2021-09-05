@@ -1,24 +1,28 @@
 # possible CTRL-X commands from emacs
 
 C-x C-z         suspend-frame
-C-x C-b         list-buffers
 C-x C-c         save-buffers-kill-terminal
-C-x C-f         find-file
-C-x C-p         mark-page
-C-x C-r         find-file-read-only
 C-x C-s         save-buffer
+
+C-x C-f         find-file
+C-x C-r         find-file-read-only
 C-x C-v         find-alternate-file
-C-x C-q         read-only-mode
-C-x C-w         write-file
-C-x i           insert-file
+
+BUFFERS
+C-x C-b         list-buffers
 C-x k           kill-buffer
-C-x s           save-some-buffers
 C-x b           switch-to-buffer
 C-x <C-left>    previous-buffer
 C-x <C-right>   next-buffer
 C-x <left>      previous-buffer
 C-x <right>     next-buffer
 C-x 4 C-o       display-buffer
+
+C-x C-w         write-file
+C-x i           insert-file
+
+C-x C-q         read-only-mode
+C-x s           save-some-buffers
 
 TABS
 C-x t C-f       find-file-other-tab
@@ -57,28 +61,32 @@ C-x 5 C-f       find-file-other-frame
 C-x 5 C-o       display-buffer-other-frame
 
 DISPLAY, SELECTIVE / NAVIGATION
-C-x $           set-selective-display
 C-x C-o         delete-blank-lines
 C-x <           scroll-left
 C-x =           what-cursor-position
 C-x >           scroll-right
 C-x [           backward-page
 C-x ]           forward-page
+
+C-x $           set-selective-display
 C-x `           next-error
 C-x l           count-lines-page
-C-x C-+         text-scale-adjust
-C-x C--         text-scale-adjust
-C-x C-0         text-scale-adjust
-C-x C-=         text-scale-adjust
+
 C-x n d         narrow-to-defun
 C-x n n         narrow-to-region
 C-x n p         narrow-to-page
 C-x n w         widen
 
+C-x C-+         text-scale-adjust
+C-x C--         text-scale-adjust
+C-x C-0         text-scale-adjust
+C-x C-=         text-scale-adjust
+
 SEARCHING & FINDING & LOOKUP
 C-x 4 .         xref-find-definitions-other-window
 
 POINT & MARK
+C-x C-p         mark-page
 C-x C-x         exchange-point-and-mark
 C-x SPC         rectangle-mark-mode
 C-x C-@         pop-global-mark
@@ -92,6 +100,7 @@ C-x r M         bookmark-set-no-overwrite
 C-x r N         rectangle-number-lines
 C-x r o         open-rectangle
 C-x r r         copy-rectangle-to-register
+C-x r M-w       copy-rectangle-as-kill
 C-x r s         copy-to-register
 C-x r t         string-rectangle
 C-x r x         copy-to-register
@@ -112,6 +121,7 @@ C-x DEL         backward-kill-sentence
 C-x C-;         comment-line
 C-x RET C-\     set-input-method
 C-x 8 RET       insert-char
+
 C-x r c         clear-rectangle
 C-x r d         delete-rectangle
 C-x r g         insert-register
@@ -199,29 +209,7 @@ C-x r           Prefix Command
 C-x t           Prefix Command
 C-x v           vc-prefix-map
 
-C-x C-k C-a     kmacro-add-counter
-C-x C-k C-c     kmacro-set-counter
-C-x C-k C-d     kmacro-delete-ring-head
-C-x C-k C-e     kmacro-edit-macro-repeat
-C-x C-k C-f     kmacro-set-format
-C-x C-k TAB     kmacro-insert-counter
-C-x C-k C-k     kmacro-end-or-call-macro-repeat
-C-x C-k C-l     kmacro-call-ring-2nd-repeat
-C-x C-k RET     kmacro-edit-macro
-C-x C-k C-n     kmacro-cycle-ring-next
-C-x C-k C-p     kmacro-cycle-ring-previous
-C-x C-k C-s     kmacro-start-macro
-C-x C-k C-t     kmacro-swap-ring
-C-x C-k C-v     kmacro-view-macro-repeat
-C-x C-k SPC     kmacro-step-edit-macro
-C-x C-k b       kmacro-bind-to-key
-C-x C-k e       edit-kbd-macro
-C-x C-k l       kmacro-edit-lossage
-C-x C-k n       kmacro-name-last-macro
-C-x C-k q       kbd-macro-query
-C-x C-k r       apply-macro-to-region-lines
-C-x C-k s       kmacro-start-macro
-C-x C-k x       kmacro-to-register
+C-x C-k ...macros
 
 C-x RET F       set-file-name-coding-system
 C-x RET c       universal-coding-system-argument
@@ -238,10 +226,8 @@ C-x r f         frameset-to-register
 C-x r n         number-to-register
 C-x r w         window-configuration-to-register
 
-
 C-x a i g       inverse-add-global-abbrev
 C-x a i l       inverse-add-mode-abbrev
 
-C-x r M-w       copy-rectangle-as-kill
 
 

@@ -1,5 +1,7 @@
 # ----------- TODOs ideas for ./w
 
+- wless.x make it a (restrictable viewer of files, allow to run inside tmux, integration?)
+
 - style not parsed correctly?
   https://en.m.wikipedia.org/wiki/Forth
 
