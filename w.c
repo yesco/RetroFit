@@ -426,6 +426,7 @@ void p(int c) {
     if (c=='\n') {
       nl(); _curx= 0;
     } else {
+      // TODO: how to handle non-wrap?
       putchar(inx(c));
     }
     return;
@@ -482,11 +483,11 @@ void p(int c) {
   _ws= 0; _tb= 0;
 }
 
-
-
 // steps one char in input stream
 // == true if "have next" (not EOF)
 // c is set to character read
+FILE* f;
+
 #define STEP ((c= fgetc(f)) != EOF)
 
 // parse chars till one of ENDCHARS
@@ -615,7 +616,7 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
     // - START highlight
     if (f != none) C(f);
     if (b != none) B(b);
-    if (strstr(PR, tag)) _pre= 1;
+    if (strstr(PR, tag)) _pre++;
     if (strstr(SKIP, tag)) _skip= 1;
 
     if (strstr(" ul ol dl ", tag)) _indent+= 2;
@@ -704,8 +705,6 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
   level--;
   TRACE("<--%d %s\n", level, tag?*tag:NULL);
 }
-
-FILE* f;
 
 int skipspace() {
   int c;
@@ -803,7 +802,13 @@ void process(TAG *end) {
   int c;
   while (STEP) {
 
-    if (c!='<' && c!='&') { // content
+    if (c=='\e') { // let ansi through
+      _pc(FLUSH_WORD);
+      do {
+        putchar(c);
+      } while (STEP && !isalpha(c) && c!='\\' && c!=7);
+      putchar(c);
+    } else if (c!='<' && c!='&') { // content
       p(c);
 
     } else if (c=='&') { // &amp;
@@ -999,12 +1004,10 @@ int main(int argc, char**argv) {
     u[strlen(u)-1]=0;
   printf("%s", u); nl();
 
-  if (strstr(u, ".txt")==u+strlen(u)-4) {
-    // TODO: yesco.org/resume.txt
-    _pre= 1;
-    //_raw= 1;
-  }
-
+  // detect preformatted text
+  if (endswith(u, ".txt") || endswith(u, ".ANSI") || endswith(u, ".ANSI"))
+    _pre++;
+  
   // get HTML
   char* wget= calloc(strlen(url) + strlen(WGET) + 1, 1);
   sprintf(wget, WGET, url);

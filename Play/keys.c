@@ -51,6 +51,30 @@ int main(int argc, char *argv[]) {
   // bracketed paste display
   fprintf(stderr,"\e[2004l");
 
+/*
+
+Ps = 1 0 0 0  -> Send Mouse X & Y on button press and
+release.  See the section Mouse Tracking.  This is the X11
+xterm mouse protocol.
+
+Ps = 1 0 0 1  -> Use Hilite Mouse Tracking.
+Ps = 1 0 0 2  -> Use Cell Motion Mouse Tracking.
+Ps = 1 0 0 3  -> Use All Motion Mouse Tracking.
+Ps = 1 0 0 4  -> Send FocusIn/FocusOut events.
+Ps = 1 0 0 5  -> Enable UTF-8 Mouse Mode.
+Ps = 1 0 0 6  -> Enable SGR Mouse Mode.
+Ps = 1 0 0 7  -> Enable Alternate Scroll Mode.
+Ps = 1 0 1 0  -> Scroll to bottom on tty output (rxvt).
+Ps = 1 0 1 1  -> Scroll to bottom on key press (rxvt).
+Ps = 1 0 1 5  -> Enable urxvt Mouse Mode.
+*/
+
+  // xterm mouse init
+  // - 1003 doesn't seem to give contious move... on termux... :-(
+
+  fprintf(stderr, "\e[?1000;1003;1006;1015h");
+  //fprintf(stderr, "\e[?1003;1006;1015h");
+
   set_conio_terminal_mode();
   // jsk: after this the \n isn't \r\n 1
 
@@ -77,5 +101,9 @@ int main(int argc, char *argv[]) {
   printf("\r\n");
 
   fprintf(stderr, "\e[?h");
+
+  // deinit mouse/jio
+  fprintf(stderr, "\e[?1000;1003;1006;1015l");
+
 }
 
