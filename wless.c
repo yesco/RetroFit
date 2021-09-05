@@ -788,7 +788,7 @@ int display(int k) {
 
   // favicon?
   if (top==0) {
-    save(); gotorc(1, 0); fflush(stdout);
+    save(); reset(); fflush(stdout);
     // no icon - use 2 first from nost
     if (!gicon(url)) {
       gclear(); gbg= white; gfg= black; gy= 3; gx= 1;
@@ -799,6 +799,7 @@ int display(int k) {
       gputs(two);
       gupdate();
     }
+    gotorc(screen_rows-1, 0);
     restore(); fflush(stdout);
   }
 

@@ -257,6 +257,7 @@ int gicon(char *url) {
       n++;
     }
     fclose(f);
+    fflush(stdout);
     return n;
   } else {
     // generate

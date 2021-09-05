@@ -1,7 +1,7 @@
-# Functions
-- ^X
+# ----------- TODOs ideas for ./w
 
-# TODOs ideas for ./w
+- style not parsed correctly?
+  https://en.m.wikipedia.org/wiki/Forth
 
 - https://sverigesradio.se/artikel/kriminella-gang-varvar-attaaringar-med-swish-hotar-och-skrammer?fbclid=IwAR25sXIr3rWqKBBszV7oVOU8zbCELs5Ry_hzl0UP6RrNPUlYeyDJYl9halk doesn't find files after download???
 

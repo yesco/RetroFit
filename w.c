@@ -94,7 +94,7 @@ int decode_color(char* name, int dflt) {
 #define SNL -11
 
 // -- groups of tags according to format
-#define SKIP " script head "
+#define SKIP " script head style "
 
 #define NL " br hr pre h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dt dd table tr noscript address tbody "
 #define XNL " br /ul /ol /dl hr tbody "
