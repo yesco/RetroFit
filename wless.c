@@ -257,6 +257,7 @@ if (strstr(ds->s, "LINKTEXT")) {
   if (key()==CTRL+'C') assert(!"stop");
 }
   fputs(ds->s, fhistory);
+  fflush(fhistory);
   free(ds);
 }
 
@@ -368,7 +369,7 @@ void search(int k, char* text) {
 }
 
 // start download in background
-void download(char* url, int force) {
+void download(char* url, int force, int dolog) {
   if (!url || !*url) return;
   char *end= strpbrk(url, " \t\n");
   int ulen= end? end-url : strlen(url);
@@ -377,7 +378,8 @@ void download(char* url, int force) {
   dstr *file= dstrncat(NULL, ".w/Cache/", -1);
   file= dstrncaturi(file, url, ulen);
   file= dstrncat(file, ".ANSI", -1);
-  loghistory(url, ulen, file->s);
+  if (dolog)
+    loghistory(url, ulen, file->s);
 
   FILE *f= force ? NULL : fopen(file, "r");
   free(file);
@@ -393,10 +395,14 @@ void download(char* url, int force) {
     force?"-d":"", ulen, url, screen_rows, screen_cols);
   system(cmd->s);
   free(cmd);
+
+  // wait a little for .TMP to be created
+  // TODO: fix this timing issue, create the .TMP file?
+  usleep(300*1000);
 }
 
 void reload(char* url) {
-  download(url, 1);
+  download(url, 1, 0);
 }
 
 int netErr() {
@@ -443,7 +449,7 @@ FILE *openOrWaitReloadAnsi() {
       if (keywait(1000)>1000) {
         gtoast("  Loading  ");
         gotorc(1, 0); // place of >>>
-        download(url, 1);
+        reload(url);
         keywait(300);
         ftmp= fopenext(file, ".TMP", "r");
       }
@@ -859,7 +865,7 @@ void queue_read() {
 int newtab(char* url) {
   // TODO: force or not?
   // TODO: maybe click shouldn't open new tab, at least not if already loaded in >tab! (only log if history and not future?)
-  download(url, 0);
+  download(url, 0, 1);
 
   // open new tab, go to
   return ntab++;
@@ -1345,11 +1351,9 @@ keycode touchDispatch(keycode k) {
 //
 
 void loadPageMetaData() {
+  // TODO: No need to read if tab didn't change
   int t= start_tab+tab;
-  if (hit) {
-    free(hit);
-    file= url= hit= NULL;
-  }
+  file= url= FREE(hit);
 
   hit= fgetlinenum(fhistory, t);
   if (hit) {
@@ -1373,6 +1377,8 @@ void loadPageMetaData() {
     error(!file, 10, "history log entry bad: '%s'\n", hit);
   } else {
     // TODO: add a way to reload or signal when done!
+    printf("\n----NOT LOADED! (press key)\n"); key();
+
     file= LOADING_FILE;
 
     //error(!hit, 10, "history log entry not found: %d", t);

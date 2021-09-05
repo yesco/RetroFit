@@ -244,7 +244,7 @@ int gicon(char *url) {
   // dangerous?
   if (strchr(host, '`') || strchr(host, '\\') || strchr(host, '"')) return 0;
 
-  gotorc(1, 0);
+  gotorc(1, 0); fflush(stdout);
 
   // cached?
   dstr *ansi= dstrprintf(NULL, ".w/Favicons/%.*s.ANSI", end-host, host);

@@ -81,7 +81,10 @@ if [[ ! -f "$CFILE.DOWN" ]]; then
    # - download
    # (.TMP indicates download started)
 
-  (wget -S -a $CFILE.LOG -O $CFILE.TMP "$GO" || echo 0 ) 2>&1 | grep ERROR > $CFILE.ERR \
+   # TODO: this make it not print ERROR?
+   # -a $CFILE.LOG 
+
+  (wget -S -O $CFILE.TMP "$GO" || echo 0 ) 2>&1 | grep ERROR > $CFILE.ERR \
     && (err=$? ; echo "WGET.ERROR $?" >> $CFILE.ERR ; exit $err) \
    && rm $CFILE.TMP || rm $CFILE.ERR
 
@@ -101,6 +104,7 @@ if [[ ! -f "$CFILE.DOWN" ]]; then
    # - cat so get correct date on file
    # (wget gives file as of HEAD date!)
    cat $CFILE.TMP > $CFILE.DOWN
+   # ls -l $CFILE.*
 fi
 
 # TODO: handle render errors? 
