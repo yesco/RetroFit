@@ -40,7 +40,7 @@ while (<HI>) {
         $title =~ s/\+/ /g;
         $title =~ s/%(..)/chr($1)/eg;
 
-        print "$hhmm <a href=\"$url\"> $title</a>"; # <br> if not pre
+        print "$hhmm <a href=\"http://$url\"> $title</a>"; # <br> if not pre
         print ($pre? "\n" : "<br>\n");
 
     } else {

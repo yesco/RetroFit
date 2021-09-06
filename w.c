@@ -94,7 +94,7 @@ int decode_color(char* name, int dflt) {
 #define SNL -11
 
 // -- groups of tags according to format
-#define SKIP " script head style "
+#define SKIP " script style "
 
 #define NL " br hr pre h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dt dd table tr noscript address tbody "
 #define XNL " br /ul /ol /dl hr tbody "
@@ -621,7 +621,8 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
 
     if (strstr(" ul ol dl ", tag)) _indent+= 2;
 
-    // underline links!
+    // TODO: _capture <title>?
+
     if (strstr(" a ", tag)) {
       underline();
       fg(_fg); bg(_bg); // needed?
@@ -888,7 +889,18 @@ void process(TAG *end) {
           }
         }
       }
+
       if (c!='>') c= parse(f, ">", NULL, 0);
+
+      if (strstr(" script ", tag)) {
+        // parse till "</script"
+        long script= 0;
+        do {
+          if (!STEP) return;
+          script<<=8; script+=tolower(c);
+        } while (script!=0x3c2f736372697074);
+        continue;
+      }
 
       // pre action for tags (and </tag>)
       // TODO: /th /td /tr tags are optional.. :-(

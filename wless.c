@@ -1529,7 +1529,15 @@ keycode keyAction(keycode k) {
   if (top<0) top= 0;
 
   // -- TABS
-  if (k=='?' || k==CTRL+'H' || k==FUNC+1) {
+  // list history
+  if (k==CTRL+'H') {
+    push(tab);
+    // open already existing?
+    system("perl whi2html.pl > .whistory.DOWN");
+    tab= newtab(".whistory.DOWN");
+  }
+  // help
+  if (k=='?' || k==FUNC+1) {
     push(tab);
     // open already existing?
     tab= newtab("wless.html");

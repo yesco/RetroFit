@@ -1,5 +1,9 @@
 # ----------- TODOs ideas for ./w
 
+- runeberg.org/katalog.html - a 3.8MB table!
+  - .w/Cache/runeberg.org%2fkatalog.html.DOWN
+
+
 - wless.x make it a (restrictable viewer of files, allow to run inside tmux, integration?)
 
 - style not parsed correctly?
