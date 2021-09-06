@@ -792,7 +792,7 @@ int display(int k) {
   if (redo) return redo;
 
   // favicon?
-  if (top==0) {
+  if (top==0 && !_search) {
     save(); reset(); fflush(stdout);
     // no icon - use 2 first from nost
     if (!gicon(url)) {
@@ -1425,18 +1425,41 @@ keycode ctrlXAction(keycode xk) {
   switch(xk){
 
   case CTRL+'G': break; // cancel
+
   case CTRL+'?': listCXActions(); return NO_REDRAW;
+
   case CTRL+'R': // real-reload
     // TODO: delete cached files!
     gtoast("Reloading");
     reload(url);
     return REDRAW;
+
   case CTRL+'O': { // open in chrome
     int http= strstr(url, "http");
     dstr *cmd= dstrprintf(NULL, "termux-open-url \"%s%s\"", http?"":"http://", url);
     system(cmd->s);
     free(cmd);
     return REDRAW;
+  }
+
+  // TODO: generalize all to systemf()
+  // Edit HTM (and ANSI)L with emacs
+  case CTRL+'E': {
+    dstr *cmd= dstrprintf(NULL, "tidy -i -q --force-output yes  %s > .tidy.html 2> .tidy.errors ; emacs .tidy.html .tidy.errors %s ", file, file);
+    // fix endings, lol TODO: fix..
+    memcpy(strstr(cmd->s, ".ANSI"), ".DOWN", 5);
+    memcpy(strstr(cmd->s, ".ANSI"), ".DOWN", 5);
+    // add ANSI file
+    cmd= dstrprintf(cmd, " %s", file);
+
+    reset(); B(black); C(white); clear(); fflush(stdout); B(black); C(white);
+    _jio_exit();
+
+    system(cmd->s);
+
+    jio();
+
+    break;
   }
     
     // Map to themselves:
@@ -1495,15 +1518,6 @@ keycode keyAction(keycode k) {
     gtoast("Reloading");
     reload(url);
     k= REDRAW;
-  }
-  // TODO: generalize all to systemf()
-  // Edit HTM (and ANSI)L with emacs
-  if (k==CTRL+'E') {
-    dstr *cmd= dstrprintf(NULL, "emacs %s", file);
-    strcpy(strstr(cmd->s, ".ANSI"), ".DOWN");
-    cmd= dstrprintf(cmd, " %s", file);
-    reset(); B(black); C(white); clear(); fflush(stdout); B(black); C(white);
-    system(cmd->s);
   }
   // chrome: CTRL-P: print current webbpage ? save?
   // chrome: CTRL-S: save current webpage

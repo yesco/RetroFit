@@ -10,7 +10,7 @@
 <h1>Minimialist Browser</h1>
 
 <p>
-This is a test of the <i>minimalist</i> <tt>./w</tt> web-browser written in C. It is a meagre <b>&lt;1000 lines C-code</b> (comments, tests, and empty lines not counted).
+This is a test of the <i>minimalist</i> <code>./w</code> web-browser written in C. It is a meagre <b>&lt;1000 lines C-code</b> (comments, tests, and empty lines not counted).
 </p>
 
 <h2>History</h2>
@@ -18,7 +18,7 @@ This is a test of the <i>minimalist</i> <tt>./w</tt> web-browser written in C. I
 </p>
 
 <h2>Features</h2>
-<p><tt>./w</tt> isn't like other browsers. It's <i>new</i> and innovative, but it's <b>text</b> and <b>retro</b>, and it's specialized and generalized for the <em>user</em> &mdash; me!</p>
+<p><code>./w</code> isn't like other browsers. It's <i>new</i> and innovative, but it's <b>text</b> and <b>retro</b>, and it's specialized and generalized for the <em>user</em> &mdash; me!</p>
 
 <p>That's all silly and good. Hopefully it may be useful to others.</p>
 
@@ -26,15 +26,13 @@ Here is a list of <i>features</i>:
 
 <ul>
 
-<li><tt>./w</tt> is modular and open, allwogin for customizations and extensions. It's <b>tiny</b> in size, but packs a buch!. The source is only <b>about 1000 LOC</b> (lines of code), plus 390 LOC (j)io-library, and an-ANSI graphics library (168 LOC).</li>
-
-</li>
+<li><code>./w</code> is modular and open, allwogin for customizations and extensions. It's <b>tiny</b> in size, but packs a buch!. The source is only <b>about 1000 LOC</b> (lines of code), plus 390 LOC (j)io-library, and an-ANSI graphics library (168 LOC).</li>
 
 <li>It's a multi-tab browser. There is no limit on the number of tabs.</li>
 
-<li>Each tab is just a history entry in the file <tt>./whistory</tt> and it's append only.</li>
+<li>Each tab is just a history entry in the file <code>./whistory</code> and it's append only.</li>
 
-<li>The <key>LEFT</key>-arrow goes <b>back</b> in the history, <key>RIGHT</key> goes forward.</li>
+<li>The <kbd>LEFT</kbd>-arrow goes <b>back</b> in the history, <kbd>RIGHT</kbd> goes forward.</li>
 
 <li>Any tabs opened before this session was started are numbered 0, -1, -2, and down.</li>
 
@@ -52,17 +50,17 @@ Here is a list of <i>features</i>:
 Short summary:
 <dl>
 
-<dt>CTRL-DOWN or SPACE</dt><dd>page down (also <key>^V</key>)</dd>
-<dt>CTRL-UP or M-DSPACE</dt><dd>page up (also <key>M-V</key>)</dd>
+<dt>CTRL-DOWN or SPACE</dt><dd>page down (also <kbd>^V</kbd>)</dd>
+<dt>CTRL-UP or M-DSPACE</dt><dd>page up (also <kbd>M-V</kbd>)</dd>
 
-<dt>DOWN</dt><dd>scrolls down one row (also <key>RET</key> or <key>^N</key></dd>
-<dt>UP</dt><dd>scrolls up one row (also <key>M-RET</key> or <key>^P</key>)</dd>
+<dt>DOWN</dt><dd>scrolls down one row (also <kbd>RET</kbd> or <kbd>^N</kbd></dd>
+<dt>UP</dt><dd>scrolls up one row (also <kbd>M-RET</kbd> or <kbd>^P</kbd>)</dd>
 
 <dt>META-DOWN or M-&gt;</dt><dd>Go to last page</dd>
 <dt>META-UP or M-&lt;</dt><dd>Go to first page</dd>
 
-<dt>LEFT</dt><dd>go back (tab) in history (also <key>^B</key></dd>
-<dt>RIGHT</dt><dd>go forward (tab) in history<key>^F</key></dd>
+<dt>LEFT</dt><dd>go back (tab) in history (also <kbd>^B</kbd></dd>
+<dt>RIGHT</dt><dd>go forward (tab) in history<kbd>^F</kbd></dd>
 
 <dt>c RET</dt><dd>type any link short-cut and RETURN to open in new tab</dd>
 
@@ -73,7 +71,7 @@ Short summary:
 </dl>
 
 <h3>Command line</h3>
-<p>As all good tools, <tt>./w</tt> has a command line, it's its default interface. It's your information center. The folowing functions apply to the command line.</p>
+<p>As all good tools, <code>./w</code> has a command line, it's its default interface. It's your information center. The folowing functions apply to the command line.</p>
 
 The editing is limited:
 <dl>
@@ -82,9 +80,9 @@ The editing is limited:
 </dl>
 
 <br>
-<b>Notice:</b> that you can only type one <key>SPACE</tt> and not at the first position. If there is no space one is added, if last is a space, it's <i>page down</i>!.
+<b>Notice:</b> that you can only type one <kbd>SPACE</kbd> and not at the first position. If there is no space one is added, if last is a space, it's <i>page down</i>!.
 <br>
-<p>Commands are activated by <key>RETURN</eky> or some special characters or keys, like <key>^S</key>. This is the list of command formats:</p>
+<p>Commands are activated by <kbd>RETURN</kbd> or some special characters or keys, like <kbd>^S</kbd>. This is the list of command formats:</p>
 
 <dl>
 <dt>a RET</dt>
@@ -99,7 +97,7 @@ The editing is limited:
   <dd>A DuckDuckGo search will be performed in new tab</dd>
 
 <dt>3+4*2</dt>
-  <dd>perform calculations with <code>bc -l</code>. Results are shown on the same line after <tt>==&gt;</tt>
+  <dd>perform calculations with <code>bc -l</code>. Results are shown on the same line after <code>==&gt;</code>
 
 <dt>foo ^S</dt>
   <dd>search current page for "foo"</dd>
@@ -108,10 +106,10 @@ The editing is limited:
   <dd>cancels search and deletes the command</dd>
 
 <dt>foo ^O</dt>
-  <dd>narrow display to only matching lines. <key>^S</key> switches back to seach. </dd>
+  <dd>narrow display to only matching lines. <kbd>^S</kbd> switches back to seach. </dd>
   
 <dt>! ls</dt>
-  <dd><i>bang:</i> run the unix command. When finished press <key>^L</key> to redsplay page and continue editing the command or <key>^G to cancel</dd>
+  <dd><i>bang:</i> run the unix command. When finished press <kbd>^L</kbd> to redsplay page and continue editing the command or <kbd>^G</kbd> to cancel</dd>
 
 <dt>#cool</dt>
   <dd><b>hashtag:</b> (bookmark) the current page</dd>
@@ -121,27 +119,27 @@ The editing is limited:
 
 <dt>=cool</dt>
 <dt>=cool ^S</dt>
-  <dd>search for mentions of cool in bookmarks (end with <key>RETURN</key> or <key>^S</key> </dd>
+  <dd>search for mentions of cool in bookmarks (end with <kbd>RETURN</kbd> or <kbd>^S</kbd> </dd>
 
 <dt>#cool ^S</dt>
-  <dd>search for hashtag <key>#cool</key>.</dd>
+  <dd>search for hashtag <kbd>#cool</kbd>.</dd>
 
 <dt>@G RET</dt>
-  <dd>assign a <b>shortcut-key</b> to the current page "google.com" (? and position). Last one rules. Activate with <keyt>ALT-G</. All <key>ALT-letter</key> are reserved for the user.</dd>
+  <dd>assign a <b>shortcut-key</b> to the current page "google.com" (? and position). Last one rules. Activate with <kbd>ALT-G</kbd>. All <kbd>ALT-letter</kbd> are reserved for the user.</dd>
 
 <dt>/foo RET</dt>
 <dt>&amp;foo RET</dt>
-  <dd>same as <key>foo ^S</key> or <key>foo ^O</key> (from <tt>less</tt>)</dd>
+  <dd>same as <kbd>foo ^S</kbd> or <kbd>foo ^O</kbd> (from <code>less</code>)</dd>
 
 </dl>
 
 <h3>How does it work?</h3>
 
-<br><tt>./w</tt> has several components:</p>
+<br><code>./w</code> has several components:
 
   <ul>
-    <li><tt>./w</tt> - overall starting script</li>
-    <li><tt>./wdownload</tt> - downloads/co;ies a file and renders it</li>
+    <li><code>./w</code> - overall starting script</li>
+    <li><code>./wdownload</code> - downloads/co;ies a file and renders it</li>
     <li>./w.x - html2ansi converter</li>
     <li>./wdisplay - shows a screen-ful of lines from an ansi-fil start from top-line</li>
     <li>./wless.x - an ANSI-file pager, UI, and what we'd call "the browser".</li>
@@ -149,13 +147,14 @@ The editing is limited:
 
 Description the most important components:
 
-<li><tt>./wdownload</tt> uses <tt>wget</tt>, but could as easily use <tt>curl</tt>. It just seems wget is a bit more "friendly" and DWIMMy wheras curl is better for embedding as a library.</li>
+<ul>
+<li><code>./wdownload</code> uses <code>wget</code>, but could as easily use <code>curl</code>. It just seems wget is a bit more "friendly" and DWIMMy wheras curl is better for embedding as a library.</li>
 
 <li>The browser is <i>stateless</i>. It stoes no state that isn't made permanent. Eachnew tasb, scroll in a page, etc, logs and updates position permantly for that "tab".</li>
 
 <li>Each directory where it's started from gets it's own browser history and cache. It contains status info and </li>
 
-<li><tt>./w</tt> runs from its source code directory, It will automatically re-compile if the sources changed.</li>
+<li><code>./w</code> runs from its source code directory, It will automatically re-compile if the sources changed.</li>
 
 </ul>
 
@@ -182,9 +181,9 @@ Description the most important components:
 
 <h2 id='entities'>HTML Entities</h2>
 
-<P>As you saw above; it supports <b>named entities</b> (caveat inline without surrounded by space, see bug below). Did you know that the list of HTML entties is <b>2234</b> elements long! &amp; <tt> &amp;amp;</tt> &lt; <tt> &amp;lt;</tt>  &gt; <tt>&amp;gt;</tt> are just few examples.</p>
+<P>As you saw above; it supports <b>named entities</b> (caveat inline without surrounded by space, see bug below). Did you know that the list of HTML entties is <b>2234</b> elements long! &amp; <code> &amp;amp;</code> &lt; <code> &amp;lt;</code>  &gt; <code>&amp;gt;</code> are just few examples.</p>
 
-<p>It supports <b>numbered entities</b> on the form: This is decimal 'A': &#65; <tt> &amp;#4711;</tt>, and fullwidth 'Ａ': &#xff21; <tt> &amp;#xff21</tt>.</p>
+<p>It supports <b>numbered entities</b> on the form: This is decimal 'A': &#65; <code> &amp;#4711;</code>, and fullwidth 'Ａ': &#xff21; <code> &amp;#xff21</code>.</p>
 
 <p><b>Links</b> are rendered <a href="http://google.com/">Google</a> but there is no navigation or paging.</p>
 
@@ -237,7 +236,7 @@ function fib(n) {
   return fib(n-1)+fib(n-2);
 }
 </pre>
-Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
+Its implementation is recursive and expensive &mdash; <code>O(2^n)</code>.
 
 <title>Inline title</title>
 <h0>Header 0! LOL</h0>
@@ -260,7 +259,7 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 <ul>
 <li>A text with inline&amp;code with no spaces ( &amp; ) (&amp;).</li>
 <li>&amp; tokens currently takes up as much space as the code is long, need to not count those characters... When to finish? ';' is not enough.</li>
-<li>Some code are &amp-without the ";" or just a single & or illegal &foobar <tt> &amp;amp</tt> without the ';' &mdash; this is a parsing problem.</li>
+<li>Some code are &amp-without the ";" or just a single & or illegal &foobar <code> &amp;amp</code> without the ';' &mdash; this is a parsing problem.</li>
 <li>wordwrap used to count bytes, and break unicode chars - fixed</li>
 <li>Not really a bug, but a matter of resilience of missing end tags. For example of the end li-tag is missing, indentation becomes messed up.</li>
 <li>Handle larger font-sizes &lt;font size=+N&gt; and css="font-size:16px == double? = 4x4 font? Is there an ascii-art font in two lines?<br/>bubbleart,graceful:lower part of fire-font-s, <b>Calvin S</b> - a wire/boxgraphics font!, AMC 3 Liv1, bigfig! wire, Broadway KB !, Cyberlarge! Cybersmall! JS BLock Letters :  a 3 char high font in <a href="https://patorjk.com/software/taag/#p=testall&f=Graffiti&t=Jonas%20S%20Karlsson">ascii-art</a><br/>(4 high: rectangles, small, small slant, ascii new roman</li>
@@ -279,9 +278,10 @@ Its implementation is recursive and expensive &mdash; <tt>O(2^n)</tt>.
 
 <h2 id="annoy">Annoyances</h2>
 Not really bugs causing crashes or direct problems (features?), but behaviour that could be fixed:
+
 <ul>
 <li><code>./w FILE</code> if open the same file as last, no need to add to history? Same with ALT-X?</li>
-<li>link spanning line-end will underline indented spaces, haha, and <tt>will overflow</tt> solution is a delayed reformatting()? like recolor()?</li>
+<li>link spanning line-end will underline indented spaces, haha, and <code>will overflow</code> solution is a delayed reformatting()? like recolor()?</li>
 <li>in ^O only search, still move lines by actual line, not displayed...</li>
 <li>Search cannot handle spaces, can't input! lol</li
 </ul>
@@ -322,13 +322,11 @@ Not really bugs causing crashes or direct problems (features?), but behaviour th
 
 <li>rewrite /FOO/../ => /FOO/ test here=<a href="https://lysator.liu.se/foreningen/../lokaler">lysator.liu.se/foreningen/../lokaler</a>.</li>
 
-<li>Some things don't render, depending on URL like <a href="https://liu.se/biblioteket">liu.se/biblioteket</a></li> is ok, but not <a href="https://liu.se/biblioteket">https://liu.se/biblioteket</a>. ??? <a href="bbc.com">bbc.com</a> also gives trouble.</li>
+<li>Some things don't render, depending on URL like <a href="https://liu.se/biblioteket">liu.se/biblioteket</a> is ok, but not <a href="https://liu.se/biblioteket">https://liu.se/biblioteket</a>. ??? <a href="bbc.com">bbc.com</a> also gives trouble.</li>
 
 <li>headlines full-width characters doesincorrect wrapping (no insert \n) when text not fit on one line? (even if we counting?)</li>
 
 <li>searching doesn't find text in headers as they are fullwidth characters, could print it hidden with ^M so it'll match (but not visible) ^O would print it, but in either case: no hilite</li>
-
-</li>
 
 </ul>
 

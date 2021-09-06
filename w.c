@@ -379,15 +379,27 @@ void metadata(char* type, char* a, char* b, char* c, char* d) {
 
 int lines=0;
 
+dstr *linetags= NULL;
+
+void logtag(char* tag) {
+  if (!tag) return;
+  linetags= dstrprintf(linetags, " <%s\r", tag+1);
+}
+
 void nl() {
   lines++;
   printf("\e[K\n"); // workaround bug!
+
+  if (linetags) {
+    printf("%s", linetags->s);
+    linetags->s[0]= 0;
+  }
+
   // hidden source file offset
   printf("@%d:\r", offset);
 
   // recolor for each new line
   recolor();
-
   clearend();
   // indent(); print_state();
   // print at newline if still inside <a>
@@ -877,6 +889,8 @@ void process(TAG *end) {
           }
         }
       }
+
+      logtag(tag);
 
       if (strstr(" !-- ", tag)) { fscan(f, "-->"); continue; }
 
