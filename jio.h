@@ -155,6 +155,8 @@ char* fgetlinenum(FILE* f, long line);
 ////////////////////////////////////////
 // - strings
 
+int fscan(FILE *f, char *till);
+
 void qprintstr(char *s);
 
 int endswith(char* s, char* end);

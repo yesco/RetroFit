@@ -1,5 +1,9 @@
 # ----------- TODOs ideas for ./w
 
+- <meta name="description" content="Meta descriptions can have a surprisingly large impact on your search marketing campaigns; find out how..." />
+<meta name="keywords" content="meta description,google meta description,meta name description" />
+<meta name="robots" content="index,follow" />
+
 - runeberg.org/katalog.html - a 3.8MB table!
   - .w/Cache/runeberg.org%2fkatalog.html.DOWN
 

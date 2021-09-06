@@ -489,6 +489,30 @@ char* fgetlinenum(FILE* f, long line) {
   return fgetline(f);
 }
 
+// Scan FILE until read TILL
+// Returns 1: if found
+//         0: at eof
+int fscan(FILE *f, char *till) {
+  if (!f || !till) return 0;
+  int n= strlen(till), c;
+  char suffix[n+1];
+  memset(suffix, 0, sizeof(suffix));
+  while((c= fgetc(f))!=EOF) {
+    memcpy(suffix, &suffix[1], n);
+    suffix[n-1]= c; // add at end
+    if (!strcmp(suffix, till)) return 1;
+  }
+  return 0;
+}
+
+// LOL: just for fun...
+// // parse till "</script"
+// long script= 0;
+// do {
+//   if (!STEP) return;
+//   script<<=8; script+=tolower(c);
+// } while (script!=0x3c2f736372697074);
+
 // Quoted Print a string
 // >>>|foo %0abar%ffend|<<<#12<"
 void qprintstr(char *s) {

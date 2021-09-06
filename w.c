@@ -94,11 +94,11 @@ int decode_color(char* name, int dflt) {
 #define SNL -11
 
 // -- groups of tags according to format
-#define SKIP " script style "
+//#define SKIP " script style "
 
-#define NL " br hr pre h1 h2 h3 h4 h5 h6 h7 h8 h9 blockquote li dt dd table tr noscript address tbody "
+#define NL " br hr pre title h0 h1 h2 h3 h4 h5 h6 blockquote li dt dd table tr noscript address tbody "
 #define XNL " br /ul /ol /dl hr tbody "
-#define HD " h1 h2 h3 h4 h5 h6 "
+#define HD " title h0 h1 h2 h3 h4 h5 h6 "
 //#define CENTER " center caption " // TODO
 
 #define BD " b strong dt "
@@ -617,7 +617,7 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
     if (f != none) C(f);
     if (b != none) B(b);
     if (strstr(PR, tag)) _pre++;
-    if (strstr(SKIP, tag)) _skip= 1;
+    //if (strstr(SKIP, tag)) _skip= 1;
 
     if (strstr(" ul ol dl ", tag)) _indent+= 2;
 
@@ -840,18 +840,6 @@ void process(TAG *end) {
       c= parse(f, "> \n\r", tag, sizeof(tag));
       TRACE("\n---%s\n", tag);
 
-      // comment
-      if (strstr(" !-- ", tag)) {
-        // shift 3 characters
-        char com[4] = "1234";
-        while (STEP) {
-          strcpy(&com[0], &com[1]);
-          com[2]= c; // add at end
-          if (!strcmp("-->", com)) break;
-        }
-        continue;
-      }
-      
       // process attributes till '>'
       // TODO:move out to function
       if (c!='>') {
@@ -890,17 +878,13 @@ void process(TAG *end) {
         }
       }
 
+      if (strstr(" !-- ", tag)) { fscan(f, "-->"); continue; }
+
       if (c!='>') c= parse(f, ">", NULL, 0);
 
-      if (strstr(" script ", tag)) {
-        // parse till "</script"
-        long script= 0;
-        do {
-          if (!STEP) return;
-          script<<=8; script+=tolower(c);
-        } while (script!=0x3c2f736372697074);
-        continue;
-      }
+      // skippers
+      if (strstr(" script ", tag)) { fscan(f, "</script>"); continue; }
+      if (strstr(" style ", tag)) { fscan(f, "</style>"); continue; }
 
       // pre action for tags (and </tag>)
       // TODO: /th /td /tr tags are optional.. :-(
@@ -951,6 +935,9 @@ void process(TAG *end) {
       }
 
       // these require action after
+      // - HI(tag, fg, bg)
+      HI(" title ", white, blue);
+      HI(" h0 ", black, white); // !
       HI(" h1 ", white, black);
       HI(" h2 ", black, green);
       HI(" h3 ", black, yellow);
@@ -974,7 +961,7 @@ void process(TAG *end) {
 
       // formatting only
       HI(" ul ol dl ", none, none);
-      HI(SKIP, none, none);
+      //HI(SKIP, none, none);
       HI(" table ", none, none);
     }
   }
