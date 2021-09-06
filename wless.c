@@ -1423,6 +1423,7 @@ void listCXActions() {
 keycode ctrlXAction(keycode xk) {
   keycode k= REDRAW; // default
 
+  fprintf(stdout, "%s", keystring(xk));
   switch(xk){
 
   case CTRL+'G': break; // cancel
@@ -1432,7 +1433,14 @@ keycode ctrlXAction(keycode xk) {
     gtoast("Reloading");
     reload(url);
     return REDRAW;
-
+  case CTRL+'O': { // open in chrome
+    int http= strstr(url, "http");
+    dstr *cmd= dstrprintf(NULL, "termux-open-url \"%s%s\"", http?"":"http://", url);
+    system(cmd->s);
+    free(cmd);
+    return REDRAW;
+  }
+    
     // Map to themselves:
   case CTRL+'Z': case CTRL+'C':
     return xk;
