@@ -826,8 +826,27 @@ int display(int k) {
 
 // --- ACTIONS
 
+keycode copyurl() {
+  if (!url) return REDRAW;
+  dstr *cmd= dstrprintf(NULL, "printf \"%s\" | termux-clipboard-set", url);
+  system(cmd->s);
+  free(cmd);
+  return REDRAW;
+}
+
 // update status
-void deltab() {
+keycode deltab() {
+  // TODO: mark as "deleted"
+  tab--;
+  return REDRAW;
+}
+
+
+keycode gohistory() {
+  // open already existing?
+  system("perl whi2html.pl > .whistory.DOWN");
+  tab= newtab(".whistory.DOWN");
+  return REDRAW;
 }
 
 void visited() {
@@ -1354,6 +1373,9 @@ void loadPageMetaData() {
   int t= start_tab+tab;
   file= url= FREE(hit);
 
+  // handle other manipulator of .whistory - now just get confused and out of sync when opening, need to continously "tail -f" the file!
+
+  // TODO: keep all "new tabs" in memory
   hit= fgetlinenum(fhistory, t);
   if (hit) {
     const char *W= "#=W ";
@@ -1393,7 +1415,7 @@ void loadPageMetaData() {
 // ^E    emacs, edit HTML and ANSI
 // ^F    forward tab (history), chrome: search bar
 // ^G    cancel (clear-line/draw), chrome: next match ^S-G previous
-// ^H    help (also ?), chrome: history
+// ^H    history, chrome: history
 // ^I    TAB (completion-list of URLs)
 // ^J    RETURN (can't change?), chrome: download-manager
 // ^K    KILL tab
@@ -1412,6 +1434,35 @@ void loadPageMetaData() {
 // ^X    ? reserve for extra
 // ^Y    ? yank (undo tab kill)
 // ^Z    ZUSPEND/ZLEEP
+
+// CTRL-X
+// ======
+// ^X ^A    ? emacs: none
+// ^X ^B    list history (buffers/tabs)
+// ^X ^C    exit
+// ^X ^D    ? emacs: list-directory
+// ^X ^E    emacs edit HTML
+// ^X ^F    ? open-file, emacs: find-file
+// ^X ^G    cancel, emacs: none
+// ^X ^H    ? emacs: none
+// ^X ^I    ? emacs: indent-regidly
+// ^X ^J    ? emacs: none
+// ^X ^K    ? emacs: prefix
+// ^X ^L    ? emacs: downcase-region
+// ^X ^M    RET: long commands?
+// ^X ^N    ! ? emacs: set-goal-column
+// ^X ^O    ! ? emacs: delete-blank-lines
+// ^X ^P    ? emacs: mark-page
+// ^X ^Q    ? emacs: read-only-mode
+// ^X ^R    ? emacs: find-file-read-only
+// ^X ^S    ? emacs:save
+// ^X ^T    ? emacs: transpose-lines
+// ^X ^U    copyUrl
+// ^X ^V    ? emacs: find-alternative-file
+// ^X ^W    ? emacs: write-file
+// ^X ^X    ?eXchange mark and point
+// ^X ^Y    ? emacs: none
+// ^X ^Z    zuspend
 
 void listCXActions() {
   wclear();
@@ -1441,6 +1492,11 @@ keycode ctrlXAction(keycode xk) {
     free(cmd);
     return REDRAW;
   }
+
+  case 'k': return deltab();
+  case CTRL+'B': return gohistory();
+
+  case CTRL+'U': return copyurl();
 
   // TODO: generalize all to systemf()
   // Edit HTM (and ANSI)L with emacs
@@ -1550,12 +1606,8 @@ keycode keyAction(keycode k) {
 
   // -- TABS
   // list history
-  if (k==CTRL+'H') {
-    push(tab);
-    // open already existing?
-    system("perl whi2html.pl > .whistory.DOWN");
-    tab= newtab(".whistory.DOWN");
-  }
+  if (k==CTRL+'H') return gohistory();
+
   // help
   if (k=='?' || k==FUNC+1) {
     push(tab);

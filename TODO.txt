@@ -1,4 +1,8 @@
-# ----------- TODOs ideas for ./w
+﻿# ----------- TODOs ideas for ./w
+
+- handle other manipulator of .whistory - now just get confused and out of sync when opening, need to continously "tail -f" the file! TODO: keep all "new tabs" in memory
+
+- mysterious 0xbbef occur in lysator.liu.se generated ANSI:
 
 - writing formula 3*4 bookmarks (stars) current page, maybe only do if empty cmd?
 

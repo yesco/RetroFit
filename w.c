@@ -96,7 +96,7 @@ int decode_color(char* name, int dflt) {
 // -- groups of tags according to format
 //#define SKIP " script style "
 
-#define NL " br hr pre title h0 h1 h2 h3 h4 h5 h6 blockquote li dt dd table tr noscript address tbody "
+#define NL " br hr div pre title h0 h1 h2 h3 h4 h5 h6 blockquote li dt dd table tr noscript address tbody "
 #define XNL " br /ul /ol /dl hr tbody "
 #define HD " title h0 h1 h2 h3 h4 h5 h6 "
 //#define CENTER " center caption " // TODO
@@ -383,6 +383,9 @@ dstr *linetags= NULL;
 
 void logtag(char* tag) {
   if (!tag) return;
+  // TODO: if reparse the output it'll be interpreted as the tag :-(
+  // (any clever way of quoting?)
+  // &amp;amp; will have similar problems...
   linetags= dstrprintf(linetags, " <%s\r", tag+1);
 }
 
@@ -470,6 +473,7 @@ void p(int c) {
     if (!_curx) return;
     if (!_ws || _pre) {
       _pc(inx(' '));
+      // TODO: needed?
       if (_fullwidth) _pc(inx(' '));
     }
     _ws= 1; if (_tb) _tb= tb;
@@ -486,6 +490,8 @@ void p(int c) {
       // increase after, otherwise might wrap badly! (TODO: why?)
       inx(w);
     } else {
+      // compensate
+      if (isstartutf8(c)) inx(' ');
       putchar(inx(c));
     }
   } else {
@@ -950,7 +956,7 @@ void process(TAG *end) {
 
       // these require action after
       // - HI(tag, fg, bg)
-      HI(" title ", white, blue);
+      HI(" title ", white, 20); // darkblue
       HI(" h0 ", black, white); // !
       HI(" h1 ", white, black);
       HI(" h2 ", black, green);

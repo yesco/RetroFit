@@ -1,0 +1,7 @@
+# TODO: can we use symlink?
+
+cd $HOME/GIT/RetroFit
+
+bash ./w $@
+
+

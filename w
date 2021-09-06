@@ -13,7 +13,9 @@
 
 export UDIR=`pwd`
 echo "UDIR=$UDIR"
-export WPATH=$(cd `dirname $BASH_SOURCE` ; pwd)
+[[ ! -e $BASH_SOURCE ]] && export WPATH=$(cd `dirname ${BASH_SOURCE:-.}` ; pwd)
+[[ -e $BASH_SOURCE ]] && export WPATH=$UDIR
+
 echo "WPATH=$WPATH"
 
 # The script is stupid and assumes being run from the source code directory...
@@ -42,7 +44,9 @@ stty size >/dev/null
 
 for f in "$@"
 do
-  $WPATH/wdownload -d "$f" $LINES $COLUMNS &
+  
+  $WPATH/wdownload -d -l "$f" $LINES $COLUMNS &
+
 done
 
 # wait for wdownload to write to .whistory
