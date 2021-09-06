@@ -387,18 +387,15 @@ void download(char* url, int force, int dolog) {
   // if .ANSI file exists, exit
   if (f) {
     fclose(f);
-    return;
+  } else {
+    dstr *cmd= dstrprintf(NULL, "./wdownload %s \"%.*s\" %d %d &",
+      force?"-d":"", ulen, url, screen_rows, screen_cols);
+    system(cmd->s);
+    free(cmd);
+    // wait a little for .TMP to be created
+    // TODO: fix this timing issue, create the .TMP file?
+    usleep(300*1000);
   }
-  
-  // TODO: srip the script?
-  dstr *cmd= dstrprintf(NULL, "./wdownload %s \"%.*s\" %d %d &",
-    force?"-d":"", ulen, url, screen_rows, screen_cols);
-  system(cmd->s);
-  free(cmd);
-
-  // wait a little for .TMP to be created
-  // TODO: fix this timing issue, create the .TMP file?
-  usleep(300*1000);
 }
 
 void reload(char* url) {
@@ -685,7 +682,8 @@ void displayPageNum() {
 
   drawCenteredText(parts);
   gupdate();
-  keywait(300);
+  //TODO: too much obtrustive
+  //keywait(300);
 }
 
 void displayTabInfo(keycode k) {
@@ -730,7 +728,7 @@ void displayTabInfo(keycode k) {
  gupdate();
  fflush(stdout);
  
- keywait(300);
+ //keywait(300);
 }
 
 // --- Display
@@ -1129,7 +1127,7 @@ void showClick(keycode k, int r, int c) {
 int clickDispatch(int k) {
   // Don't redraw as we want hilite links
   // TODO: lol, opposite?
-  if (k & MOUSE_DOWN) return REDRAW;
+//  if (k & MOUSE_DOWN) return REDRAW;
 
   // TODO: make function/macro/API?
   int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
@@ -1751,22 +1749,39 @@ int main(void) {
   // main loop
   while(1) {
     loadPageMetaData();
-    if (tab!=lasttab && k!=REDRAW)
-      displayTabInfo(k);
-    lasttab= tab;
-
-    if (ABS(top-lasttop)>rows-5)
-      displayPageNum();
-    lasttop= top;
 
     // avoid update if events waiting
     if (!haskey() && k!=NO_REDRAW) {
       if (display(k)) {
-        keywait(40);
+        //keywait(40);
+        // vis confirm of click link
+        keywait(100);
         k= REDRAW; // quiet
         continue;
       }
       visited();
+    }
+
+    // --- display various meta info
+    if (tab!=lasttab && k!=REDRAW) {
+      displayTabInfo(k);
+      keywait(300);
+      lasttab= tab;
+      k= REDRAW;
+      continue;
+    }
+
+    if (ABS(top-lasttop)>rows-5) {
+      // display pagenum over new page, wait and do redraw after 300ms
+      displayPageNum();
+      // if key in queue don't wait 
+      // = instant action!
+      keywait(300);
+      // make sure not loop
+      lasttop= top;
+
+      k= REDRAW;
+      continue;
     }
 
     // print "key" acted on
