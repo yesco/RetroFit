@@ -950,7 +950,11 @@ void process(TAG *end) {
       if (strstr(*end, tag)) return;
 
       // pre action for some tags
-      if (strstr(NL, tag)) p(SNL);
+      if (strstr(NL, tag)) {
+        p(SNL);
+        // restore color (missing </a>)
+        B(white); C(black);
+      }
 
       // table hacks
       // TODO: at TD TH set indent to _curx, reset at <tr></table> to saved before <table> can HI() store _indent?

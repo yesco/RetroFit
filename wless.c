@@ -736,12 +736,13 @@ void displayTabInfo(keycode k) {
 
 // Return true if tab changed (by click) TODO: eleganse? Hmmm
 int display(int k) {
+  static int wpage= 0;
   // -- update header
   // (as it may have changed)
   reset();
   gotorc(0, 0);
   B(black); C(white);
-  //printf("./w %.*s", screen_cols-9, url); clearend();
+  printf("./w %.*s  ", screen_cols-wpage-5, url);
   fflush(stdout);
 
   FILE *fansi= openOrWaitReloadAnsi();
@@ -760,15 +761,15 @@ int display(int k) {
     // nprintf !!!
     char parts[15];
     // TODO: same calculation as in displaPageNum
-    int w= snprintf(parts, sizeof(parts), " L%d %d/%d ", top, (top+2)/(rows-4)+1, (nlines-rows+2)/(rows-4)+1);
+    wpage= snprintf(parts, sizeof(parts), " L%d %d/%d ", top, (top+2)/(rows-4)+1, (nlines-rows+2)/(rows-4)+1);
     while (*u) {
       // TODO: unicode?
       putchar(*u++);
       col++;
-      if (col+1 >= screen_cols-w) break;
+      if (col+1 >= screen_cols-wpage) break;
     }
     // space out
-    while (col++ < screen_cols-w) putchar(' ');
+    while (col++ < screen_cols-wpage) putchar(' ');
     printf("%s", parts);
   }
 
