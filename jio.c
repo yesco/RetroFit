@@ -156,13 +156,9 @@ color _B(int n) {
 
 // adjusted colors
 color C(int n) {
-//  if (n==blue)
-//    if (_fg==black)
-//      n= rgb(0,0,1);
-//    else
-      n= rgb(2,2,5);
-
-  return (_reverse? _B : _C)(n);
+  // TODO: generalize/move to w.c?
+  if (n==27) n=rgb(0,3,5); // link color
+  return (_reverse? _B : _C)(n==blue? rgb(0,0,1) : n);
 }
 
 color B(int n) {

@@ -1085,6 +1085,7 @@ void process(TAG *end) {
       HI(PR, green, black);
       HI(TT, black, rgb(3,3,3));
 
+      // TODO: if change from 27 edit jio.c
       HI(" a ", 27, none);
 
       // formatting only
