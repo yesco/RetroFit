@@ -1,7 +1,10 @@
 ﻿# ----------- TODOs ideas for ./w
 
-- viewing history, prefixes with http: even if local file, lol, need to normalize url before logging
+- DON'T break before , and . ? ) etc...
+ This massive grey and blue Stonehenge
+ , its thick tentacles reached
 
+- viewing history, prefixes with http: even if local file, lol, need to normalize url before logging
 - handle other manipulator of .whistory - now just get confused and out of sync when opening, need to continously "tail -f" the file! TODO: keep all "new tabs" in memory
 
 - mysterious 0xbbef occur in lysator.liu.se generated ANSI:

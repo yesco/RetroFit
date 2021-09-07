@@ -232,7 +232,9 @@ int inx(int c) {
 
   _curx++; _nl= 0;
   // TODO: handle overflow? It'll break display assumptions of lines
-  if (!_pre && _curx+rmargin >= screen_cols) nl();
+  if (!_pre && _curx+rmargin +1*!!_fullwidth >= screen_cols) {
+    nl();
+  }
   return c;
 }
 
@@ -479,8 +481,8 @@ void p(int c) {
     if (!_curx) return;
     if (!_ws || _pre) {
       _pc(inx(' '));
-      // TODO: needed?
-      if (_fullwidth) _pc(inx(' '));
+      // shrink spaces!
+      //if (_fullwidth) _pc(inx(' '));
     }
     _ws= 1; if (_tb) _tb= tb;
     return;
@@ -492,9 +494,9 @@ void p(int c) {
     // cheat, no word-wrap, print now!
     if (c<128) {
       wchar_t w= 0xff01 + c-33;
+      //inx(w); indent(); // might wrap!
+      inx(w); indent();
       putwchar(w);
-      // increase after, otherwise might wrap badly! (TODO: why?)
-      inx(w);
     } else {
       // compensate
       if (isstartutf8(c)) inx(' ');
