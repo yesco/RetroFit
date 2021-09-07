@@ -482,7 +482,7 @@ void p(int c) {
     if (!_ws || _pre) {
       _pc(inx(' '));
       // shrink spaces!
-      //if (_fullwidth) _pc(inx(' '));
+      if (_fullwidth) _pc(inx(' '));
     }
     _ws= 1; if (_tb) _tb= tb;
     return;

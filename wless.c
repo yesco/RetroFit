@@ -741,7 +741,7 @@ int display(int k) {
   reset();
   gotorc(0, 0);
   B(black); C(white);
-  printf("./w %.*s", screen_cols-4, url); clearend();
+  //printf("./w %.*s", screen_cols-9, url); clearend();
   fflush(stdout);
 
   FILE *fansi= openOrWaitReloadAnsi();
@@ -1612,8 +1612,8 @@ keycode keyAction(keycode k) {
   // -- big navigation
   if (k==META+'<' || k==META+',' || k==META+UP) top= 0; // top
   if (k==META+'>' || k==META+'.' || k==META+DOWN) top= nlines;
-  if (k==META+'V' || k==META+' ' || k==CTRL+UP) top-= rows+4;
-  if (k==CTRL+'V' || k==' ' || k==CTRL+DOWN) top+= rows+4;
+  if (k==META+'V' || k==META+' ' || k==CTRL+UP) top-= rows-3;
+  if (k==CTRL+'V' || k==' ' || k==CTRL+DOWN) top+= rows-3;
 
   if (top>nlines-rows) top= nlines-rows;
   if (top<0) top= 0;
