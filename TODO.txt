@@ -1,5 +1,39 @@
 ﻿# ----------- TODOs ideas for ./w
 
+- blue link on black (h1/pre) is no good
+
+- jump to content! role="main"
+  from hackaday!
+
+      <a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+
+    <header id="masthead" class="site-header" role="banner">
+
+        <div id="content" class="site-content">
+
+    <section id="primary" class="content-area">
+        <main id="main" class="site-main" role="main">
+
+
+- links without description in page?
+  
+
+- img: want to show 100% wide image
+  https://hackaday.com/tag/linux-fu/
+  - hint of img size in ? lol
+  <div class="entry-mobile-image"><a href="https://hackaday.com/2021/08/31/linux-fu-user-space-file-systems-now-for-windows-too/"><img src="https://hackaday.com/wp-content/uploads/2020/05/LinuxFu.jpg?w=600&#038;h=450" alt=""></a></div>
+
+- can you find the search-box?
+  <form rol="search" ...
+  - https://hackaday.com/blog/?s=esp32
+
+- recover from unterminated tags:
+  <h3>Bitsavers'<br>
+  - http://bitsavers.informatik.uni-stuttgart.de/
+
+- wordwrap bad of UTF-8 japanese?
+  - http://blog.esuteru.com/archives/9751843.html?fbclid=IwAR1-u63jqUCrhWgz5k8PSrAsW8mv2vHmXNHRTFYNDhZZgINvih6LNgLLfzA
+
 - garbage on the screen when scrolling, table?
   - http://designwithfontforge.com/en-US/Installing_Fontforge.html
 

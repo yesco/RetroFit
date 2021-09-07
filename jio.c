@@ -156,12 +156,16 @@ color _B(int n) {
 
 // adjusted colors
 color C(int n) {
-//  _C(n);
-  return (_reverse? _B : _C)(n==blue? rgb(0,0,1) : n);
+//  if (n==blue)
+//    if (_fg==black)
+//      n= rgb(0,0,1);
+//    else
+      n= rgb(2,2,5);
+
+  return (_reverse? _B : _C)(n);
 }
 
 color B(int n) {
-//  _B(n);
   return (_reverse? _C : _B)(n==blue? rgb(0,0,1) : n==white ? n+8 : n);
 }
 

@@ -1512,6 +1512,11 @@ keycode ctrlXAction(keycode xk) {
   case CTRL+'B': return gohistory();
 
   case CTRL+'U': return copyurl();
+  case 'u': { // edit url
+    clearcmd();
+    line= dstrncat(line, url, -1);
+    return REDRAW;
+  }
 
   // TODO: generalize all to systemf()
   // Edit HTM (and ANSI)L with emacs
