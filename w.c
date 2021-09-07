@@ -381,22 +381,28 @@ int lines=0;
 
 dstr *linetags= NULL;
 
-void logtag(char* tag) {
+void logtag(char *tag, char *attr, char *val) {
   if (!tag) return;
   // TODO: if reparse the output it'll be interpreted as the tag :-(
   // (any clever way of quoting?)
   // &amp;amp; will have similar problems...
-  linetags= dstrprintf(linetags, " <%s\r", tag+1);
+
+  if (!attr)
+    linetags= dstrprintf(linetags, "\e]:T{ <%s }\e\\", tag+1);
+  else
+    linetags= dstrprintf(linetags, "\e]:T{ <%.*s.%.*s=%s}\e\\", strlen(tag+1)-1, tag+1, strlen(attr+1)-1, attr+1, val);
+}
+
+void print_searchables() {
+  if (linetags) {
+    printf("%s", linetags->s);
+    linetags->s[0]= 0;
+  }
 }
 
 void nl() {
   lines++;
   printf("\e[K\n"); // workaround bug!
-
-  if (linetags) {
-    printf("%s", linetags->s);
-    linetags->s[0]= 0;
-  }
 
   // hidden source file offset
   printf("@%d:\r", offset);
@@ -764,6 +770,12 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
 
   entity* e= lastentity;
   if (trace) printf("\n---%s.%s=%s\n", tag, attr, val->s);
+
+  if (strstr(" id name tabindex key accesskey ", attr)) {
+    // TODO: this might become too long...
+    logtag(tag, attr, val->s);
+  }
+
   // embed URL as hidden message
   if (strstr(" href src ", attr)) {
     if (strstr(" base ", tag)) {
@@ -798,6 +810,7 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
     
     return;
   }
+
   // not used
   free(val);
 }
@@ -820,6 +833,7 @@ void addContent() {
 void process(TAG *end) {
   int c;
   while (STEP) {
+    print_searchables();
  
     if (c==CTRL+'D') {
       // == EOF (interactive)
@@ -862,7 +876,8 @@ void process(TAG *end) {
       // TODO:move out to function
       if (c!='>') {
         // <TAG attr>
-        if (strstr(TATTR, tag)) {
+        // any tag may contain id/name
+        if (1 || strstr(TATTR, tag)) {
           newTag(tag);
           // TODO: CSS cheat: match nay
           while (STEP) {
@@ -880,23 +895,33 @@ void process(TAG *end) {
               // TODO: move out?
               // merge w parse?
               dstr *v = NULL;
+              char ch;
               if (q=='"' || q=='\'') {
                 // id='foo' id="foo"
-                while (STEP && c!=q)
-                  v = dstrncat(v, &c, 1);
-                ungetc(' ', f);
+                while (STEP && c!=q) {
+                  ch= c;
+                  v = dstrncat(v, &ch, 1);
+                }
               } else {
+                // TODO: not correct... misses first char
                 // id=foo
-                while (STEP && !isspace(c) && c!='>')
-                  v = dstrncat(v, &c, 1);
+                ungetc(q, f);
+                while (STEP && !isspace(c) && c!='>') {
+                  ch= c;
+                  v= dstrncat(v, &ch, 1);
+                }
+                ungetc(c, f);
               }
+
+              // addAttr can store/free v
               addAttr(tag, attr, v);
             }
           }
         }
       }
 
-      logtag(tag);
+      // TODO :don't if done (in addAttr)
+      logtag(tag, NULL, NULL);
 
       if (strstr(" !-- ", tag)) { fscan(f, "-->"); continue; }
 

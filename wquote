@@ -7,7 +7,7 @@
 
 # !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
 
-echo "$*" | perl -e "\$_=<>;s/([ -\+\-\\/:;<=>\\?\@\\[\\\\\\]\\^\\'\\{\\|\\}\\~\`~])/sprintf('%%%02x', ord(\$1))/eg;print;"
+echo "$*" | perl -e "\$_=<>;s/([ -\-\\/:;<>\\?\@\\[\\\\\\]\\^\\'\\{\\|\\}\\~\`~])/sprintf('%%%02x', ord(\$1))/eg;print;"
 
 
 

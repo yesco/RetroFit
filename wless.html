@@ -62,7 +62,62 @@ $any comment   - Add a comment
 %regexp        - ... using regexp
 </pre>
 
-<h3>Guesture Navigation</h3>
+<h2>Touching/Clicking</h2>
+
+<h3>Click Buttons</h3>
+<pre>
+Page       Voice Search      Close
+Info
+
+
+
+
+Prev Tab                      Next Tab
+
+
+
+                              Page Up
+
+CLEARCMD       INFO           Page Down
+</pre>
+
+<h3>Touch/scroll/drag</h3>
+<pre>
+              RELOAD            MENU
+                 |                |
+                 V                V
+
+
+^                ^                ^
+|                |                |
+TABS          CONTENT           PAGES
+|                |                |
+v                v                v
+
+
+^                ^                ^
+|                |                |
+HISTORY?       FUTURE?          LINKS?
+Selector       Selector         Selector
+</pre>
+
+<h2>Searching</h2>
+<p>Searching is facilitated by just typing text on the command line and then pressing <kbd>^S</kbd>. It'll hilite <i>visible</i> matches. The scroll or up/down arrows <i>still</i> scroll lines and not matches, this may seem strange and may change, watch the top right corner to see the line changes.</p>
+
+<p><b>Narrowing:</b> by pressing <kbd>^O</kbd> one can <i>narrow</i> the view to only matching lines. As you scroll, things dissapear at the top, that means you're situated at that very matching top line visible. Again, pressing <kbd>^S</kbd> you'll see the matches in context.</p>
+
+<p><b>Notice:</b> that when navigating to other tabs, the search is still active! This means one can easily scan pages for specific content. As always <kbd>^G</kbd> cancels search/narrowing.</p>
+
+<h3>Searching/Narrow tags</h3>
+<p>To easily navigate and understand the document, one can search for tags: To get an overview of the document search for all header elements <kbd>&lt;h</kbd>. <kbd>&lt;a ^O</kbd> will search/narrow to only show lines with links on them. <kbd>&lt;li ^O</kbd> will show list-items, which most likely are menu-items.</p>
+
+<p>In fact you can search for any tag; to find bolded search for <code>&lt;b ^O</code>.</p>
+
+<p>In addition, you can search for named tags, either named with <code>id= name= key=</code>. This is similar to adding <code>#search</code> to the URL in the browser.</p>
+
+<p>As usual, <kbd>^G</kbd> cancels the search/narrowing. A search and narrow of the empty string have the same effect</p>
+
+<h2>Notes on Guesture Navigation</h2>
 <p>Amazing enough, on Android using Termux, the terminal can read a limited set of touche operations. They are:</p>
 <ul>
 <li>touch a point at the screen (click)<br>
@@ -74,39 +129,6 @@ It's limited, there is no ability to detect sideways scroll. The output is a con
 <p>As can be seen, these events are quite limited. But, we can still work with it. The drag is quite accurate and can be used to scroll up and down smoothly. It even has a bit of <em>gravity</em> in that a fast limited scroll yields more events than the same length slow movement!</p>
 
 <p>So this is the plan: "reserve" various areas of the screen for operations. For example, these regions are special:</p>
-
-<table>
-<tr><th>Top Left</th><th>Top Middle</th><th>Top Rigth</th></tr>
-<tr><td>home, (tab)menu</td><td>URL/location</td><td>close, back</td></tr>
-
-<tr><th>Upper Left</th><th>Upper Middle</th><th>Upper Right</th></tr>
-<tr>tab<td></td><td>---</td><td>tab</td></tr>
-
-<tr><th>Upper Left</th><th>Upper Middle</th><th>Upper Right</th></tr>
-<tr>???<td></td><td>---</td><td>???</td></tr>
-
-<tr><th>Upper Left</th><th>Upper Middle</th><th>Upper Right</th></tr>
-<tr>???<td></td><td>---</td><td>???</td></tr>
-
-<tr><th>Bottom Left</th><th>Bottom Middle</th><th>Bottom Right</th></tr>
-<tr>???<td></td><td>???</td><td>???</td></tr>
-</table>
-
-
-
-
-<table>
-
-<tr> <td>home bookmarks save</td> <td>URL location</td> <td>cancel delete close</td> </tr>
-
-<tr> <td>page show</td> <td>---</td> <td>info</td> </tr>
-
-<tr> <td>tab prev</td> <td>---</td> <td>tabnext</td> </tr>
-
-<tr> <td></td> <td>---</td> <td></td> </tr>
-
-<tr> <td></td> <td></td> <td></td> </tr>
-</table>
 
 <h3>Action on top NOUNS</h3>
 <pre><b>
@@ -161,41 +183,3 @@ w   s  es
 
 </pre>
 
-<h3>Click</h3>
-<pre>
-HOME           URL(select)      CLOSE
-
-
-HIST BACK                     HIST FORW
-
-
-PREV TAB                        NEXT TAB
-
-
-HASHTAG                         PAGE UP
-
-
-STAR             INFO           PAGE DOWN
-</pre>
-
-
-
-<li>Dag
-<li>URL drag to:
-  <ul>
-    <li>xxx</li>
-    <li>reload</li>
-    <li>stack it</li>
-    <li>bury</li>
-    <li>show HTML</li>
-  </ul>
-      
-
-
-<!--
-<h3>Forms</h3>
-<pre>
-TAB            - move next input field
-SHIFT-TAB      - move previous fie.d
-</pre>
--->
