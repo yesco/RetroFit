@@ -952,6 +952,7 @@ void process(TAG *end) {
           printf(" ● "); inx(-3);
         }
         inx(-3);
+        _nl=1, _ws=1;
       }
 
       // these require action after
