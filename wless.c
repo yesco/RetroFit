@@ -1140,8 +1140,7 @@ void showClick(keycode k, int r, int c) {
 
 int clickDispatch(int k) {
   // Don't redraw as we want hilite links
-  // TODO: lol, opposite?
-//  if (k & MOUSE_DOWN) return REDRAW;
+  if (k & MOUSE_DOWN) return NO_REDRAW;
 
   // TODO: make function/macro/API?
   int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
@@ -1550,6 +1549,7 @@ keycode ctrlXAction(keycode xk) {
 }
 
 keycode keyAction(keycode k) {
+  // already processed
   if (k==NO_REDRAW) return k;
 
   int kc= k & ~META & ~ CTRL;
