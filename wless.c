@@ -822,6 +822,7 @@ int display(int k) {
 
 keycode copyurl() {
   if (!url) return REDRAW;
+  printf(" copying URL"); fflush(stdout);
   dstr *cmd= dstrprintf(NULL, "printf \"%s\" | termux-clipboard-set", url);
   system(cmd->s);
   free(cmd);

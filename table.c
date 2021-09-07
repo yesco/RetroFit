@@ -35,12 +35,13 @@ dstr* content = NULL;
 dstr *table = NULL;
 int tdn= 0, tdi= 1, ty=0, tx=0, tp= 0;
 
-#define TD_MAX 1000
+#define TD_MAX 3000
 tcol tds[TD_MAX] = {0};
 int incell= 0;
 
 void handle_trd(int isRow, int isEndTag, TAG tag) {
   static int head= 0;
+  // TODO: fix this...
   assert(tdn < TD_MAX);
 
   // end
@@ -190,7 +191,7 @@ void renderTable() {
   for(int i=0; i<tdn; i++) {
     tcol* t= &tds[i];
 
-    if (!t->i) { putchar('\n'); clearend(); }
+    if (!t->i) { putchar('\n'); recolor(); clearend(); }
  
     char* s= t->s;
     if (s) {
@@ -209,7 +210,8 @@ void renderTable() {
           do s++; while (*(s+1) && (*s==(char)HNL || *s==(char)SNL));
           printf("↲");
         }
-        else if (*s<32 || *s>127) ; // TODO:
+        else if (*s<32 || *s>127)
+          ; // TODO:
         else putchar(*s);
 
           if (*s) s++;
@@ -218,6 +220,7 @@ void renderTable() {
 
         // overflow?
         if (!*s) { // not overflow
+          putchar(' ');
           putchar(' ');
         } else {
           if (!t->head) {// <TD>
@@ -251,6 +254,7 @@ void renderTable() {
     assert(t->i==i); // it's header?
     // TODO: make a function of printer above...
     printf("%s", t->s);
+    // TODO: who is doing newline?
   }
   if (overflows) printf("\n");
 

@@ -1,16 +1,7 @@
 ﻿# ----------- TODOs ideas for ./w
 
--- run on tags as in black.html make the screen blue for the rest..
- (stop tags? reset tags? <p>, or at least next <a>)
-
-  <li><a href="https://en.wikipedia.org/wiki/IBM_and_the_Holocaust">Wikipedia
-page about <i>IBM and the Holocaust</i>;
-
-<li><a href="https://en.wikipedia.org/wiki/IBM_during_World_War_II">Wikepedia
-page on IBM during World War&nbsp;II</a>.
-</ul>
-<p>
-
+- many natural long text-tables in 
+  - http://www.columbia.edu/cu/computinghistory/dec20.html
 
 - DON'T break before , and . ? ) etc...
  This massive grey and blue Stonehenge
