@@ -9,6 +9,82 @@
 //          jsk@yesco.org
 //
 
+// Generic description:
+//
+// No. If state=0 and I get '<' I
+// read a tag name, extract
+// attributes till '>" , for some
+// special tags I do some formatting
+// actions, like newline, if it's a
+// "bracketing" tag, like <ul></ul>
+// or <h1></h2> <a></a> I do recurse
+// and wait for the terminator.
+//
+// But you'd be surprised how many
+// webpages have unterminated <a>
+// tags!
+// 
+// Also, <li> <td> <tr> doesn't need
+// the ternimating tag, same with <p>
+// so you need to have "recovery"
+// mechanism or treat them like
+// "separators".
+// 
+// When reading a tag or word, it
+// buffers, only when it received a
+// full "symbol" does it take
+// decision.
+//
+// It is true that surprising many
+// tags have names that are
+// non-overlapping, but I don't use
+// this fact.
+//
+// Instead my formatter is looking
+// for symbols that fulfils a
+// criteria for a specific
+// formatting. So some tags require
+// "clear" (content start on
+// newline), some have clear-behind,
+// etc.
+//
+// Unless you sanitize and "fix"the
+// html before processing it, you'll
+// have to "hack it". I belive most
+// big webbrowsers do that. That that
+// (almost) requires almost to keep
+// all of it in memory and do
+// extensive processing on it,
+// rewriting it as needed. I guess
+// one could create a generic
+// statemachine that ahdnles this,
+// together with a stack and methods
+// to "pop" unmatched tags. But it's
+// rather complicated I think.
+//
+// In this case I keep track of a
+// running state: fg color, bg color,
+// last was whitespace, last was
+// newline, AND tags that "need" to
+// be matched.  The formatter and
+// extractor is 616 LOCs
+// C-code.(comments, empty lines, {
+// }, else etc not counted).  Tables
+// is one issue where you may need to
+// keep extensive state, maybe read
+// the whole table before formatting,
+// unless you institute a policy of
+// giving up, or fixing the
+// formatting, OR have really simple
+// formatting output. I'm trying to
+// do the best under limited
+// effort. I need to get back to
+// tables one day...
+//
+// - jsk
+//
+// posted at in facebook discussion
+
 // various debug output
 int trace= 0, trace_content= 0;
 
@@ -874,6 +950,8 @@ void process(TAG *end) {
       c= parse(f, "> \n\r", tag, sizeof(tag));
       TRACE("\n---%s\n", tag);
 
+      if (strstr(" !-- ", tag)) { fscan(f, "-->"); continue; }
+
       // process attributes till '>'
       // TODO:move out to function
       if (c!='>') {
@@ -924,8 +1002,6 @@ void process(TAG *end) {
 
       // TODO :don't if done (in addAttr)
       logtag(tag, NULL, NULL);
-
-      if (strstr(" !-- ", tag)) { fscan(f, "-->"); continue; }
 
       if (c!='>') c= parse(f, ">", NULL, 0);
 

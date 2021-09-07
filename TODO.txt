@@ -1,5 +1,18 @@
 ﻿# ----------- TODOs ideas for ./w
 
+- garbage on the screen when scrolling, table?
+  - http://designwithfontforge.com/en-US/Installing_Fontforge.html
+
+
+- w.c <p> inside <ul> gives extra line breaks...
+           <ul><li><p>It provides a uniform interface to access font files.</p></li>
+            <li><p>It supports high-speed, anti-aliased glyph bitmap generation with 256 gray levels.</p></li>
+
+
+- I really need it to persist TOP line (per document)
+- AND the last page/document viewed...
+  (it implies that "viewing" a page/scroll) should create a new entry in history!
+
 - many natural long text-tables in 
   - http://www.columbia.edu/cu/computinghistory/dec20.html
 
