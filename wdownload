@@ -33,7 +33,7 @@ CFILE=$WDIR/Cache/$SAFE
     | tee -a $CFILE.WLOG ) \
   > /dev/null
     
-[[ ! -e $DOLOG ]] && echo "`date --iso=s` #=W $GO $CFILE.ANSI" >> .whistory
+[[ $DOLOG ]] && echo "`date --iso=s` #=W $GO $CFILE.ANSI" >> .whistory
 
 # --- local file (always copy)
 

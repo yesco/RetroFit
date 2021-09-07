@@ -1,0 +1,1 @@
+perl -pe 's/%(..)/chr(hex($1))/ge'

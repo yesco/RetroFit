@@ -7,9 +7,7 @@ echo "========== CACHE BY SIZE ========"
 ./ls -Srh .w/Cache/
 echo "======"
 echo " `du -sh .w` - TOTAL"
-) | sed 's/%2f/\//g' \
-  | sed 's/%23/\#/g' \
-  | sed 's/%40/\@/g'
+) | ./wunquote
 
 echo "------"
 echo " `du -csh .w/*/*.ANSI | grep total` - ANSI"

@@ -678,6 +678,7 @@ void displayPageNum() {
   gclear();
   char parts[15];
   // TODO: same calculation as display()
+  // (but here no " L4711 ")
   snprintf(parts, sizeof(parts), " %d/%d ", (top+2)/(rows-4)+1, (nlines-rows+2)/(rows-4)+1);
 
   drawCenteredText(parts);
@@ -743,14 +744,6 @@ int display(int k) {
   printf("./w %.*s", screen_cols-4, url); clearend();
   fflush(stdout);
 
-  /* // print URL clearly before pain the screen */
-  /* gclear(); gbg= white; gfg= black; gy= 2; gx= 1; */
-  /* gputs(url); */
-  /* while(gy<gsizey) gputc(' '); */
-  /* gupdate(); */
-  /* fflush(stdout); */
-  /* usleep(100*1000); */
-  
   FILE *fansi= openOrWaitReloadAnsi();
   // display trunced by key-press
   if (!fansi) return 0; 
@@ -767,7 +760,7 @@ int display(int k) {
     // nprintf !!!
     char parts[15];
     // TODO: same calculation as in displaPageNum
-    int w= snprintf(parts, sizeof(parts), " %d/%d ", (top+2)/(rows-4)+1, (nlines-rows+2)/(rows-4)+1);
+    int w= snprintf(parts, sizeof(parts), " L%d %d/%d ", top, (top+2)/(rows-4)+1, (nlines-rows+2)/(rows-4)+1);
     while (*u) {
       // TODO: unicode?
       putchar(*u++);
@@ -844,8 +837,8 @@ keycode deltab() {
 
 keycode gohistory() {
   // open already existing?
-  system("perl whi2html.pl > .whistory.DOWN");
-  tab= newtab(".whistory.DOWN");
+  system("perl whi2html.pl > .whistory.html");
+  tab= newtab(".whistory.html");
   return REDRAW;
 }
 
@@ -1772,7 +1765,7 @@ keycode editTillEvent() {
     if (k==TAB) {
       printf("\n====================\n");
       if (1) {
-        dstr *cmd= dstrprintf(NULL, "cut -d\\  -f3 .whistory  | sort | uniq -c | sort -n | GREP_COLORS='mt=01;32' grep --color=always -iP \"%s\" ", line->s);
+        dstr *cmd= dstrprintf(NULL, "cut -d\\  -f3 .whistory | sort | uniq -c | sort -n | GREP_COLORS='mt=01;32' grep --color=always -iP \"%s\" ", line->s);
         system(cmd->s);
         printf("\n\n(ctrl-L to redraw)\n");
         free(cmd);
