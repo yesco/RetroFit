@@ -1169,7 +1169,10 @@ int clickDispatch(int k) {
   // --- Click Buttons
 
   // MENU      SPEACH      CLOSE
-  if (!strcmp(dir, "NW")) ;
+  if (!strcmp(dir, "NW")) {
+    // (bookmkar) info for page
+    return CTRL+'Q';
+  }
   if (!strcmp(dir, "NC")) {
     char *ln= line->s;
     char *r= speech();
@@ -1205,7 +1208,7 @@ int clickDispatch(int k) {
   if (!strcmp(dir, "CE")) k= RIGHT;
 
   // xxxx      xxxx        PAGE UP
-  if (!strcmp(dir, "sW")) ;
+  if (!strcmp(dir, "sW")) k= CTRL+'H';
   if (!strcmp(dir, "sC")) ;
   if (!strcmp(dir, "sE")) k= META+' ';
   // xxxx      xxxx        PAGE DOWN
@@ -1311,6 +1314,9 @@ keycode flickMenu(keycode k) {
   return waitScrollEnd(k);
 }
 
+// A "touch" is a scroll event.
+// It has a start position anda up=down (row) trail.
+// There is no end-event.
 keycode touchDispatch(keycode k) {
   // loop till no more scroll,
   // or exit middle if content scroll
@@ -1324,6 +1330,14 @@ keycode touchDispatch(keycode k) {
     int pr= r*100/screen_rows;
     int pc= c*100/screen_cols;
 
+    //     |  top   |          m
+    // ----+--------+--------- i
+    // left|        | right  - d
+    // ----+--------+--------- d
+    //     | bottom |          l
+    //     ||||||||||          e
+    //     c e n t e r
+
     int top= pr<10, bottom= pr>90;
     int left= pc<10, right= pc>=90;
 
@@ -1333,9 +1347,16 @@ keycode touchDispatch(keycode k) {
     // scrolling content region
     if (center && middle) return k;
 
-    // Drag starting locations
+    // -- Drag starting locations:
     if (top && right) k= flickMenu(k);
+
     //else if (top && center) k= scrollStack();
+    else if (top && center) {
+      // empty scroll events...
+      while(haskey()) key();
+      return CTRL+'R';
+    }
+
     //else if (top && left) k= scrollBookmarks();
 
     else if (middle && left) {
@@ -1343,7 +1364,7 @@ keycode touchDispatch(keycode k) {
       return (k & SCROLL_UP) ? LEFT : RIGHT;
     } else if (middle && right) {
       // tabs: next & prev
-      displayPageNum();
+      //displayPageNum();
       return (k & SCROLL_UP) ? META+'V' : CTRL+'V';
     }
     //else if (bottom && left) k= scrollHistory();
