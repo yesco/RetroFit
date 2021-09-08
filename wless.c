@@ -1040,8 +1040,6 @@ keycode command(keycode k, dstr *ds) {
         clearend();
         C(white); fflush(stdout);
 
-        while(!haskey());
-      
         return NO_REDRAW;
       }
 
@@ -1490,6 +1488,7 @@ keycode ctrlXAction(keycode xk) {
   fprintf(stdout, "%s", keystring(xk));
   switch(xk){
 
+  case CTRL+'W': keywait(1000*1000); break;
   case CTRL+'G': break; // cancel
 
   case CTRL+'?': listCXActions(); return NO_REDRAW;

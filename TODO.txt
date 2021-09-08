@@ -1,5 +1,18 @@
 ﻿# ----------- TODOs ideas for ./w
 
+- strange decolor (non-bright) of green only on page (in headers!)
+  - https://www.goodhousekeeping.com/uk/food/a566696/foods-you-shouldnt-put-in-a-slow-cooker/
+
+- sitemaps?
+  - https://www.siteground.com/kb/what-is-a-sitemap/
+  - https://en.m.wikipedia.org/wiki/Sitemaps
+  - https://writemaps.com/blog/how-to-find-your-sitemap/
+  /sitemap
+  /sitemap.xml
+  /sitemap_index.xml
+
+- use <nav> page for menu, sitemaps?
+
 - blue link on black (h1/pre) is no good
 
 - jump to content! role="main"

@@ -158,11 +158,12 @@ color _B(int n) {
 color C(int n) {
   // TODO: generalize/move to w.c?
   // link color
-  if (n==27) 
+  if (n==27) {
     if (_reverse && _bg==black)
       n=rgb(0,0,5);
     else
       n=rgb(0,3,5);
+  }
   return (_reverse? _B : _C)(n==blue? rgb(0,0,1) : n);
 }
 
@@ -298,7 +299,9 @@ keycode key() {
 int keywait(int ms) {
   long startms= mstime();
   long passed;
-  while(!haskey() && (passed= mstime()-startms)<=ms);
+  // 5ms usleep => 1.5% cpu usage
+  while(!haskey() && (passed= mstime()-startms)<=ms)
+    usleep(5*1000);
   return passed;
 }
 
