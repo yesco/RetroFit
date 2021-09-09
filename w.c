@@ -90,6 +90,7 @@ int trace= 0, trace_content= 0;
 
 // sexy words! bold words that are 6 letter or longer ("six-rule by my Swedish teacher)
 // TODO: this should be a UI filtering option (in wless)...
+
 int sexy= 1;
 
 // 0 : not sexy
@@ -349,7 +350,7 @@ void _pc(int c) {
     if (sexy && (strlen(word)>=6) ||
         strcasestr(word, "not") ||
         strcasestr(word, "n't") || 
-        (sexy>=1 &&
+        (sexy>=2 && isalpha(word[0]) &&
          word[0]==toupper(word[0]))) {
       if (sexy<=2) {
         printf("\e[1m%s\e[0m", word);

@@ -517,8 +517,6 @@ int matchfinder(char *ln, char *pat) {
   return ((p-ln)<<8) + MIN(0xff, len);
 }
 
-const vistrace= 0;
-
 int visCol(char *ln, char *end) {
   if (!ln) return -100;
   int col= 0;
@@ -526,35 +524,56 @@ int visCol(char *ln, char *end) {
   while ((c= *ln) && ln++<=end) {
     if (c=='\r') col= 0; // ^M
     else if (c=='\e') {
-      if (vistrace) {
-        B(black); C(white);        
-        printf(" {@%d} E", col);
-      }
       if ((c= *ln)==']') {
-        if (vistrace) {printf("H>"); fflush(stdout);}
         // skip hidden text
         while ((c= *ln++) && c!='\e');
         c=*ln++; // skip \\
-        if (vistrace) printf("<");
       } else {
         // skip till letter
-        if (vistrace) printf("e>");
         while ((c= *ln++) && !isalpha(c));
-        if (vistrace) printf("<");
       }
-      if (vistrace) {B(white); C(black);}
     } else if (c<32) ;
     else if (c>127) {
       if (isstartutf8(c)) col++;
-      if (vistrace) putchar(c);
     } else {
-      if (vistrace) if (c>=' ') putchar(c);
       if (c>=' ') col++;
       // TODO: detect fullwidth char? :-(
     }
   }
-  if (vistrace) printf("<<<\n");
   return col;
+}
+
+// inject "codes" to rest color (hilite) after any code terminal co
+void printansi(int len, char *ln, char *codes) {
+  if (!ln || len<=0) return;
+  char c;
+  while ((c= *ln++) && len-->0) {
+    putchar(c);
+    if (c=='\e') {
+      c= *ln++;
+      if (!c) return;
+      putchar(c);
+      if (0 && c==']') {
+        // TODO: not needed? - delete?
+        // hidden text
+        while ((c= *ln++) && c!='\e')
+          putchar(c);
+        if (!c) return;
+        putchar(c);
+        c= *ln++; // read \\
+        if (!c) return;
+        putchar(c);
+      } else {
+        // ansi codes-skip till letter
+        while ((c= *ln++) && (!isalpha(c) && c!='\\' && c!=7))
+          putchar(c);
+        if (!c) return;
+        putchar(c);
+      }
+      // after possible change reapply codes
+      printf("%s", codes);
+    } 
+  }
 }
 
 // Return: true if clicked (askin redo page)
@@ -579,9 +598,10 @@ int printAnsiLines(FILE *fansi, int top) {
       char *found= f; // a flag!
       if (_only && !f) *s= 0;
 
+      char *codes= -n==screen_rows/2?"\e[27m":"";
       // find and hilite each match
       while(f) {
-        printf("%.*s", f-s, s);
+        printansi(f-s, s, codes);
 
         // -- print match
         // test if click ON
@@ -609,7 +629,7 @@ int printAnsiLines(FILE *fansi, int top) {
           B(red); C(white);
         }
 
-        printf("%.*s", len, f);
+        printansi(len, f, codes);
         if (len==0xff) { f=NULL; break; } // all
         s= f + len;
 
@@ -622,7 +642,7 @@ int printAnsiLines(FILE *fansi, int top) {
       }
       // print remainder
       // (this will always be called, even for lines not to be displayed)
-      printf("%s", s);
+      printansi(strlen(s), s, codes);
       ln->s[0]= 0;
 
       if (c==EOF) break;
