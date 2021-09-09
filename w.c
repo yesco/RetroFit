@@ -88,6 +88,15 @@
 // various debug output
 int trace= 0, trace_content= 0;
 
+// sexy words! bold words that are 6 letter or longer ("six-rule by my Swedish teacher)
+// TODO: this should be a UI filtering option (in wless)...
+int sexy= 1;
+
+// 0 : not sexy
+// 1 : hilite words len>=6 or not/n't
+// 2 : also hihlite Foo Bar
+// 3 : summary (remove not choosen)
+
 // TODO: configure options:
 // - use fancy unicode glpyhs (allow testing)
 // - map uncode -> ascii glyphs
@@ -336,12 +345,26 @@ void _pc(int c) {
 
   if (c==FLUSH_WORD || isdelimiter(c)) {
     // output word (if at break char)
-    if (strlen(word)>=6) {
-      printf("\e[1m%s\e[0m", word);
-      recolor();
-    } else {
+    // (sexy)
+    if (sexy && (strlen(word)>=6) ||
+        strcasestr(word, "not") ||
+        strcasestr(word, "n't") || 
+        (sexy>=1 &&
+         word[0]==toupper(word[0]))) {
+      if (sexy<=2) {
+        printf("\e[1m%s\e[0m", word);
+        recolor();
+      } else {
+        printf("%s", word);
+      }
+    } else if (sexy<3) {
       printf("%s", word);
+    } else {
+      // already counted--remove
+      _curx-= strlen(word);
+      putchar(inx('_'));
     }
+
     if (c>=0) putchar(c);
     memset(word, 0, sizeof(word));
     _overflow= 0;
