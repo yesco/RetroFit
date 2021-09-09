@@ -170,17 +170,16 @@ int decode_color(char* name, int dflt) {
 #define SNL -11
 
 // -- groups of tags according to format
-//#define SKIP " script style "
-
 #define NL " br hr div pre title h0 h1 h2 h3 h4 h5 h6 blockquote li dt dd table tr noscript address tbody "
 #define XNL " br /ul /ol /dl hr tbody "
 #define HD " title h0 h1 h2 h3 h4 h5 h6 "
 //#define CENTER " center caption " // TODO
 
-#define BD " b strong dt "
-#define IT " i em caption "
+#define BD " b strong dt label "
+#define IT " i em caption legend "
 // TODO: #define UL " u a " ????
 
+// TODO: ins=green, del=red
 #define HL " u s q cite ins del noscript abbr acronym "
 
 #define PR " pre "
@@ -190,6 +189,8 @@ int decode_color(char* name, int dflt) {
 // td/th: rowspan colspan
 
 #define FM " form input textarea select option optgroup button label fieldset legend "
+
+#define SKIP " option "
 
 // attribute captures
 #define TATTR " a body table th td tr font img a base iframe frame colgroup span div p "
@@ -335,7 +336,12 @@ void _pc(int c) {
 
   if (c==FLUSH_WORD || isdelimiter(c)) {
     // output word (if at break char)
-    printf("%s", word);
+    if (strlen(word)>=6) {
+      printf("\e[1m%s\e[0m", word);
+      recolor();
+    } else {
+      printf("%s", word);
+    }
     if (c>=0) putchar(c);
     memset(word, 0, sizeof(word));
     _overflow= 0;
@@ -375,10 +381,10 @@ void _pc(int c) {
   }
 }
 
-int offset= 0;
+long offset= 0;
 
 int myfgetc(FILE* f) {
-  int n= ftell(f);
+  long n= ftell(f);
   offset= n<0 ? offset+1 : n;
   return fgetc(f);
 }
@@ -694,7 +700,7 @@ void setLinkUrl(dstr* val) {
 
 void addContent();
 
-void process(TAG *end);
+int process(TAG *end);
 
 // Use HI macro! (passes in tag)
 
@@ -706,9 +712,10 @@ void process(TAG *end);
 
 // After the matching </TAG> is reached:
 // restore colors and undo formatting.
-void hi(TAG *tag, char* tags, enum color f, enum color b) {
+// Returns true if tag was triggered, thus consumed
+int hi(TAG *tag, char* tags, enum color f, enum color b) {
   static int level= 0;
-  if (!tag || !*tag || !strstr(tags, *tag)) return;
+  if (!tag || !*tag || !strstr(tags, *tag)) return 0;
 
   level++;
   TRACE("--->%d %s %d %d\n", level, tag?*tag:NULL, f, b);
@@ -719,12 +726,10 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
     if (f != none) C(f);
     if (b != none) B(b);
     if (strstr(PR, tag)) _pre++;
-    //if (strstr(SKIP, tag)) _skip= 1;
 
     if (strstr(" ul ol dl ", tag)) _indent+= 2;
 
     // TODO: _capture <title>?
-
     if (strstr(" a ", tag)) {
       underline();
       fg(_fg); bg(_bg); // needed?
@@ -756,21 +761,27 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
       recolor();
     }
 
-    // content
-    //C(_fg); B(_bg);
-    if (strstr(" h1 ", tag)) p(HNL); // one extra
-    if (strstr(HD, tag)) p(HS);
-    if (strstr(TT, tag)) p(HS);
+    // -- content
+    {
+      // recolor();
+      // actions just before content
+      if (strstr(" h1 ", tag)) p(HNL);
+      if (strstr(HD, tag)) p(HS);
+      if (strstr(TT, tag)) p(HS);
+      if (strstr(SKIP, tag)) _skip++;
     
-    // find end tag (recurse)
-    TAG end = {' ', '/'};
-    strcpy(end+2, *tag+1);
-    process(end);
+      // find end tag (recurse)
+      TAG end = {' ', '/'};
+      strcpy(end+2, *tag+1);
+      process(end);
+      if (strstr(SKIP, tag)) _skip--;
+    }
+    // -- end content
 
-    // end content
-
-    // - ENDing highlight/formatting
+    // -- ENDing highlight/formatting
+    // TODO: make state changes clearer
     if (strstr(TT, tag)) p(HS);
+
     // off underline links!
     if (strstr(" a ", tag)) {
       end_underline();
@@ -783,10 +794,13 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
     if (strstr(" table ", tag)) {
       if (!--_table) renderTable();
     }
+
     // off bold
     if (strstr(BD, tag)) { printf("\e[0m"); recolor(); }
+
     // off italics
     if (strstr(IT, tag)) printf("\e[23m");
+
     // off fullwidth
     if (strstr(HD, tag)) {
       _fullwidth--;
@@ -807,6 +821,7 @@ void hi(TAG *tag, char* tags, enum color f, enum color b) {
 
   level--;
   TRACE("<--%d %s\n", level, tag?*tag:NULL);
+  return 1;
 }
 
 int skipspace() {
@@ -875,7 +890,7 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
 
     // output [ab] link key selector
     indent();
-    int f=_fg, b=_bg, ws=_ws; {
+    int ff=_fg, bb=_bg, ws=_ws; {
       B(rgb(1,2,4)); C(white);
       //B(blue); C(white);
       //B(red); C(white); // retro!
@@ -883,7 +898,7 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
       char* k= (char*)_keys;
       while (*k) p(*k++);
       _fullwidth--;
-    } fg(f), bg(b);
+    } fg(ff), bg(bb);
     //p(' ');
     
     return;
@@ -908,7 +923,7 @@ void addContent() {
   content= NULL;
 }
 
-void process(TAG *end) {
+int process(TAG *end) {
   int c;
   while (STEP) {
     print_searchables();
@@ -918,6 +933,7 @@ void process(TAG *end) {
       // exit the hard way!
       printf("\n---EOF\n");
       fflush(stdout);
+      // TODO: maybe not so good?
       exit(0);
     } else if (c=='\e') { // let ansi through
       _pc(FLUSH_WORD);
@@ -1023,7 +1039,7 @@ void process(TAG *end) {
       }
 
       // check if </endTAG>
-      if (strstr(*end, tag)) return;
+      if (strstr(*end, tag)) return 1;
 
       // pre action for some tags
       if (strstr(NL, tag)) {
@@ -1063,37 +1079,44 @@ void process(TAG *end) {
       }
 
       // these require action after
+      // NOTE: only one should be trigggered as they consume input!
+      // these recurses on process and will return after matching tag found
       // - HI(tag, fg, bg)
-      HI(" title ", white, 20); // darkblue
-      HI(" h0 ", black, white); // !
-      HI(" h1 ", white, black);
-      HI(" h2 ", black, green);
-      HI(" h3 ", black, yellow);
-      HI(" h4 ", white, blue);
-      HI(" h5 ", black, cyan);
-      HI(" h6 ", black, white);
+      HI(" title ", white, 20) ||
+        HI(" h0 ", black, white) ||
+        HI(" h1 ", white, black) ||
+        HI(" h2 ", black, green) ||
+        HI(" h3 ", black, yellow) ||
+        HI(" h4 ", white, blue) || 
+        HI(" h5 ", black, cyan) ||
+        HI(" h6 ", black, white) ||
 
-      HI(BD, none, none);
-      HI(IT, none, none);
+        HI(BD, none, none) ||
+        HI(IT, none, none) ||
 
-      HI(HL, magenta, none);
+        HI(HL, magenta, none) ||
+        HI(FM, red, rgb(3,3,3)) ||
 
-      //TODO: <input/> not handled
-      // HI expects end-tag: </...
-      //HI(FM, yellow, black);
-      
-      HI(PR, green, black);
-      HI(TT, black, rgb(3,3,3));
+        //TODO: <input/> not handled
+        // HI expects end-tag: </...
+        //HI(FM, yellow, black);
+        
+        HI(PR, green, black) ||
+        HI(TT, black, rgb(3,3,3)) ||
 
-      // TODO: if change from 27 edit jio.c
-      HI(" a ", 27, none);
+        // TODO: if change from 27 edit jio.c
+        HI(" a ", 27, none) ||
 
-      // formatting only
-      HI(" ul ol dl ", none, none);
-      //HI(SKIP, none, none);
-      HI(" table ", none, none);
+        // formatting only
+        HI(" ul ol dl ", none, none) ||
+        HI(SKIP, none, none) ||
+        HI(" table ", none, none) ||
+        0;
     }
   }
+  // except for toplevel we end up here for not properly terminated tags
+  // but only for tags we've done HI() on.
+  return 0;
 }
 
 int main(int argc, char**argv) {
@@ -1128,10 +1151,10 @@ int main(int argc, char**argv) {
   if (strstr(u, "https://")==u) {
     printf("🔒"); u+= 8;
   } else if (strstr(u, "http://")==u) {
-    int f=_fg, b=_bg;
+    int ff=_fg, bb=_bg;
     C(red);
     printf("🚩");
-    fg(f); bg(b);
+    fg(ff); bg(bb);
     u+= 7;
   } 
   if (u[strlen(u)-1]=='/')
