@@ -1482,13 +1482,14 @@ void listCXActions() {
   // TODO: open help screen for CTRL-X?
 }
 
+#define FAILIF(exp, msg...) if(exp){message(msg); return NO_REDRAW;}
+
 keycode ctrlXAction(keycode xk) {
   keycode k= REDRAW; // default
 
   fprintf(stdout, "%s", keystring(xk));
   switch(xk){
 
-  case CTRL+'W': keywait(1000*1000); break;
   case CTRL+'G': break; // cancel
 
   case CTRL+'?': listCXActions(); return NO_REDRAW;
@@ -1510,6 +1511,23 @@ keycode ctrlXAction(keycode xk) {
   case 'k': return deltab();
   case CTRL+'B': return gohistory();
 
+  case CTRL+'S': { // save
+    FILE *h= fopenext(file, ".DOWN", "r");
+    FAILIF(!h, "Can't open");
+    FAILIF(!line->s[0], "No filename");
+    FILE *s= fopen(line->s, "w");
+    FAILIF(!s, "Can't create");
+    int c, n= 0;
+    while((c= fgetc(h))!=EOF) {
+      fputc(c, s); n++;
+    }
+    fclose(s);
+    fclose(h);
+    message("Saved to file: %s [%d bytes]\n", line->s, n);
+    clearcmd();
+    return NO_REDRAW;
+  }
+
   case CTRL+'U': return copyurl();
   case 'u': { // edit url
     clearcmd();
@@ -1529,11 +1547,8 @@ keycode ctrlXAction(keycode xk) {
 
     reset(); B(black); C(white); clear(); fflush(stdout); B(black); C(white);
     _jio_exit();
-
     system(cmd->s);
-
     jio();
-
     break;
   }
     
@@ -1546,7 +1561,8 @@ keycode ctrlXAction(keycode xk) {
   case CTRL+'T': // tail -f file
   case CTRL+'D': // directory
 
-  default: message("C-x %s not recognized", keystring(xk)); return NO_REDRAW;
+  default:
+    FAILIF(1, "C-x %s not recognized", keystring(xk));
   }
 
   return k;
@@ -1726,7 +1742,8 @@ keycode editTillEvent() {
     // Update TABS info
     char buf[32];
     int w= snprintf(buf, sizeof(buf), "  T%d/%d", tab, ntab);
-    gotorc(screen_rows-1, screen_cols-w);
+    gotorc(screen_rows-1, 0);
+    spaces(screen_cols-w-1);
     printf("%s", buf);
 
     // EDIT
