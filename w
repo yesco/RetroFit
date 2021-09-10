@@ -12,11 +12,11 @@
 #  ./w [URL ...]
 
 export UDIR=`pwd`
-echo "UDIR=$UDIR"
+#echo "UDIR=$UDIR"
 [[ ! -e $BASH_SOURCE ]] && export WPATH=$(cd `dirname ${BASH_SOURCE:-.}` ; pwd)
 [[ -e $BASH_SOURCE ]] && export WPATH=$UDIR
 
-echo "WPATH=$WPATH"
+#echo "WPATH=$WPATH"
 
 # The script is stupid and assumes being run from the source code directory...
 

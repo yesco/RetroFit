@@ -108,8 +108,10 @@ fi
 
 $WPATH/w.x $CFILE.DOWN $GO $COLS > $CFILE.ANSI
 
-# generate links list
-$WPATH/wlinks $CFILE.ANSI > $CFILE.LINKS
+# generate links list etc
+perl $WPATH/wlinks.pl $CFILE.ANSI > $CFILE.LINKS
+
+perl -0777 -ne 'if (s:^.*?<(title|h1).*?>(.*?)</\1>.*$:$2:ism) { trim; s|\\s+| |smg; print $_; }' $CFILE.DOWN # > $CFILE.TITLE
 
 rm -f $CFILE.TMP
 
@@ -128,3 +130,4 @@ rm -f $CFILE.TMP
 #  -23 SIGIO
 #  -28 SIGWINCH
 #  -38 SIGDCE
+

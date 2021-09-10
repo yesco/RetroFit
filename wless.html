@@ -64,6 +64,82 @@ $any comment   - Add a comment
 
 <h2>Touching/Clicking</h2>
 
+Touch has a few concepts that that we'll use:
+
+<dl>
+
+<dt>tap (click)</dt>
+<dd>Tapping is just, fast touching an area of the screen. Don't move the finger.</dd>
+
+<dt>flick</dt>
+<dd>Is fast touching an area of the screen and <i>flicking</i> your finger up ro down accroding to the defined action. It's a short and fast movement.</dd>
+
+<dt>drag<dt>
+<dd>Dragging is putting your finger, in the main middle/center area and moving it up and down, just as you normally do when browsing on a mobile.</dd>
+
+<dt>scroll</dt>
+<dd>Scrolling is to touch an area and move the finger up and down, watching the feedback as lines/data scroll up and down. Notice that the the movement direction is <b>opposite<b> from dragging</dd>
+
+</dl>
+
+<h3>Drag and Scroll</h3>
+<pre>
+               RELOAD            MENU
+                 |                 |
+              HISTORY              V
+                 |                 
+                 V                 
+
+^                ^                 ^
+|                |                 |
+|                |                 |
+|                |                 |
+|                |                 |
+|                |                 |
+|                |          ^      |
+|                |      ||||||||   |
+|                |      ||back||   |
+HISTORY     DRAG PAGE   ||  o ||  SCROLL
+|                |      ||forw||   |
+|                |      ||||||||   |
+|                |          v      |
+|                |                 |
+|                |          ^      |
+|                |      ||||||||   |
+|                |      ||next||   |
+|                |      ||  o ||   |
+|                |      ||prev||   |
+|                |      ||||||||   |
+v                v          v      v
+
+^                ^                 ^
+|                |                 |
+|              FUTURE              |
+|                |                 |
+|           REDOWNLOAD             |
+</pre>
+
+
+<h2>Draggin the page</h2>
+
+<p>By putting your finger on the content and dragging it up and down you're <b>dragging</b> the "paper" up and down on the screen. This is the normal way to move in longer documents on mobile.</p>
+
+<h2>Clicking on links</h2>
+
+<p>Yes, you just click on any link and it'll be hilighted in inverted red for a short time before the destination page is shown. To go back you can either use <kbd>CTRL-B</kbd> or...</p>
+
+<h2>Back / Forward flick</h2>
+
+<p>To go <b>back</b>, you <i>flick</i> the middle right part of the screen up. Flicking down, goes <b>forward</b>.</p>
+
+<h2>Next Page/Previous flick</h2>
+
+<p>It's kind of a short and quick drag motions that moves further. You can go to the next page by <i>flicking</i> the lower right area of the screen up. Flicking down goes up one page</p>
+
+<h2>Scroll(bar)</h2>
+
+<p>The far right area is dedicated to fast scrolling up and down
+
 <h3>Click Buttons</h3>
 <pre>
 Page       Voice Search      Close
@@ -79,26 +155,6 @@ Prev Tab                      Next Tab
                               Page Up
 
 CLEARCMD       INFO           Page Down
-</pre>
-
-<h3>Touch/scroll/drag</h3>
-<pre>
-              RELOAD            MENU
-                 |                |
-                 V                V
-
-
-^                ^                ^
-|                |                |
-TABS          CONTENT           PAGES
-|                |                |
-v                v                v
-
-
-^                ^                ^
-|                |                |
-HISTORY?       FUTURE?          LINKS?
-Selector       Selector         Selector
 </pre>
 
 <h2>Searching</h2>
