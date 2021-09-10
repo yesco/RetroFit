@@ -598,7 +598,9 @@ int printAnsiLines(FILE *fansi, int top) {
       char *found= f; // a flag!
       if (_only && !f) *s= 0;
 
-      char *codes= -n==screen_rows/2?"\e[27m":"";
+      char *codes= -n==screen_rows/2-1?"\e[27m":"";
+      codes= "";
+
       // find and hilite each match
       while(f) {
         printansi(f-s, s, codes);
@@ -691,6 +693,20 @@ int printAnsiLines(FILE *fansi, int top) {
   fflush(stdout);
 
   return clicked;
+}
+
+void displayScrollbar(int vis) {
+  int v= MAX(0, (100-vis-10)*4/100)+1;
+  gclear(); gbg=white; gfg=rgb(v,v,v);
+  int pc= 100*screen_rows/nlines;
+  int nr= MAX(1, pc*gsizey/100);
+  int y0= gsizey*top/nlines+2;
+  for(int y=0; y<nr; y++) {
+    if (y0+y>=gsizey-2) break;
+    gset(gsizex-1, y0+y, gfg);
+    gset(gsizex-2, y0+y, gfg);
+  }
+  gupdate();
 }
 
 void displayPageNum() {
@@ -1340,28 +1356,128 @@ keycode touchDispatch(keycode k) {
   // loop till no more scroll,
   // or exit middle if content scroll
   while (k & SCROLL) {
-    int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
+    int kb= (k>>16) & 0xff, kr= (k>>8) & 0xff, kc= k & 0xff;
 
     // Adjusted Row and Column
-    int ar= r-1, ac= c-1;
+    int ar= kr-1, ac= kc-1;
 
     // % start areas of interest
-    int pr= r*100/screen_rows;
-    int pc= c*100/screen_cols;
+    int pr= kr*100/screen_rows;
+    int pc= kc*100/screen_cols;
 
-    //     |  top   |          m
-    // ----+--------+--------- i
+    //     |  top   |         /m
+    // ----+--------+--------/ i
     // left|        | right  - d
-    // ----+--------+--------- d
-    //     | bottom |          l
-    //     ||||||||||          e
-    //     c e n t e r
+    // ----+--------+--------\ d
+    //     | bottom |         \l
+    //     /|||||||||\         e
+    //    /c e n t e r\
 
+
+    // HORIZONTAL:
+    //                  1
+    // -1-2-3-4-5-6-7-9-0
+    // LLLLL        RRRRR
+    // lllllllll rrrrrrrr
+    // WWwwcccccccccceeEE
+    //         CCC
+
+    // VERTICAL:
+    //
+    //-10 u N U
+    //-20 u n U
+    //-30 u m U
+    //-40 u m
+    //-45 u m M
+    //-50   m M
+    //-55 d m M
+    //-60 d m
+    //-70 d m
+    //-80 d m D
+    //-90 d s D
+    //-00 d S D
+
+
+    int cd= ABS(pc-50);
+    int md= ABS(pr-50);
+
+    int u= pr<45, d= pr>55;
+    int U= pr<25, D= pr>75;
+    int l= pc<45, r= pc>55;
+    int L= pc<25, R= pc>75;
+
+    int N= pr<10, n= pr<20 && !N;
+    int S= pr>=90, s= pr>=80 && !S;
+    int W= pc<10, w= pc<20 && !W;
+    int E= pc>=90, e= pr>=80 && !E;
+
+    int C= cd<=10, c= cd<=80 && !C;
+    int M= md<=10, m= md<=80 && !M;
+
+
+    // alterantive scrolling/bar
+    //if (1 && (c & m)) {
+    if (1 && E) {
+      int dd= nlines/screen_rows;
+//      if (pc>90) {
+      //static keycode k0= 0;
+      //        if (k&0xffff!=k0&0xffff) {
+        //  top= MAX(0, (pr-10)*nlines/80);
+//          k0= k;
+  //      }
+        dd= (nlines-screen_rows)*4/screen_rows/3;
+/*
+      } else if (pc>80) {
+        dd= dd*4/3;
+      } else if (pc>40) {
+        dd= 0;
+      } else {
+        dd= screen_cols*40/100-ac;
+      }
+*/
+      dd+= 1;
+      top+= k & SCROLL_UP? -dd : +dd;
+      return REDRAW;
+      return k & SCROLL;
+    }
+
+    if (M && R) {
+      static long t0= 0;
+      keycode k0= k;
+      long t= mstime();
+      if (t-t0<300)
+        return NO_REDRAW;
+
+      t0= t;
+      while(haskey()) key();
+      return k0 & SCROLL_DOWN  ? RIGHT : LEFT;
+    }
+
+    if (d && R) {
+      static long t0= 0;
+      keycode k0= k;
+      long t= mstime();
+      if (t-t0<300)
+        return NO_REDRAW;
+
+      t0= t;
+      while(haskey()) key();
+      return k0 & SCROLL_DOWN ? META+' ' : ' ';
+    }
+
+    if (M & W) {
+      return (k & SCROLL_UP) ? LEFT : RIGHT;
+    }
+
+    // TODO: remove
+    // OLD ONES
     int top= pr<10, bottom= pr>90;
     int left= pc<10, right= pc>=90;
+    int Left= pc<20, Right= pc>=80;
 
     int center= !left && !right;
     int middle= !top && !bottom;
+
 
     // scrolling content region
     if (center && middle) return k;
@@ -1378,12 +1494,9 @@ keycode touchDispatch(keycode k) {
 
     //else if (top && left) k= scrollBookmarks();
 
-    else if (middle && left) {
-      // history: back & forward
+    else if (M & W) {
       return (k & SCROLL_UP) ? LEFT : RIGHT;
-    } else if (middle && right) {
-      // tabs: next & prev
-      //displayPageNum();
+    } else if (u && E) {
       return (k & SCROLL_UP) ? META+'V' : CTRL+'V';
     }
     //else if (bottom && left) k= scrollHistory();
@@ -1814,7 +1927,7 @@ keycode editTillEvent() {
     if (k & SCROLL)
       k= touchDispatch(k);
 
-    // not scrolling in borders...
+    // up/down main body
     if (k>0 && (k & SCROLL)) {
       // Simplify to SCROLL_UP/DOWN
       k &= SCROLL;
@@ -1885,6 +1998,8 @@ int main(void) {
       visited();
     }
 
+    displayScrollbar(100);
+
     // --- display various meta info
     if (tab!=lasttab && k!=REDRAW) {
       displayTabInfo(k);
@@ -1897,15 +2012,29 @@ int main(void) {
     if (ABS(top-lasttop)>rows-5) {
       // display pagenum over new page, wait and do redraw after 300ms
       displayPageNum();
+      displayScrollbar(100);
       // if key in queue don't wait 
       // = instant action!
       keywait(300);
       // make sure not loop
       lasttop= top;
-
       k= REDRAW;
       continue;
     }
+
+    if (ABS(top-lasttop)>0) {
+      displayScrollbar(100);
+      keywait(300);
+      lasttop= top;
+      k= REDRAW;
+      continue;
+    }
+
+    int pc= 100;
+    while(keywait(100)>100 && pc>=0) {
+      displayScrollbar(pc-=10);
+    }
+    if (!haskey()) display(k);
 
     // print "key" acted on
     //gotorc(screen_rows-1, 0);
