@@ -1,5 +1,14 @@
 ﻿# ----------- TODOs ideas for ./w
 
+- img: display alt attribute, or rel?
+  <a href="https://hackaday.com/" rel="home">
+    <img src="https://hackaday.com/wp-content/themes/hackaday-2/img/logo.png" alt="Logo" class="logo-img">
+  </a>
+  <h1 class="site-title">
+    <a href="https://hackaday.com/" rel="home">Hackaday</a>
+  </h1>
+
+
 - strange decolor (non-bright) of green only on page (in headers!)
   - https://www.goodhousekeeping.com/uk/food/a566696/foods-you-shouldnt-put-in-a-slow-cooker/
 

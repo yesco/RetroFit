@@ -1689,6 +1689,7 @@ keycode ctrlXAction(keycode xk) {
     return REDRAW;
 
   case CTRL+'O': { // open in chrome
+    printf("Opening in external browser"); fflush(stdout);
     int http= strstr(url, "http");
     dstr *cmd= dstrprintf(NULL, "termux-open-url \"%s%s\"", http?"":"http://", url);
     system(cmd->s);

@@ -903,32 +903,36 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
       return;
     }
 
-    memcpy(link_tag, tag, sizeof(link_tag));
-    step_key();
-    setLinkUrl(val);
-    //print_hidden_url();
+    // don't put in link for images
+    // TODO: render differnt?
+    if (strstr(" a ", tag)) {
+      memcpy(link_tag, tag, sizeof(link_tag));
+      step_key();
+      setLinkUrl(val);
+      //print_hidden_url();
 
-    // prelink + part of link fit?
-    // let's say 6 text chars...
-    if (6+_curx+strlen(_keys)*2+1+rmargin+1 > screen_cols) nl();
+      // prelink + part of link fit?
+      // let's say 6 text chars...
+      if (6+_curx+strlen(_keys)*2+1+rmargin+1 > screen_cols) nl();
 
-    // output [ab] link key selector
-    indent();
-    int ff=_fg, bb=_bg, ws=_ws; {
-      B(rgb(1,2,4)); C(white);
-      //B(blue); C(white);
-      //B(red); C(white); // retro!
-      _fullwidth++;
-      char* k= (char*)_keys;
-      while (*k) p(*k++);
-      _fullwidth--;
-    } fg(ff), bg(bb);
-    //p(' ');
+      // output [ab] link key selector
+      indent();
+      int ff=_fg, bb=_bg, ws=_ws; {
+        B(rgb(1,2,4)); C(white);
+        //B(blue); C(white);
+        //B(red); C(white); // retro!
+        _fullwidth++;
+        char* k= (char*)_keys;
+        while (*k) p(*k++);
+        _fullwidth--;
+      } fg(ff), bg(bb);
+      //p(' ');
     
-    return;
-  }
+      return;
+    }
+  }    
 
-  // not used
+  // dstr * not used
   free(val);
 }
 

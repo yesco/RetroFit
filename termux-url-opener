@@ -4,4 +4,7 @@ cd $HOME/GIT/RetroFit
 
 bash ./w $@
 
+# TODO: how to exit this window only?
 
+# NO! This kill ALL of termux...
+# am startservice -a com.termux.service_stop com.termux/.app.TermuxService
