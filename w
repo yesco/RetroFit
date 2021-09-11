@@ -127,8 +127,6 @@ cat w.c table.c >.render.c
 
 - https://github.com/yesco/RetroFit -
 
-TOTAL   Lines: `cat .all.c | wc`
-
 render  - LOC: `./wcode .render.c`	(`./wcode .before-render.c`)
 browser - LOC: `./wcode wless.c`	(`./wcode .wless.c`)
 ---
@@ -136,6 +134,8 @@ TOTAL   - LOC: `./wcode .all.c`	(`./wcode .before-all.c`)
 
 [libary - LOC: `./wcode jio.c`	(`./wcode .jio.c`)]
 [graphic- LOC: `./wcode graphics.c`	(`./wcode .graphics.c`)]
+[all lines-    `cat .all.c | wc | (read foo bar;echo \$foo)`          ]
+
 
 
 Usage: ./w
