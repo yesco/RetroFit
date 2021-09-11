@@ -1374,8 +1374,7 @@ keycode panHistory(keycode k, int future) {
     int kr= (k>>8) & 0xff, kc= k & 0xff;
     if (((kr<screen_rows/2)?+1:-1)==future) {
       tab+= k & SCROLL_UP? -1 : +1;
-      // TODO: limit negatives?
-      tab= MIN(ntab-1, tab);
+      tab= MAX(-start_tab, MIN(ntab-1, tab));
       loadPageMetaData();
     } else {
       n+= k & SCROLL_UP? +1 : -1;
