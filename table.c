@@ -88,7 +88,7 @@ void renderTable() {
   int sum_w[MAX_COLS]= {0}, sum_h[MAX_COLS]= {0};
   int rows= 0;
 
-  // print data
+  // process stats
   for(int i=0; i<tdn; i++) {
     tcol* t= &tds[i];
 
@@ -152,6 +152,8 @@ void renderTable() {
   //   remove 2 from biggest, 1 from next
   int overflows= 0;
 
+  const char *NLCHAR= "↲";
+
   //const char* sbaseletter="𝗮";
   const char* sbaseletter="₀";
   //const char* sbaseletter="ₐ";
@@ -171,7 +173,7 @@ void renderTable() {
     //TRACE("--%d %d\n", i, f[i]);
   }
 
-  while (total>screen_cols-tcolumns) {
+  while (total+tcolumns*2+1>screen_cols) {
     TRACE("\n--------MINIMIZE------ %d %d %d\n", total, screen_cols, tcolumns);
     // find biggest
     int big= -1, max= 0;
@@ -191,47 +193,65 @@ void renderTable() {
   for(int i=0; i<tdn; i++) {
     tcol* t= &tds[i];
 
-    if (!t->i) { putchar('\n'); recolor(); clearend(); }
- 
+    // new row
+    if (!t->i) {
+      putchar('\n');
+      // recolor(); // doesn't work?
+      B(black); C(white);
+      clearend();
+    }
+
     char* s= t->s;
     if (s) {
-      if (t->head) underline();
+      if (t->head) {
+        B(black); C(white+8);
+        underline();
+      }
 
       for(int j=f[t->i]; j>0; j--) {
         //if (*s && *s!=10 && (*s<32 || *s>128)) TRACE("[%d]", *s);
         if (!*s) putchar(' ');
-        if (!*s && t->head) end_underline();
+        if (!*s && t->head) {
+          B(black); C(white);
+          end_underline();
+        }
+          
         else if (*s == 10) ;
         else if (*s == 13) ;
         else if (*s == (char)HNL) ;
         else if (*s == (char)SNL) printf("↲");
-
         else if (*s == '\n') {
           do s++; while (*(s+1) && (*s==(char)HNL || *s==(char)SNL));
-          printf("↲");
+          printf(NLCHAR);
+          putchar(' ');
         }
         else if (*s<32 || *s>127)
-          ; // TODO:
+          ; // TODO: utf8!!
         else putchar(*s);
 
-          if (*s) s++;
-        }
-        if (t->head) end_underline();
+        if (*s) s++;
+      }
+      if (t->head) end_underline();
 
-        // overflow?
-        if (!*s) { // not overflow
-          putchar(' ');
-          putchar(' ');
-        } else {
-          if (!t->head) {// <TD>
-            printf("↲");
-            // TODL: save s for next overflow line! print
-          } else {
-            overflows++;
-            letter[t->i]= baseletter+overflows-1;
-            putwchar(letter[t->i]);
-          } C(fg); B(bg);
-        }
+      // overflow?
+      if (!*s) { // not overflow
+        putchar(' ');
+      } else {
+        if (!t->head) {// <TD>
+          if (*(s+1)) {
+            printf(NLCHAR);
+          } else { // last char - print!
+            putchar(*s);
+          }
+          // TODL: save s for next overflow line! print
+        } else { // <TH>
+          letter[t->i]= baseletter+overflows;
+          overflows++;
+          putwchar(letter[t->i]);
+        } C(fg); B(bg);
+      }
+      // extra space between cols
+      putchar(' ');
     }
     row++;
   }
@@ -253,10 +273,13 @@ void renderTable() {
     tcol* t= &tds[i];
     assert(t->i==i); // it's header?
     // TODO: make a function of printer above...
-    printf("%s", t->s);
+    printf("%s\n", t->s);
     // TODO: who is doing newline?
   }
-  if (overflows) printf("\n");
+  if (overflows) {
+    clearend();
+    printf("\n");
+  }
 
   // cleanup
   free(table); table= NULL;

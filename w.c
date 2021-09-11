@@ -200,7 +200,7 @@ int decode_color(char* name, int dflt) {
 
 #define FM " form input textarea select option optgroup button label fieldset legend "
 
-#define SKIP " option "
+#define SKIP " option table "
 
 // attribute captures
 #define TATTR " a body table th td tr font img a base iframe frame colgroup span div p "
@@ -491,6 +491,8 @@ dstr *linetags= NULL;
 
 void logtag(char *tag, char *attr, char *val) {
   if (!tag) return;
+  if (_skip) return;
+
   // TODO: if reparse the output it'll be interpreted as the tag :-(
   // (any clever way of quoting?)
   // &amp;amp; will have similar problems...
@@ -1061,7 +1063,11 @@ int process(TAG *end) {
       if (strstr(XNL, tag)) p(HNL);
       if (strstr(" td th tr /td /th /tr /table ", tag)) {
         //if (strstr(" td th tr /table ", tag)) {
-        end_underline();
+        if (0) {
+          end_underline();
+          if (strstr(" td th ", tag))
+            putchar('|');
+        }
         //printf("\n[===%s===]\n", tag);
         handle_trd(strstr(" tr ", tag), strchr(tag, '/'), tag);
       }

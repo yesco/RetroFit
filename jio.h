@@ -67,6 +67,9 @@ int rgb(int r, int g, int b /* 0-5 */);
 int gray(int c /* 0-7 */);
 int RGB(int r, int g, int b /* 0-255 */);
 
+void boldon();
+void boldoff();
+
 void underline();
 void end_underline();
 

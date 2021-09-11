@@ -117,6 +117,10 @@ int bold(int c /* 0-7 */) { return c+8; }
 int rgb(int r, int g, int b /* 0-5 */) { return 0x10+ 36*r + 6*g + b; }
 int gray(int c /* 0-7 */) { return 0xe8+  c; }
 int RGB(int r, int g, int b /* 0-255 */) { return -(r*256+g)*256+b; }
+
+void boldon() { printf("\e[1m"); }
+void boldoff() { printf("\e[21m"); } // not working termux
+
 void underline() { printf("\e[4m"); }
 void end_underline() { printf("\e[24m"); }
 

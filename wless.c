@@ -1356,8 +1356,9 @@ keycode flickMenu(keycode k) {
   return waitScrollEnd(k);
 }
 
-// future is +1, past is -1
+void loadPageMetaData();
 
+// future is +1, past is -1
 keycode panHistory(keycode k, int future) {
   cursoroff();
   // TODO: merge with gohistory()
@@ -1368,18 +1369,46 @@ keycode panHistory(keycode k, int future) {
   int top0= top, n= 1;
   while (n && (k= key()) & SCROLL) {
     if (k==CTRL+'C') exit(0);
-    n+= k & SCROLL_UP? future : -future;
-    n= MIN(rows, MAX(0, n));
+
+    // scroll 
+    int kr= (k>>8) & 0xff, kc= k & 0xff;
+    if (kr<screen_rows/2) {
+      tab+= k & SCROLL_UP? future : -future;
+      // TODO: limit negatives?
+      tab= MIN(ntab-1, tab);
+      loadPageMetaData();
+    } else {
+      n+= k & SCROLL_UP? future : -future;
+      n= MIN(ntab+1, MAX(0, n));
+    }
+
     if (future==+1) {
       gotorc(1, 0);
-      printAnsiLines(fansi, top0, rows-n);
-      // clearend(); putchar('\n');
-      //spaces((screen_cols-7)/2);
-      ///printf("FUTURE"); clearend(); putchar('\n');
-      // TODO: use start_tab
+      //printAnsiLines(fansi, top0, rows-n);
+      displayWin(k, url, file, top, rows-n);
       gotorc(rows-n-1, 0);
-      clearend(); putchar('\n');
-      printAnsiLines(f, 0, n);
+      spaces((screen_cols-11)/2);
+      printf("F U T U R E"); clearend();
+      putchar('\n');
+
+      // -- print the future
+      //printAnsiLines(f, 0, n);
+      for(int i=0; i<n-1; i++) {
+        //int r= rows-n-1+i;
+        if (i==tab) {
+          B(blue); C(yellow+8);
+        } else {
+          B(black); C(214); // orange
+        }
+
+        char *title= "title";
+        char status= 'U';
+
+        printf("%c%3d  %.*s", status, i, screen_cols-7, title); clearend(); putchar('\n');
+      }
+      B(black); C(white);
+      fflush(stdout);
+
     } else { // -1
       gotorc(0, 0);
 
@@ -2052,45 +2081,37 @@ int main(void) {
         continue;
       }
       visited();
-    }
 
-    displayScrollbar(100);
-
-    // --- display various meta info
-    if (tab!=lasttab && k!=REDRAW) {
-      displayTabInfo(k);
-      keywait(300);
-      lasttab= tab;
-      k= REDRAW;
-      continue;
-    }
-
-    if (ABS(top-lasttop)>rows-5) {
-      // display pagenum over new page, wait and do redraw after 300ms
-      displayPageNum();
       displayScrollbar(100);
-      // if key in queue don't wait 
-      // = instant action!
-      keywait(300);
-      // make sure not loop
-      lasttop= top;
-      k= REDRAW;
-      continue;
-    }
 
-    if (ABS(top-lasttop)>0) {
-      displayScrollbar(100);
-      keywait(300);
-      lasttop= top;
-      k= REDRAW;
-      continue;
-    }
+      // --- display various meta info
+      if (tab!=lasttab && k!=REDRAW) {
+        displayTabInfo(k);
+        keywait(300);
+        lasttab= tab;
+        k= REDRAW;
+        continue;
+      }
 
-    int pc= 100;
-    while(keywait(100)>100 && pc>=0) {
-      displayScrollbar(pc-=10);
+      if (ABS(top-lasttop)>rows-5) {
+        // display pagenum over new page, wait and do redraw after 300ms
+        displayPageNum();
+        // if key in queue don't wait 
+        // = instant action!
+        keywait(300);
+        // make sure not loop
+        lasttop= top;
+        k= REDRAW;
+        continue;
+      }
+
+      // fade out scrollbar
+      int pc= 100;
+      while(keywait(100)>100 && pc>=0) {
+        displayScrollbar(pc-=10);
+      }
+      if (!haskey()) display(k);
     }
-    if (!haskey()) display(k);
 
     // print "key" acted on
     //gotorc(screen_rows-1, 0);
