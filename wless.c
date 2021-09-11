@@ -722,6 +722,33 @@ void displayPageNum() {
   //keywait(300);
 }
 
+// Returns a malloced string (no-NULL)
+char* getTitle(char *url, char *file) {
+  if (!file || file==LOADING_FILE) return strdup("");
+  char *r= NULL;
+  FILE *f= fopenext(file, ".TITLE", "r");
+  if (f) {
+    r= fgetline(f);
+    fclose(f);
+  }
+  // try use URL (hostname)
+  if (!r && url) {
+    // get hostname
+    r= sskip(url, "http://");
+    r= sskip(r, "file://");
+    char *end= r= sskip(r, "https://");
+    if (1) {
+      // full path
+      end+= strlen(end);
+    } else {
+      // just hostname
+      while(*end && *end!='/') end++;
+    }
+    r= strndup(r, end-r);
+  }
+  return r ? r : strdup("");
+}
+
 void displayTabInfo(keycode k) {
  gclear();
  char buf[10]; sprintf(buf, " Tab%+d ", tab);
@@ -1375,16 +1402,17 @@ keycode panHistory(keycode k, int future) {
     if (((kr<screen_rows/2)?+1:-1)==future) {
       tab+= k & SCROLL_UP? -1 : +1;
       tab= MAX(-start_tab, MIN(ntab-1, tab));
-      loadPageMetaData();
     } else {
       n+= k & SCROLL_UP? +1 : -1;
     }
 
+    int tab1= tab;
     if (future==+1) {
       //n= MIN(ntab+1, MAX(0, n));
       n= MIN(rows/2, MAX(0, n));
       gotorc(1, 0);
       //printAnsiLines(fansi, top0, rows-n);
+      loadPageMetaData();
       displayWin(k, url, file, top, rows-n+1);
       cursoroff();
       gotorc(rows-n+1, 0);
@@ -1402,10 +1430,14 @@ keycode panHistory(keycode k, int future) {
           B(black); C(orange);
         }
 
-        char *title= "title";
+        tab= i;
+        loadPageMetaData();
+
+        char *title= getTitle(url, file);
         char status= 'U';
 
         printf("%c%3d  %.*s", status, i, screen_cols-7, title); clearend();
+        free(title);
       }
       B(black); C(white);
       fflush(stdout);
@@ -1423,10 +1455,13 @@ keycode panHistory(keycode k, int future) {
           B(black); C(orange);
         }
 
-        char *title= "title";
-        char status= 'U';
+        tab= t; loadPageMetaData();
+        char *title= getTitle(url, file);
+        char status= 'R';
 
         printf("%c%3d  %.*s", status, t, screen_cols-7, title); clearend(); putchar('\n');
+        free(title);
+
       }
       B(black); C(orange);
       spaces((screen_cols-7)/2);
@@ -1434,6 +1469,9 @@ keycode panHistory(keycode k, int future) {
       putchar('\n');
       
       gotorc(n, 0);
+
+      tab= tab1;
+      loadPageMetaData();
       FILE *fansi= fopen(file, "r");
       if (fansi) {
         printAnsiLines(fansi, top0, rows+n);
@@ -1443,6 +1481,8 @@ keycode panHistory(keycode k, int future) {
       //displayWin(k, url, file, top, rows+n+1);
       cursoroff();
     }
+    tab = tab1;
+
     cleareos();
     fflush(stdout);
   }
@@ -1654,7 +1694,7 @@ void loadPageMetaData() {
     error(!file, 10, "history log entry bad: '%s'\n", hit);
   } else {
     // TODO: add a way to reload or signal when done!
-    printf("\n----NOT LOADED! (press key)\n"); key();
+    //printf("\n----NOT LOADED! (press key)\n"); key();
 
     file= LOADING_FILE;
 
@@ -1774,7 +1814,7 @@ keycode ctrlXAction(keycode xk) {
   case 'u': { // edit url
     clearcmd();
     line= dstrncat(line, url, -1);
-    return REDRAW;
+    return NO_REDRAW;
   }
 
   // TODO: generalize all to systemf()

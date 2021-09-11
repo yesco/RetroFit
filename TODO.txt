@@ -1,5 +1,7 @@
 ﻿# ----------- TODOs ideas for ./w
 
+- somehting in scrolling makes it hang and not take any input...!
+
 - img: display alt attribute, or rel?
   <a href="https://hackaday.com/" rel="home">
     <img src="https://hackaday.com/wp-content/themes/hackaday-2/img/logo.png" alt="Logo" class="logo-img">
