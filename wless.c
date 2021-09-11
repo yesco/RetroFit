@@ -1400,7 +1400,7 @@ keycode panHistory(keycode k, int future) {
   fclose(fansi);
   cursoron();
   while(haskey() && ((k= key()) & SCROLL));
-  return k;
+  return k & SCROLL? REDRAW : k;
 }
 
 // A "touch" is a scroll event.
