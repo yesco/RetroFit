@@ -55,7 +55,12 @@ void restorescreen();
 void insertmode(int on);
 
 // - higher level colors
-typedef enum color{black, red, green, yellow, blue, magenta, cyan, white, none} color;
+typedef enum color{black, red, green, yellow, blue, magenta, cyan, white, none,
+  // jsk's guesses
+  purple= 93,
+  orange= 214,
+  brightorange= yellow+8,
+} color;
 
 extern enum color _fg,  _bg;
 extern int _reverse;

@@ -816,7 +816,6 @@ int displayWin(keycode k, char *url, char *file, int top, int rows) {
   //  reset();
   clearend(); // avoid ragged
   C(white); B(black); clearend();
-  cleareos();
 
   // click requesting redo page
   if (redo) return redo;
@@ -848,6 +847,7 @@ int displayWin(keycode k, char *url, char *file, int top, int rows) {
 // TODO: remove k?
 int display(int k) {
   int r= displayWin(k, url, file, top, rows);
+  cleareos();
 
   // -- footer
   reset();
@@ -1362,74 +1362,97 @@ void loadPageMetaData();
 keycode panHistory(keycode k, int future) {
   cursoroff();
   // TODO: merge with gohistory()
-  system("perl whi2html.pl > .whistory.html ; ./w.x .whistory.html > .whistory.html.ANSI");
-  FILE *fansi= fopen(file, "r");
-  FILE *f= fopen(".whistory.html.ANSI", "r");
-  FAILIF(!f || !fansi, "Can't view history");
-  int top0= top, n= 1;
+  //system("perl whi2html.pl > .whistory.html ; ./w.x .whistory.html > .whistory.html.ANSI");
+  //FILE *fansi= fopen(file, "r");
+  //FILE *f= fopen(".whistory.html.ANSI", "r");
+  //FAILIF(!f || !fansi, "Can't view history");
+  int top0= top, n= future;
   while (n && (k= key()) & SCROLL) {
     if (k==CTRL+'C') exit(0);
 
     // scroll 
     int kr= (k>>8) & 0xff, kc= k & 0xff;
-    if (kr<screen_rows/2) {
-      tab+= k & SCROLL_UP? future : -future;
+    if (((kr<screen_rows/2)?+1:-1)==future) {
+      tab+= k & SCROLL_UP? -1 : +1;
       // TODO: limit negatives?
       tab= MIN(ntab-1, tab);
       loadPageMetaData();
     } else {
-      n+= k & SCROLL_UP? future : -future;
-      n= MIN(ntab+1, MAX(0, n));
+      n+= k & SCROLL_UP? +1 : -1;
     }
 
     if (future==+1) {
+      //n= MIN(ntab+1, MAX(0, n));
+      n= MIN(rows/2, MAX(0, n));
       gotorc(1, 0);
       //printAnsiLines(fansi, top0, rows-n);
-      displayWin(k, url, file, top, rows-n);
-      gotorc(rows-n-1, 0);
+      displayWin(k, url, file, top, rows-n+1);
+      cursoroff();
+      gotorc(rows-n+1, 0);
       spaces((screen_cols-11)/2);
+      B(black); C(orange);
       printf("F U T U R E"); clearend();
-      putchar('\n');
 
-      // -- print the future
+      // -- The Future
       //printAnsiLines(f, 0, n);
       for(int i=0; i<n-1; i++) {
-        //int r= rows-n-1+i;
+        putchar('\n');
         if (i==tab) {
-          B(blue); C(yellow+8);
+          B(purple); C(brightorange);
         } else {
-          B(black); C(214); // orange
+          B(black); C(orange);
         }
 
         char *title= "title";
         char status= 'U';
 
-        printf("%c%3d  %.*s", status, i, screen_cols-7, title); clearend(); putchar('\n');
+        printf("%c%3d  %.*s", status, i, screen_cols-7, title); clearend();
       }
       B(black); C(white);
       fflush(stdout);
 
-    } else { // -1
+    } else { // -1 The Past
+      //n= MIN(0, MAX(-start_tab, n));
+      n= MIN(0, MAX(-rows/2, n));
+
       gotorc(0, 0);
+      for(int i=0; i<-n; i++) {
+        int t= i+n+1;
+        if (t==tab) {
+          B(purple); C(brightorange);
+        } else {
+          B(black); C(orange);
+        }
 
-      // TODO: print HISTORY upwards!
-      printAnsiLines(f, 0, n);
+        char *title= "title";
+        char status= 'U';
 
-      // clearend(); putchar('\n');
-      //spaces((screen_cols-7)/2);
-      ///printf("FUTURE"); clearend(); putchar('\n');
-      // TODO: use start_tab
+        printf("%c%3d  %.*s", status, t, screen_cols-7, title); clearend(); putchar('\n');
+      }
+      B(black); C(orange);
+      spaces((screen_cols-7)/2);
+      printf("P A S T"); clearend();
+      putchar('\n');
+      
       gotorc(n, 0);
-      printAnsiLines(fansi, top0, rows-n);
+      FILE *fansi= fopen(file, "r");
+      if (fansi) {
+        printAnsiLines(fansi, top0, rows+n);
+        fclose(fansi);
+      }
+      // TODO: starts from rc=0,0
+      //displayWin(k, url, file, top, rows+n+1);
+      cursoroff();
     }
     cleareos();
     fflush(stdout);
   }
-  fclose(f);
-  fclose(fansi);
+  //fclose(f);
+  //fclose(fansi);
   cursoron();
   while(haskey() && ((k= key()) & SCROLL));
-  return k & SCROLL? REDRAW : k;
+  //return k & SCROLL? REDRAW : k;
+  return REDRAW;
 }
 
 // A "touch" is a scroll event.
@@ -1574,8 +1597,10 @@ keycode touchDispatch(keycode k) {
     //else if (top && center) k= scrollStack();
     else if (top && center) {
       // empty scroll events...
-      while(haskey()) key();
-      return CTRL+'R';
+      //while(haskey()) key();
+
+      // TODO: hmmm, conflicts with scroll...
+      //return CTRL+'R';
     }
 
     //else if (top && left) k= scrollBookmarks();
@@ -1856,7 +1881,7 @@ keycode keyAction(keycode k) {
   if (k==CTRL+'V' || k==' ' || k==CTRL+DOWN) top+= rows-3;
 
   if (top>nlines-rows) top= nlines-rows;
-  if (top<0) top= 0;
+  if (top<0) top= 1;
 
   // -- TABS
   // list history
