@@ -1356,6 +1356,53 @@ keycode flickMenu(keycode k) {
   return waitScrollEnd(k);
 }
 
+// future is +1, past is -1
+
+keycode panHistory(keycode k, int future) {
+  cursoroff();
+  // TODO: merge with gohistory()
+  system("perl whi2html.pl > .whistory.html ; ./w.x .whistory.html > .whistory.html.ANSI");
+  FILE *fansi= fopen(file, "r");
+  FILE *f= fopen(".whistory.html.ANSI", "r");
+  FAILIF(!f || !fansi, "Can't view history");
+  int top0= top, n= 1;
+  while (n && (k= key()) & SCROLL) {
+    if (k==CTRL+'C') exit(0);
+    n+= k & SCROLL_UP? future : -future;
+    n= MIN(rows, MAX(0, n));
+    if (future==+1) {
+      gotorc(1, 0);
+      printAnsiLines(fansi, top0, rows-n);
+      // clearend(); putchar('\n');
+      //spaces((screen_cols-7)/2);
+      ///printf("FUTURE"); clearend(); putchar('\n');
+      // TODO: use start_tab
+      gotorc(rows-n-1, 0);
+      clearend(); putchar('\n');
+      printAnsiLines(f, 0, n);
+    } else { // -1
+      gotorc(0, 0);
+
+      // TODO: print HISTORY upwards!
+      printAnsiLines(f, 0, n);
+
+      // clearend(); putchar('\n');
+      //spaces((screen_cols-7)/2);
+      ///printf("FUTURE"); clearend(); putchar('\n');
+      // TODO: use start_tab
+      gotorc(n, 0);
+      printAnsiLines(fansi, top0, rows-n);
+    }
+    cleareos();
+    fflush(stdout);
+  }
+  fclose(f);
+  fclose(fansi);
+  cursoron();
+  while(haskey() && ((k= key()) & SCROLL));
+  return k;
+}
+
 // A "touch" is a scroll event.
 // It has a start position anda up=down (row) trail.
 // There is no end-event.
@@ -1476,36 +1523,9 @@ keycode touchDispatch(keycode k) {
       return (k & SCROLL_UP) ? LEFT : RIGHT;
     }
 
-    if (C & S) {
-      cursoroff();
-      // TODO: merge with gohistory()
-      system("perl whi2html.pl > .whistory.html ; ./w.x .whistory.html > .whistory.html.ANSI");
-      FILE *fansi= fopen(file, "r");
-      FILE *f= fopen(".whistory.html.ANSI", "r");
-      FAILIF(!f || !fansi, "Can't view history");
-      int top0= top, n= 1;
-      while ((k= key()) & SCROLL) {
-        if (k==CTRL+'C') exit(0);
-        n+= k & SCROLL_UP? +1 : -1;
-        n= MIN(rows, MAX(1, n));
-        gotorc(1, 0);
-        printAnsiLines(fansi, 0, rows-n);
-        clearend(); putchar('\n');
-        gotorc(rows-n-1, 0);
-        clearend(); putchar('\n');
-        spaces((screen_cols-7)/2);
-        printf("FUTURE"); clearend(); putchar('\n');
-        // TODO: use start_tab
-        printAnsiLines(f, 0, n);
-        //cleareos();
-        fflush(stdout);
-      }
-      fclose(f);
-      fclose(fansi);
-      cursoron();
-      return k;
-    }
-
+    if (C & N) return panHistory(k, -1);
+    if (C & S) return panHistory(k, +1);
+    
     // TODO: remove
     // OLD ONES
     int top= pr<10, bottom= pr>90;
