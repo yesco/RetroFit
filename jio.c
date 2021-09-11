@@ -172,7 +172,13 @@ color C(int n) {
 }
 
 color B(int n) {
-  return (_reverse? _C : _B)(n==blue? rgb(0,0,1) : n==white ? n+8 : n);
+  color (*f)(int n)= (_reverse? _C : _B);
+  // white => offwhite
+  //if (n==white || n==15) return f(n); // no good as it hilite bold changes bg color
+  // good... not so tiring
+  if (n==white || n==15) return f(254);
+
+  return f(n==blue? rgb(0,0,1) : n==white ? n+8 : n);
 }
 
 color readablefg() {

@@ -1129,7 +1129,7 @@ int process(TAG *end) {
         HI(IT, none, none) ||
 
         HI(HL, magenta, none) ||
-        HI(FM, red, rgb(3,3,3)) ||
+        HI(FM, red, 229) ||
 
         //TODO: <input/> not handled
         // HI expects end-tag: </...
