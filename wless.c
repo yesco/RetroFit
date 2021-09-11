@@ -577,11 +577,10 @@ void printansi(int len, char *ln, char *codes) {
 }
 
 // Return: true if clicked (askin redo page)
-int printAnsiLines(FILE *fansi, int top) {
+int printAnsiLines(FILE *fansi, int top, int rows) {
   int clicked= 0;
 
   int matchLink = _search && !strcmp(_search, "LINKS");
-  gotorc(1, 0);
   int c, n=top;
   rows-=1;
 
@@ -771,7 +770,7 @@ void displayTabInfo(keycode k) {
 // --- Display
 
 // Return true if tab changed (by click) TODO: eleganse? Hmmm
-int display(int k) {
+int displayWin(keycode k, char *url, char *file, int top, int rows) {
   static int wpage= 0;
   // -- update header
   // (as it may have changed)
@@ -810,7 +809,8 @@ int display(int k) {
   }
 
   // -- main content
-  int redo= printAnsiLines(fansi, top);
+  gotorc(1, 0);
+  int redo= printAnsiLines(fansi, top, rows);
   fclose(fansi);
 
   //  reset();
@@ -834,7 +834,6 @@ int display(int k) {
       gputs(two);
       gupdate();
     }
-    gotorc(screen_rows-1, 0);
     restore(); fflush(stdout);
   }
 
@@ -844,14 +843,19 @@ int display(int k) {
   // TODO: very expensive to do every time... (try Tests/links-many.html) 
   // TODO: keep file open and delete/reload if changed?
   loadshortcuts(file);
+}
+
+// TODO: remove k?
+int display(int k) {
+  int r= displayWin(k, url, file, top, rows);
 
   // -- footer
   reset();
-
   // TODO: set message and show for X s?
   if (0) message("%3d %3d/%d = %d %d", top, right, tab, ntab-1, 4711, 12);
-  
   gotorc(screen_rows-1, 0);
+
+  return r;
 }
 
 // --- ACTIONS
@@ -1274,6 +1278,9 @@ int clickDispatch(int k) {
 ////////////////////////////////////////
 // DRAG SCROLLERS ACTIONS
 
+#define FAILIF(exp, msg...) if(exp){message(msg); return NO_REDRAW;}
+
+
 void scrollBookmarks() {
   // first show current page bookmark info
   // second scroll bookmarks file backwards (reverse order)
@@ -1445,10 +1452,10 @@ keycode touchDispatch(keycode k) {
       static long t0= 0;
       keycode k0= k;
       long t= mstime();
-      if (t-t0<300)
-        return NO_REDRAW;
-
+      if (t-t0<300) return NO_REDRAW;
       t0= t;
+
+      // flicking
       while(haskey()) key();
       return k0 & SCROLL_DOWN  ? RIGHT : LEFT;
     }
@@ -1457,16 +1464,46 @@ keycode touchDispatch(keycode k) {
       static long t0= 0;
       keycode k0= k;
       long t= mstime();
-      if (t-t0<300)
-        return NO_REDRAW;
-
+      if (t-t0<300) return NO_REDRAW;
       t0= t;
+
+      // flicking
       while(haskey()) key();
       return k0 & SCROLL_DOWN ? META+' ' : ' ';
     }
 
     if (M & W) {
       return (k & SCROLL_UP) ? LEFT : RIGHT;
+    }
+
+    if (C & S) {
+      cursoroff();
+      // TODO: merge with gohistory()
+      system("perl whi2html.pl > .whistory.html ; ./w.x .whistory.html > .whistory.html.ANSI");
+      FILE *fansi= fopen(file, "r");
+      FILE *f= fopen(".whistory.html.ANSI", "r");
+      FAILIF(!f || !fansi, "Can't view history");
+      int top0= top, n= 1;
+      while ((k= key()) & SCROLL) {
+        if (k==CTRL+'C') exit(0);
+        n+= k & SCROLL_UP? +1 : -1;
+        n= MIN(rows, MAX(1, n));
+        gotorc(1, 0);
+        printAnsiLines(fansi, 0, rows-n);
+        clearend(); putchar('\n');
+        gotorc(rows-n-1, 0);
+        clearend(); putchar('\n');
+        spaces((screen_cols-7)/2);
+        printf("FUTURE"); clearend(); putchar('\n');
+        // TODO: use start_tab
+        printAnsiLines(f, 0, n);
+        //cleareos();
+        fflush(stdout);
+      }
+      fclose(f);
+      fclose(fansi);
+      cursoron();
+      return k;
     }
 
     // TODO: remove
@@ -1614,8 +1651,6 @@ void listCXActions() {
   wclear();
   // TODO: open help screen for CTRL-X?
 }
-
-#define FAILIF(exp, msg...) if(exp){message(msg); return NO_REDRAW;}
 
 keycode ctrlXAction(keycode xk) {
   keycode k= REDRAW; // default
