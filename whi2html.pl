@@ -64,7 +64,10 @@ while (<HI>) {
         $title =~ s/[ \s-_\.]{2,}/ /g;
         $title =~ s|^[\.\s]*(.*)[\.\s#?/]*$|$1|;
 
-        print "$hhmm <a href=\"http://$url\"> $title</a>"; # <br> if not pre
+        unless ($url =~ /(https:|http:|file:)/) {
+            $url= "http://" . $url;
+        }
+        print "$hhmm <a href=\"$url\"> $title</a>"; # <br> if not pre
         print ($pre? "\n" : "<br>\n");
 
     } else {
