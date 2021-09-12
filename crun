@@ -9,7 +9,7 @@ shift
 [[ -f Play/$FIL ]] && FIL=Play/$FIL
 [[ -f Play/$FIL.c ]] && FIL=Play/$FIL.c
 
-echo "FIL=$FIL"
+printf "# ./crun $FIL\n\n"
 
 [[ -f $FIL ]] && cc -DMAIN -g $FIL && ./a.out $@
 stty sane

@@ -1,0 +1,6 @@
+INT(BG_body, 42)
+STR(default_profile, ".wini")
+
+#undef INI
+#undef INT
+#undef STR
