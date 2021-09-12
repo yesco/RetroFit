@@ -9,9 +9,9 @@ shift
 [[ -f Play/$FIL ]] && FIL=Play/$FIL
 [[ -f Play/$FIL.c ]] && FIL=Play/$FIL.c
 
-printf "# ./crun $FIL\n\n"
-
-[[ -f $FIL ]] && cc -DMAIN -g $FIL && ./a.out $@
+printf "# ./crun $FIL\n"
+printf "# ./wcode $FIL ===> `./wcode $FIL` LOCs\n\n"
+[[ -f $FIL ]] && cc -DMAIN -Wno-string-compare -g $FIL && ./a.out $@
 stty sane
 
 

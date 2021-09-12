@@ -79,7 +79,7 @@ int loadini(char *fname) {
       }
     }
     // not found
-    fprintf("%% loadini %s:%d: variable in line \"%s\" not recognized (or delimiter missing)\n", fname, ln, line);
+    fprintf(stderr, "%% loadini %s:%d: variable in line \"%s\" not recognized (or delimiter missing)\n", fname, ln, line);
 
   next: 
     free(line);
@@ -104,7 +104,7 @@ void printini() {
   }
 }
 
-int main(void) {
+int main(void) { // ENDWCOUNT
   printf("BG_body=%d\n", BG_body);
   printf("default_profile=%s\n", default_profile);
 

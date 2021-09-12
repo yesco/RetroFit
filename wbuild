@@ -2,6 +2,8 @@
 # (don't optimize as debugging won't tell the truth!)
 #OPT=-O3
 
+CC=cc -Wno-string-compare
+
 # --- dependencies
 if [[ jio.c -nt w.x ]]; then
   rm w.x wless.x 2>/dev/null
@@ -21,7 +23,7 @@ if [[ w.c -nt w.x ]]; then
   echo "--- w.c changed, recompiling w.x..."
   echo "`date --iso=s` #=CC w.c" >> .wlog
   rm w.x 2>/dev/null
-  cc $OPT -g -w -lunistring jio.c w.c -o w.x || (exit 4711) || exit
+  $CC $OPT -g -w -lunistring jio.c w.c -o w.x || (exit 4711) || exit
 fi
 
 # --- compile spinner.c
@@ -31,7 +33,7 @@ if [[ Play/spin.c -nt spin.x ]]; then
   echo "--- spin.c changed, recompiling w.x..."
   echo "`date --iso=s` #=CC spin.c" >> .wlog
   rm spin.x 2>/dev/null
-  cc $OPT -g -w Play/spin.c -o spin.x # || exit 4711
+  $CC $OPT -g -w Play/spin.c -o spin.x # || exit 4711
 fi
 
 # --- compile wless.c
@@ -41,9 +43,9 @@ if [[ wless.c -nt wless.x ]]; then
   echo "--- wless.c changed, recompiling wless.x..."
   echo "`date --iso=s` #=CC wless.c" >> .wlog
   rm wless.x 2>/dev/null
-  cc $OPT -g -w jio.c wless.c -o wless.x || exit 4711
+  $CC $OPT -g -w jio.c wless.c -o wless.x || exit 4711
 fi
 
 # 
-# cc -g -w w.c && ((echo "run http://yesco.org/";echo "where") | gdb ./a.out )
+# $CC -g -w w.c && ((echo "run http://yesco.org/";echo "where") | gdb ./a.out )
 
