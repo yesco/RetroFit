@@ -672,7 +672,7 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
       clearend();
     }
 
-    // print actual char
+    // accumulate actual char to print
     if (n<0) {
       char ch= c;
       ln= dstrncat(ln, &c, 1);
@@ -797,7 +797,7 @@ void displayTabInfo(keycode k) {
 // --- Display
 
 // Return true if tab changed (by click) TODO: eleganse? Hmmm
-int displayWin(keycode k, char *url, char *file, int top, int rows) {
+int displayWin(keycode k, char *url, char *file, int top, int rows, int clreos) {
   static int wpage= 0;
   // -- update header
   // (as it may have changed)
@@ -847,6 +847,9 @@ int displayWin(keycode k, char *url, char *file, int top, int rows) {
   // click requesting redo page
   if (redo) return redo;
 
+  // need to do before icon...
+  if (clreos) cleareos();
+
   // favicon?
   if (top==0 && !_search) {
     save(); reset(); fflush(stdout);
@@ -873,8 +876,7 @@ int displayWin(keycode k, char *url, char *file, int top, int rows) {
 
 // TODO: remove k?
 int display(int k) {
-  int r= displayWin(k, url, file, top, rows);
-  cleareos();
+  int r= displayWin(k, url, file, top, rows, 1);
 
   // -- footer
   reset();
@@ -1413,7 +1415,7 @@ keycode panHistory(keycode k, int future) {
       gotorc(1, 0);
       //printAnsiLines(fansi, top0, rows-n);
       loadPageMetaData();
-      displayWin(k, url, file, top, rows-n+1);
+      displayWin(k, url, file, top, rows-n+1, 0);
       cursoroff();
       gotorc(rows-n+1, 0);
       spaces((screen_cols-11)/2);
@@ -1478,7 +1480,7 @@ keycode panHistory(keycode k, int future) {
         fclose(fansi);
       }
       // TODO: starts from rc=0,0
-      //displayWin(k, url, file, top, rows+n+1);
+      //displayWin(k, url, file, top, rows+n+1, 0);
       cursoroff();
     }
     tab = tab1;
@@ -1920,7 +1922,7 @@ keycode keyAction(keycode k) {
   if (k==CTRL+'V' || k==' ' || k==CTRL+DOWN) top+= rows-3;
 
   if (top>nlines-rows) top= nlines-rows;
-  if (top<0) top= 1;
+  if (top<0) top= 0;
 
   // -- TABS
   // list history

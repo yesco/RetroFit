@@ -2,7 +2,7 @@
 # (don't optimize as debugging won't tell the truth!)
 #OPT=-O3
 
-CC=cc -Wno-string-compare
+CC="cc -Wno-string-compare"
 
 # --- dependencies
 if [[ jio.c -nt w.x ]]; then
