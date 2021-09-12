@@ -43,7 +43,8 @@ int setini(int i, char *name, int len, char *line) {
 
   // -- set variable
   if (inivars[i].type=="int") {
-    *(int*)(inivars[i].pvar) = atoi(p);
+    if (!sscanf(p, "%d", (int*)(inivars[i].pvar)))
+      return 0;
   } else if (inivars[i].type=="char*") {
     char *s = *(char**)(inivars[i].pvar);
     // TODO: how to handle first value?
@@ -58,12 +59,21 @@ int setini(int i, char *name, int len, char *line) {
 
 //#include "ini.def"
 
+// Returns ==1 for everything ok
+//         ==0 for no file
+//         < 0 number of errors
 int loadini(char *fname) {
   FILE *f= fopen(fname, "r");
   if (!f) return 0;
+  int r= 0;
   char *line;
   int ln= 0;
   while((line= fgetline(f))) {
+    // empty lines or comments
+    if (!*line) continue;
+    if (*line=='#') continue;
+    if (*line==';') continue;
+
     ln++;
     // find variable
     int i, len= 0;
@@ -71,21 +81,25 @@ int loadini(char *fname) {
     for(i=0; i<LENGTH(inivars); i++) {
       name= inivars[i].name;
       len= strlen(name);
+
       // found?
       if (!strncmp(line, name, len)) {
-        if (!setini(i, name, len, line))
+        if (setini(i, name, len, line))
+          goto next;
+        else 
           break;
-        goto next; // yeah goto!
       }
     }
+
     // not found
-    fprintf(stderr, "%% loadini %s:%d: variable in line \"%s\" not recognized (or delimiter missing)\n", fname, ln, line);
+    fprintf(stderr, "%% loadini %s:%d: variable in line \"%s\" not recognized (or delimiter missing, or wrong type). Ignoring...\n", fname, ln, line);
+    r--;
 
   next: 
     free(line);
   }
   fclose(f);
-  return 1;
+  return r? r: 1;
 }
 
 void printini() {
@@ -110,7 +124,7 @@ int main(void) { // ENDWCOUNT
 
   printini();
 
-  if (!loadini("Play/ini.ini")) {
+  if (loadini("Play/ini.ini")<=0) {
     fprintf(stderr, "%% Loading ini.ini failed!\n");
   }
   printini();
