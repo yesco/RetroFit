@@ -269,8 +269,9 @@ int gicon(char *url) {
   }
 }
 
-void drawPullDownMenu(color *colors, char **labels, int n) {
+void drawPullDownMenu(color *colors, char **labels, int ncol, int n, int right) {
   int cc= 40*screen_cols/100;
+  int c0= right? screen_cols-cc : 0;
   int rows= 0;
   while (rows < screen_rows) {
     rows++;
@@ -278,15 +279,14 @@ void drawPullDownMenu(color *colors, char **labels, int n) {
     usleep(70*SQR(rows)/SQR(screen_rows)/2*1000);
 
     for(int rr=0; rr<rows; rr++) {
-      gotorc(rr, screen_cols-cc);
-      color col= colors[n*rr/rows];
-      B(col);
-      spaces(cc);
-      const char* str= labels[n*rr/rows];
+      int i= n*rr/rows;
+      gotorc(rr, c0);
+      B(colors[i % ncol]); spaces(cc);
 
       // center label
+      const char* str= labels[i];
       int w= (cc-strlen(str))/2;
-      gotorc(rr, screen_cols-cc + w);
+      gotorc(rr, c0 + w);
       readablefg();
       printf("%s", str);
     }

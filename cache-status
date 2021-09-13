@@ -1,3 +1,4 @@
+# we clear so that the first line of scroll-buffer is this!
 (
 clear
 echo "========== CACHE BY NAME ========"
@@ -10,9 +11,13 @@ echo " `du -sh .w` - TOTAL"
 ) | ./wunquote
 
 echo "------"
-echo " `du -csh .w/*/*.ANSI | grep total` - ANSI"
-echo " `du -csh .w/*/*.DOWN | grep total` - DOWN"
-echo " `du -csh .w/*/*.LINKS | grep total` - LINKS"
-echo " `du -csh .w/*/*.URL | grep total` - URL"
-echo " `du -csh .w/*/*.LOG | grep total` - LOG"
-echo " `du -csh .w/*/*.WLOG | grep total` - WLOG"
+echo " `du -csh .w/*/*.ANSI | grep total` - ANSI   (#`ls .w/*/*.ANSI | grep -c .`)"
+echo " `du -csh .w/*/*.DOWN | grep total` - DOWN   (#`ls .w/*/*.DOWN | grep -c .`)"
+echo " `du -csh .w/*/*.TITLE | grep total` - TITLE  (#`ls .w/*/*.TITLE | grep -c .`)"
+echo " `du -csh .w/*/*.LINKS | grep total` - LINKS  (#`ls .w/*/*.LINKS | grep -c .`)"
+echo " `du -csh .w/*/*.URL | grep total` - URL    (#`ls .w/*/*.LINKS | grep -c .`)"
+echo " `du -csh .w/*/*.LOG | grep total` - LOG    (#`ls .w/*/*.LOG | grep -c .`)"
+echo " `du -csh .w/*/*.WLOG | grep total` - WLOG   (#`ls .w/*/*.WLOG | grep -c .`)"
+echo " `du -csh .w/*/*.ERR | grep total` - ERR    (#`ls .w/*/*.ERR | grep -c .`)"
+
+

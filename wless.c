@@ -468,7 +468,7 @@ FILE *openOrWaitReloadAnsi() {
     fclose(ftmp);
       
     putchar('>'); fflush(stdout);
-    
+    // TODO: ?
     if (netErr()) return NULL;
 
     ftmp= fopenext(file, ".TMP", "r");
@@ -476,7 +476,6 @@ FILE *openOrWaitReloadAnsi() {
   if (ftmp) fclose(ftmp);
 
   fansi= fopen(file?file:".stdout", "r");
-
   if (!fansi && netErr()) return NULL;
   
 //  -- no difference in speed...
@@ -544,16 +543,45 @@ int visCol(char *ln, char *end) {
 }
 
 // inject "codes" to rest color (hilite) after any code terminal co
+int _screen_top= 0;
+int _screen_left= 0;
+int _curx= 0;
+
+void _clearend() {
+  spaces(screen_cols-_curx);
+  _curx= screen_cols;
+}
+
 void printansi(int len, char *ln, char *codes) {
   if (!ln || len<=0) return;
   char c;
+  _curx= 0;
   while ((c= *ln++) && len-->0) {
-    putchar(c);
-    if (c=='\e') {
+    if (c=='\n' || c=='\r') {
+      _curx= 0;
+      printf("\e[%dG", _screen_left);
+      printf("\e[24;0m"); // reset
+      continue;
+    }
+    if (_curx>= screen_cols) continue;
+    // TODO: unicode fullwidth
+    if (isstartutf8(c))
+      putchar('?');
+    else if (isinsideutf8(c))
+      ;
+    else
+      putchar(c);
+    if (c>31 && !isinsideutf8(c))
+      // TODO: wide chars isfullwidth()
+      // but that requires "whole char"
+      _curx++;
+    else if (c=='\r' || c=='\n')
+      _curx= 0;
+    else if (c=='\e') {
       c= *ln++;
       if (!c) return;
       putchar(c);
-      if (0 && c==']') {
+      if (c==']') {
         // TODO: not needed? - delete?
         // hidden text
         while ((c= *ln++) && c!='\e')
@@ -568,7 +596,11 @@ void printansi(int len, char *ln, char *codes) {
         while ((c= *ln++) && (!isalpha(c) && c!='\\' && c!=7))
           putchar(c);
         if (!c) return;
-        putchar(c);
+        // if "clear" ignore...
+        if (c=='K')
+          putchar(' ');
+        else
+          putchar(c);
       }
       // after possible change reapply codes
       printf("%s", codes);
@@ -577,6 +609,7 @@ void printansi(int len, char *ln, char *codes) {
 }
 
 // Return: true if clicked (askin redo page)
+
 int printAnsiLines(FILE *fansi, int top, int rows) {
   int clicked= 0;
 
@@ -589,6 +622,7 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
   while(c= fgetc(fansi)) {
     // TODO: cleanup when make the hidden lines simplier...
     if (c=='\n' || c==EOF) {
+      gotorc(_screen_top-n, _screen_left);
       // -- print accumulated line
       char *s= ln->s;
       int m= matchLink? findlink(s) : matchfinder(s, _search);
@@ -631,6 +665,8 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
         }
 
         printansi(len, f, codes);
+        printf("\e[24;0m"); // reset
+
         if (len==0xff) { f=NULL; break; } // all
         s= f + len;
 
@@ -652,7 +688,7 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
 
         // count of lines printed
         if (n<0 && (!_only || found || matchLink)) {
-          clearend();
+          _clearend();
           putchar('\n');
         }
         if (n>=0 || !_only || found || matchLink)
@@ -669,7 +705,7 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
           if (c==EOF) break;
         }
       }
-      clearend();
+      _clearend();
     }
 
     // accumulate actual char to print
@@ -754,44 +790,44 @@ void displayTabInfo(keycode k) {
  char buf[10]; sprintf(buf, " Tab%+d ", tab);
 
  // print Tab-3 center white o black
- gy= 10;
- gx= (gsizex-strlen(buf)*8)/2;
- gputs(buf);
- gnl(); gy+= 4;
- int sgy= gy;
- gupdate();
+ if (0) {
+   gy= 10;
+   gx= (gsizex-strlen(buf)*8)/2;
+   gputs(buf);
+   gnl(); gy+= 4;
+   int sgy= gy;
+   gupdate();
+   if (url) {
+     // print host center black on white
+     gclear(); gbg= white; gfg= black;
+     gy= sgy;
+     // clear previous host
+     for(int i=gsizex/8; i; i--) gputc(' ');
+     // TODO: use FULLWIDTH? or small font
+     char *u= url, *end;
+     u= sskip(u, "http://");
+     u= end= sskip(u, "https://");
+     while(*end && *end!='/') end++;
+     gx= (gsizex-8*(end-u))/2; gx= MAX(0, gx);
+     while(*u && *u!='/' && gx<gsizex) gputc(*u++);
+     // print path
+     //if (*u) gputc(*u++);
+     //gnl();
+     //gputs(u);
+     //while(gy<gsizey) gputc(' ');
+   }
  
- if (url) {
-   // print host center black on white
-   gclear(); gbg= white; gfg= black;
-   gy= sgy;
-   // clear previous host
-   for(int i=gsizex/8; i; i--) gputc(' ');
-   // TODO: use FULLWIDTH? or small font
-   char *u= url, *end;
-   u= sskip(u, "http://");
-   u= end= sskip(u, "https://");
-   while(*end && *end!='/') end++;
-   gx= (gsizex-8*(end-u))/2; gx= MAX(0, gx);
-   while(*u && *u!='/' && gx<gsizex) gputc(*u++);
-   // print path
-   //if (*u) gputc(*u++);
-   //gnl();
-   //gputs(u);
-   //while(gy<gsizey) gputc(' ');
- }
- 
- // line of <<<<< or >>>>>
- gy= (gsizey-8)/2; // middle line
- gx= (gsizex%8)/2; // center text
- for(int i=gsizex/8; i; i--)
-   gputc(k==LEFT?'<':'>');
- gnl();
+   // line of <<<<< or >>>>>
+   gy= (gsizey-8)/2; // middle line
+   gx= (gsizex%8)/2; // center text
+   for(int i=gsizex/8; i; i--)
+     gputc(k==LEFT?'<':'>');
+   gnl();
 
- gupdate();
+   gupdate();
+ }
+
  fflush(stdout);
- 
- //keywait(300);
 }
 
 // --- Display
@@ -835,7 +871,50 @@ int displayWin(keycode k, char *url, char *file, int top, int rows, int clreos) 
     printf("%s", parts);
   }
 
-  // -- main content
+  // -- print page
+  const long tms= 280, sms= mstime();
+  const int width= 4;
+  if (k==LEFT || k==RIGHT) { // back
+    int scols= screen_cols;
+
+    // "scroll it sideways"
+    for(int i=0; i<scols; i++) {
+      int c= k==RIGHT? scols-width-i: i;
+      // print slice of page
+      _screen_left= k==RIGHT? c+width+1: 0;
+      // TODO: i => garbage on last  2col
+      // i+1 -> "scroll" up
+      screen_cols= k==RIGHT? i-1: i-width;
+      printAnsiLines(fansi, top, rows);
+      fflush(stdout);
+
+      // draw black bar 
+      for(int r=0; r<rows; r++) {
+        gotorc(1+r, c<0? 0: c);
+        B(black); spaces(c<0? width+c : width);
+        gotorc(r, c+width);
+        B(white);
+      }
+      fflush(stdout);
+
+      if (haskey()) break;
+
+      // catch up/cheat
+      long actual= mstime()-sms;
+      long expected= tms*i/scols;
+      if (actual>expected) {
+        // skip
+        i= actual*scols/tms;
+      } else {
+        usleep((expected-actual)*1000);
+      }
+    }
+
+    _screen_left= 0;
+    screen_cols= scols;
+  }
+
+  // full redraw
   gotorc(1, 0);
   int redo= printAnsiLines(fansi, top, rows);
   fclose(fansi);
@@ -1379,8 +1458,18 @@ keycode flickMenu(keycode k) {
     yellow, green, cyan, blue, magenta, red, black};
   char* TEXT[]={
     "CLOSE", "STAR", "HASHTAB", "UNDO",  "LIST", "HISTORY", "QUIT"};
+  assert(ALEN(COLORS)==ALEN(TEXT));
+  drawPullDownMenu(COLORS, TEXT, ALEN(COLORS), ALEN(TEXT), 1);
 
-  drawPullDownMenu(COLORS, TEXT, ALEN(COLORS));
+  return waitScrollEnd(k);
+}
+
+keycode flickHamburger(keycode k) {
+  // MENU
+  color COLORS[]={black, white};
+  char* TEXT[]={
+    "Home", "About", "Search", "Content", "Nothing", "Settings", "Contacts"};
+  drawPullDownMenu(COLORS, TEXT, ALEN(COLORS), ALEN(TEXT), 0);
 
   return waitScrollEnd(k);
 }
@@ -1496,6 +1585,132 @@ keycode panHistory(keycode k, int future) {
   return REDRAW;
 }
 
+keycode newPanHistory(keycode k, int future) {
+  cursoroff();
+  // TODO: merge with gohistory()
+  //system("perl whi2html.pl > .whistory.html ; ./w.x .whistory.html > .whistory.html.ANSI");
+  //FILE *fansi= fopen(file, "r");
+  //FILE *f= fopen(".whistory.html.ANSI", "r");
+  //FAILIF(!f || !fansi, "Can't view history");
+  int top0= top, n= future;
+  while ((k= key()) & SCROLL) {
+    if (k==CTRL+'C') exit(0);
+
+    // scroll 
+    int kr= (k>>8) & 0xff, kc= k & 0xff;
+    //if (((kr<screen_rows/2)?+1:-1)==future) {
+    //tab+= k & SCROLL_UP? -1 : +1;
+    //tab= MAX(-start_tab, MIN(ntab-1, tab));
+    //} else {
+    const step=5;
+    n+= k & SCROLL_UP? +step : -step;
+    //}
+
+    int tab1= tab;
+    if (n>=0) {
+      //n= MIN(ntab+1, MAX(0, n));
+      n= MIN(rows/2, MAX(0, n));
+      gotorc(1, 0);
+      //printAnsiLines(fansi, top0, rows-n);
+      loadPageMetaData();
+      displayWin(k, url, file, top, rows-n, 0);
+      cursoroff();
+      gotorc(rows-n+1, 0);
+
+      // -- The Future
+      //printAnsiLines(f, 0, n);
+      for(int i=0; i<n; i++) {
+        putchar('\n');
+        B(red); C(white);
+        tab= i;
+        loadPageMetaData();
+        char *title= getTitle(url, file);
+        char status= 'U';
+
+        printf("%c%3d  %.*s", status, i, screen_cols-7, title); clearend();
+        free(title);
+      }
+      B(black); C(white);
+      fflush(stdout);
+
+    } else { // -1 The Past
+      //n= MIN(0, MAX(-start_tab, n));
+      if (n < -rows*2/3) tab1--;
+      n= MIN(0, MAX(-rows*2/3, n));
+
+      gotorc(0, 0);
+      if (0) {
+        int lns= 7;
+
+        int i= 0;
+        while(i<lns) {
+          tab= tab1 + n/step - 1 + i;
+          loadPageMetaData();
+          char *title= getTitle(url, file);
+          char status= 'R';
+          B(black); C(orange);
+          printf("%c%3d  %.*s", status, tab, screen_cols-7, title); clearend(); putchar('\n');
+          free(title);
+
+          i++;
+        }
+        while(i<-n) {
+          tab= tab1 + (i+n)/step - 1;
+          loadPageMetaData();
+          char *title= getTitle(url, file);
+          char status= 'R';
+          B(black); C(orange);
+          printf("%c%3d  %.*s", status, tab, screen_cols-7, title); clearend(); putchar('\n');
+          free(title);
+
+          FILE *fansi= fopen(file, "r");
+          if (fansi) {
+            printAnsiLines(fansi, top0, lns);
+            fclose(fansi);
+          }
+          i+= lns;
+
+          i++;
+        }
+
+      } else
+      for(int i=0; i<-n; i++) {
+        tab= tab1 + n/step + 1 + i;
+        loadPageMetaData();
+        char *title= getTitle(url, file);
+        char status= 'R';
+        B(black); C(orange);
+        printf("%c%3d  %.*s", status, tab, screen_cols-7, title); clearend(); putchar('\n');
+        free(title);
+
+      }
+      gotorc(n, 0);
+      clearend(); printf("\n");
+
+      tab= tab1;
+      loadPageMetaData();
+      FILE *fansi= fopen(file, "r");
+      if (fansi) {
+        printAnsiLines(fansi, top0, rows+n+1);
+        fclose(fansi);
+      }
+      // TODO: starts from rc=0,0
+      //displayWin(k, url, file, top, rows+n+1, 0);
+      cursoroff();
+    }
+    tab = tab1;
+
+    cleareos();
+    fflush(stdout);
+  }
+  //fclose(f);
+  //fclose(fansi);
+  cursoron();
+  while(haskey() && ((k= key()) & SCROLL));
+  //return k & SCROLL? REDRAW : k;
+  return REDRAW;
+}
+
 // A "touch" is a scroll event.
 // It has a start position anda up=down (row) trail.
 // There is no end-event.
@@ -1562,8 +1777,14 @@ keycode touchDispatch(keycode k) {
     int M= md<=10, m= md<=80 && !M;
 
 
-    // alterantive scrolling/bar
-    //if (1 && (c & m)) {
+    // -- menu flick down
+    if (N && E) return flickMenu(k);
+
+    // -- hamburger menu 
+    // TODO: show user "menu"
+    if (U && L) return flickHamburger(k);
+
+    // -- scrolling/bar
     if (1 && E) {
       int dd= nlines/screen_rows;
 //      if (pc>90) {
@@ -1588,18 +1809,19 @@ keycode touchDispatch(keycode k) {
       return k & SCROLL;
     }
 
-    if (M && R) {
+    // -- flick back/forward
+    if (0 && M && R) {
       static long t0= 0;
       keycode k0= k;
       long t= mstime();
       if (t-t0<300) return NO_REDRAW;
       t0= t;
 
-      // flicking
       while(haskey()) key();
       return k0 & SCROLL_DOWN  ? RIGHT : LEFT;
     }
 
+    // -- flick page up/down
     if (d && R) {
       static long t0= 0;
       keycode k0= k;
@@ -1607,17 +1829,28 @@ keycode touchDispatch(keycode k) {
       if (t-t0<300) return NO_REDRAW;
       t0= t;
 
-      // flicking
       while(haskey()) key();
       return k0 & SCROLL_DOWN ? META+' ' : ' ';
     }
 
+    // -- fast back/forward scroll
+    // TODO: no visual queue
+    // -  while scrolling show history, when stop show page after delay
     if (M & W) {
       return (k & SCROLL_UP) ? LEFT : RIGHT;
     }
 
+    // -- pull down past/future scroller
+    // TODO: neat idea but not work well: touchy-2-3-step process :-(
     if (C & N) return panHistory(k, -1);
     if (C & S) return panHistory(k, +1);
+    
+    if (M) {
+      if (k & SCROLL_UP)
+        return newPanHistory(k, -1);
+      else 
+        return newPanHistory(k, +1);
+    }
     
     // TODO: remove
     // OLD ONES
@@ -1632,11 +1865,13 @@ keycode touchDispatch(keycode k) {
     // scrolling content region
     if (center && middle) return k;
 
+    return k;
+
+    // TODO: remove
     // -- Drag starting locations:
-    if (top && right) k= flickMenu(k);
 
     //else if (top && center) k= scrollStack();
-    else if (top && center) {
+    if (top && center) {
       // empty scroll events...
       //while(haskey()) key();
 
