@@ -142,13 +142,14 @@ typedef enum keycode { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127,
 
 int haskey();
 keycode key();
+keycode peekey();
 int keywait(int ms);
-
 keycode waitScrollEnd(keycode k);
 
 char* keystring(int c);
 void testkeys();
 
+// TODO: remove: use edit!
 char* input(char* prompt);
 
 keycode edit(dstr **dsp, int width, char *allowed, char *not, char *breaks);

@@ -193,8 +193,10 @@ color readablefg() {
 
 // bytes buffered
 static int _key_b= 0; 
+keycode _peekedkey= -1;
 
 int haskey() {
+  if (_peekedkey!=-1) return 1;
   if (_key_b>0) return 1;
 
   struct timeval tv = { 0L, 0L };
@@ -216,6 +218,12 @@ int haskey() {
 //   - TAB S_TAB RETURN DEL BACKSPACE
 // Note: NOT thread-safe
 keycode key() {
+  if (_peekedkey!=-1) {
+    keycode k= _peekedkey;
+    _peekedkey= -1;
+    return k;
+  }
+
   // TODO: whatis good size?
   // TODO: test how much we can use?
   // estimate: rows*10=???
@@ -302,6 +310,16 @@ keycode key() {
   if (k==TERM+'2'&& _key_b==2) k=key()-'0'+9+FUNC, key(), k= k>10+FUNC?k-1:k;
 
   return k;
+}
+
+// Non-blocking peek of what key would return.
+// Returns next keycode
+//         -1 if no next
+keycode peekey() {
+  if (_peekedkey!=-1) return _peekedkey;
+  if (!haskey()) return -1;
+  // there is key waiting, get and store
+  return _peekedkey= key();
 }
 
 // waits for a key to be pressed MAX milliseonds

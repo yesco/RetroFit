@@ -694,7 +694,7 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
         if (n>=0 || !_only || found || matchLink)
           n--;
 
-        if (n<-rows) break;
+         if (n<-rows) break;
 
       } else {
         // skip comment line(s)
@@ -897,7 +897,15 @@ int displayWin(keycode k, char *url, char *file, int top, int rows, int clreos) 
       }
       fflush(stdout);
 
-      if (haskey()) break;
+      // eat up scrolls, bread on key
+      keycode pk= peekey();
+      if (pk!=-1) {
+        while(pk!=-1 && (pk & SCROLL)) {
+          key();
+          pk= peekey();
+        }
+        if (pk!=-1) break;
+      }
 
       // catch up/cheat
       long actual= mstime()-sms;
@@ -1784,6 +1792,10 @@ keycode touchDispatch(keycode k) {
     // TODO: show user "menu"
     if (U && L) return flickHamburger(k);
 
+    // -- fast back/forward scroll
+    if (M & L) return (k & SCROLL_DOWN)? LEFT: RIGHT;
+    if (M & R) return (k & SCROLL_UP)? LEFT: RIGHT;
+
     // -- scrolling/bar
     if (1 && E) {
       int dd= nlines/screen_rows;
@@ -1833,19 +1845,12 @@ keycode touchDispatch(keycode k) {
       return k0 & SCROLL_DOWN ? META+' ' : ' ';
     }
 
-    // -- fast back/forward scroll
-    // TODO: no visual queue
-    // -  while scrolling show history, when stop show page after delay
-    if (M & W) {
-      return (k & SCROLL_UP) ? LEFT : RIGHT;
-    }
-
     // -- pull down past/future scroller
     // TODO: neat idea but not work well: touchy-2-3-step process :-(
-    if (C & N) return panHistory(k, -1);
-    if (C & S) return panHistory(k, +1);
+    //if (C & N) return panHistory(k, -1);
+  //if (C & S) return panHistory(k, +1);
     
-    if (M) {
+    if (0 && M) {
       if (k & SCROLL_UP)
         return newPanHistory(k, -1);
       else 
