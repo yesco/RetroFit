@@ -603,7 +603,7 @@ void printansi(int len, char *ln, char *codes) {
           putchar(c);
       }
       // after possible change reapply codes
-      printf("%s", codes);
+      if (codes) printf("%s", codes);
     } 
   }
 }
@@ -635,6 +635,8 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
       codes= "";
 
       // find and hilite each match
+      //char cr[2]="\r";
+      //printansi(1, cr, NULL);
       while(f) {
         printansi(f-s, s, codes);
 
@@ -899,8 +901,9 @@ int displayWin(keycode k, char *url, char *file, int top, int rows, int clreos) 
 
       // eat up scrolls, bread on key
       keycode pk= peekey();
-      if (pk!=-1) {
-        while(pk!=-1 && (pk & SCROLL)) {
+      if (0 && pk!=-1) {
+        if (0)
+        while(pk!=-1 && (pk & SCROLL) && (pk==_prevkey) && (mstime()-_prevkeyms<200)) {
           key();
           pk= peekey();
         }
@@ -1792,16 +1795,21 @@ keycode touchDispatch(keycode k) {
     // TODO: show user "menu"
     if (U && L) return flickHamburger(k);
 
-    // -- fast back/forward scroll
-    if (M & L) return (k & SCROLL_DOWN)? LEFT: RIGHT;
-    if (M & R) return (k & SCROLL_UP)? LEFT: RIGHT;
-
     // -- scrolling/bar
     if (1 && E) {
       int dd= (nlines-screen_rows)*4/screen_rows/3;
       dd+= 1;
       top+= k & SCROLL_UP? -dd : +dd;
       return REDRAW;
+    }
+
+    // -- fast back/forward scroll
+    if (M) {
+      while(haskey()) key();
+      if (mstime()-_prevkeyms<200)
+        return NO_REDRAW; // ignore
+
+      return !!L==!!(k & SCROLL_DOWN)? LEFT: RIGHT;
     }
 
     // -- flick back/forward
@@ -1811,8 +1819,8 @@ keycode touchDispatch(keycode k) {
       long t= mstime();
       if (t-t0<300) return NO_REDRAW;
       t0= t;
-
       while(haskey()) key();
+
       return k0 & SCROLL_DOWN  ? RIGHT : LEFT;
     }
 

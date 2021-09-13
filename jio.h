@@ -140,6 +140,9 @@ typedef enum keycode { RETURN='M'-64, TAB='I'-64, ESC=27, BACKSPACE=127,
   CTRLX=2048, /* not used */
   MOUSE_DOWN=0x01000000, MOUSE_UP=MOUSE_DOWN*2, MOUSE=MOUSE_DOWN+MOUSE_UP, SCROLL_DOWN=0x04000000, SCROLL_UP=0x08000000, SCROLL=SCROLL_DOWN+SCROLL_UP } keycode;
 
+extern keycode _prevkey, _lastkey;
+extern long _prevkeyms, lastkeyms;
+
 int haskey();
 keycode key();
 keycode peekey();

@@ -203,8 +203,14 @@ int haskey() {
   fd_set fds;
   FD_ZERO(&fds);
   FD_SET(0, &fds);
-  return select(1, &fds, NULL, NULL, &tv);
+  int r= select(1, &fds, NULL, NULL, &tv);
+  return r;
 }
+
+long _prevkeyms= 0, _lastkeyms= 0;
+keycode _prevkey= -1, _lastkey= -1;
+
+keycode _key();
 
 // Wait and read a key stroke.
 // Returns:
@@ -217,13 +223,25 @@ int haskey() {
 //     - (CTRL/SHIFT/META)+UP/DOWN/LEFT/RIGHT
 //   - TAB S_TAB RETURN DEL BACKSPACE
 // Note: NOT thread-safe
+// (user-faceing wrapping get/wait key
+//  because _key has many returns)
 keycode key() {
+  _prevkeyms= _lastkeyms;
+  _prevkey= _lastkey;
   if (_peekedkey!=-1) {
     keycode k= _peekedkey;
     _peekedkey= -1;
-    return k;
+    return _lastkey= k;
   }
 
+  // wait for one
+  _lastkey= _key();
+  _lastkeyms= mstime();
+  return _lastkey;
+}
+
+// internal wait key or get from buf
+keycode _key() {
   // TODO: whatis good size?
   // TODO: test how much we can use?
   // estimate: rows*10=???
@@ -239,6 +257,7 @@ keycode key() {
     _key_b= read(0, &buf[0], sizeof(buf)) - 1;
   }
   int k= buf[0];
+  _lastkeyms= mstime();
 
   // TODO: how come I get ^J on RETURN?
   // but not in Play/keys.c ???
@@ -257,9 +276,9 @@ keycode key() {
 
   // fixing multi-char key-encodings
   // (these are triggered in seq!)
-  if (k==ESC) k=toupper(key())+META;
-  if (k==META+'[' && _key_b) k=key()+TERM;
-  if (k==TERM+'3' && _key_b) key(), k= DEL;
+  if (k==ESC) k=toupper(_key())+META;
+  if (k==META+'[' && _key_b) k=_key()+TERM;
+  if (k==TERM+'3' && _key_b) _key(), k= DEL;
   if (k==TERM+'<' && _key_b) k= MOUSE;
   if (!_key_b) return k;
 
@@ -284,16 +303,16 @@ keycode key() {
       if (but==65) k+= SCROLL_UP;
     } else len= 0;
     // eat up the parsed strokes
-    while(len-->0) key();
+    while(len-->0) _key();
     //printf(" {%08x} ", k);
     return k;
   }
 
   // CTRL/SHIFT/ALT arrow keys
   if (k==TERM+'1' && _key_b==3 && buf[1]==';') {
-    key();
-    char mod= key();
-    k= UP+ key()-'A';
+    _key();
+    char mod= _key();
+    k= UP+ _key()-'A';
     switch(mod) {
     case '2': k+= SHIFT; break;
     case '5': k+= CTRL; break;
@@ -302,12 +321,12 @@ keycode key() {
   }
 
   // function keys (special encoding)
-  if (k==META+'O') k=key()-'P'+1+FUNC;
-  if (k==TERM+'1'&& _key_b==2) k=key()-'0'+FUNC, key(), k= k==5+FUNC?k:k-1;
+  if (k==META+'O') k=_key()-'P'+1+FUNC;
+  if (k==TERM+'1'&& _key_b==2) k=_key()-'0'+FUNC, _key(), k= k==5+FUNC?k:k-1;
   // (this only handlines FUNC
   // TODO: how about BRACKETED PASTE?
   // ......^[[200~~/GIT/RetroFit^[[201~
-  if (k==TERM+'2'&& _key_b==2) k=key()-'0'+9+FUNC, key(), k= k>10+FUNC?k-1:k;
+  if (k==TERM+'2'&& _key_b==2) k=_key()-'0'+9+FUNC, _key(), k= k>10+FUNC?k-1:k;
 
   return k;
 }
@@ -393,12 +412,18 @@ char* keystring(int k) {
 }
 
 void testkeys() {
+  jio();
   fprintf(stderr, "\nCTRL-C ends\n");
+  long t= mstime();
   for(int k= 0; k!=CTRL+'C'; k= key()) {
-    fprintf(stderr, "\n------%s\t", keystring(k));
+    //long ms=mstime()-t;
+    long ms=mstime()-_prevkeyms;
+    fprintf(stderr, "\n%ld ms ------%s\t", ms, keystring(k));
+    t= mstime();
+    if (0)
     while(!haskey()) {
       putchar('.'); fflush(stdout);
-      usleep(300*1000);
+      usleep(30*1000);
     }
   }
 }
