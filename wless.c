@@ -1798,27 +1798,10 @@ keycode touchDispatch(keycode k) {
 
     // -- scrolling/bar
     if (1 && E) {
-      int dd= nlines/screen_rows;
-//      if (pc>90) {
-      //static keycode k0= 0;
-      //        if (k&0xffff!=k0&0xffff) {
-        //  top= MAX(0, (pr-10)*nlines/80);
-//          k0= k;
-  //      }
-        dd= (nlines-screen_rows)*4/screen_rows/3;
-/*
-      } else if (pc>80) {
-        dd= dd*4/3;
-      } else if (pc>40) {
-        dd= 0;
-      } else {
-        dd= screen_cols*40/100-ac;
-      }
-*/
+      int dd= (nlines-screen_rows)*4/screen_rows/3;
       dd+= 1;
       top+= k & SCROLL_UP? -dd : +dd;
       return REDRAW;
-      return k & SCROLL;
     }
 
     // -- flick back/forward
