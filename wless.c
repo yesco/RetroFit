@@ -565,7 +565,8 @@ void printansi(int len, char *ln, char *codes) {
       continue;
     }
     if (_curx>= screen_cols) continue;
-    // TODO: unicode fullwidth
+
+    // decode utf-8 inline!
     if (isstartutf8(c)) {
       putchar(c);
       ch= c;
