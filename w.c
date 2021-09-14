@@ -513,6 +513,7 @@ void print_searchables() {
 void nl() {
   lines++;
   printf("\e[K\n"); // workaround bug!
+  _cury++;
 
   // hidden source file offset
   printf("@%d:\r", offset);
@@ -523,9 +524,12 @@ void nl() {
   // indent(); print_state();
   // print at newline if still inside <a>
   print_hidden_url();
-  _cury++; _curx= 0; _ws= 1; _nl= 1;
+  _curx= 0; _ws= 1; _nl= 1;
 }
 
+// indent at least to current level
+// if posy at higher, don't do any
+// Note: first 5 rows leaves room for icon
 void indent() {
   if (_pre) return;
   if (lines<=5) _indent+= 7;

@@ -664,10 +664,15 @@ void printansi(int len, char *ln, char *codes) {
           putchar(c);
         if (!c) return;
         // if "clear" ignore...
-        if (c=='K')
-          putchar(' ');
-        else
+        if (c=='K') {
+          // cancel clear (K)
+          // TODO: not sure how this works, but just a single space makes us
+          // loose on next char! So we rewrite "\eK" to "\e\e "!
+          // This may not be portable?
+          printf("\e ");
+        } else {
           putchar(c);
+        }
       }
       // after possible change reapply codes
       if (codes) printf("%s", codes);
