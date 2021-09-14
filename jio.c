@@ -363,6 +363,28 @@ keycode waitScrollEnd(keycode k) {
   return nk;
 }
 
+// Returns true if they key is repeated
+//
+// (used to recognize and ignore further
+//  scrolls when detecting flicking)
+// It'll eat up same keys.
+// After 200ms, which means no longer
+// "flicking" it means sustastained
+// scrolling (or key pressed long time)
+// emit further events every 200 ms only.
+//
+// Normal keyrepeats after an intial delay
+// of 480ms, and then every 50ms!
+int keyRepeated() {
+  // eat up repeated keys
+  int n= 0;
+  while(haskey() && peekey()==_prevkey) {
+    key();
+    n++;
+  }
+  return mstime()-_prevkeyms<200;
+}
+
 // Returns a static string describing KEY
 // Note: next call may change previous returned value, NOT thread-safe
 char* keystring(int k) {

@@ -966,6 +966,8 @@ int displayWin(keycode k, char *url, char *file, int top, int rows, int clreos) 
       // TODO: i => garbage on last  2col
       // i+1 -> "scroll" up
       screen_cols= k==RIGHT? i-1: i-width;
+      if (screen_cols<=0) continue;
+      if (screen_cols>=scols) continue;
       printAnsiLines(fansi, top, rows);
       fflush(stdout);
 
@@ -1653,36 +1655,15 @@ keycode touchDispatch(keycode k) {
     }
 
     // -- fast back/forward scroll
-    if (M) {
-      while(haskey()) key();
-      if (mstime()-_prevkeyms<200)
-        return NO_REDRAW; // ignore
-
+    if (M && (R||L)) {
+      if (keyRepeated()) return NO_REDRAW;
       return !!L==!!(k & SCROLL_DOWN)? LEFT: RIGHT;
-    }
-
-    // -- flick back/forward
-    if (0 && M && R) {
-      static long t0= 0;
-      keycode k0= k;
-      long t= mstime();
-      if (t-t0<300) return NO_REDRAW;
-      t0= t;
-      while(haskey()) key();
-
-      return k0 & SCROLL_DOWN  ? RIGHT : LEFT;
     }
 
     // -- flick page up/down
     if (d && R) {
-      static long t0= 0;
-      keycode k0= k;
-      long t= mstime();
-      if (t-t0<300) return NO_REDRAW;
-      t0= t;
-
-      while(haskey()) key();
-      return k0 & SCROLL_DOWN ? META+' ' : ' ';
+      if (keyRepeated()) return NO_REDRAW;
+      return k & SCROLL_DOWN ? META+' ' : ' ';
     }
 
     // -- pull down past/future scroller
@@ -1690,7 +1671,7 @@ keycode touchDispatch(keycode k) {
     //if (C & N) return panHistory(k, -1);
   //if (C & S) return panHistory(k, +1);
     
-    if (0 && M) {
+    if (M && (R||L)) {
       if (k & SCROLL_UP)
         return newPanHistory(k, -1);
       else 
