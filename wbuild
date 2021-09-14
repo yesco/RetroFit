@@ -4,18 +4,22 @@
 
 CC="cc -Wno-string-compare"
 
-# --- dependencies
+# --- dependencies (poor mans make?)
 if [[ jio.c -nt w.x ]]; then
   rm w.x wless.x 2>/dev/null
 fi
 if [[ jio.h -nt w.x ]]; then
   rm w.x wless.x 2>/dev/null
 fi
-if [[ graphics.c -nt w.x ]]; then
-  rm wless.x 2>/dev/null
-fi
 if [[ table.c -nt w.x ]]; then
   rm w.x 2>/dev/null
+fi
+
+if [[ graphics.c -nt wless.x ]]; then
+  rm wless.x 2>/dev/null
+fi
+if [[ experimental.c -nt wless.x ]]; then
+  rm wless.x 2>/dev/null
 fi
 
 # --- compile w.c
