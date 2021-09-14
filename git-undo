@@ -1,0 +1,2 @@
+git reset --soft HEAD~1
+echo "---Undid last change\nbut it gets confusing here:\n  You may need to do:\n$ git restore --staged fil.c\n...to really get back\n"

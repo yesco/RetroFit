@@ -1928,7 +1928,8 @@ keycode keyAction(keycode k) {
 
   int kc= k & ~META & ~ CTRL;
   
-  if (k==CTRL+'L') clear();
+  // normal processing will redraw!
+  if (k==CTRL+'L') ;
     
   // Do this first so it can map to other key actions!
   if (k==CTRL+'X') {
