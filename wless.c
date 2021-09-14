@@ -547,6 +547,7 @@ int _screen_top= 0;
 int _screen_left= 0;
 int _curx= 0;
 
+// poor mans clear end for limited width window!
 void _clearend() {
   spaces(screen_cols-_curx);
   _curx= screen_cols;
@@ -621,10 +622,79 @@ void printansi(int len, char *ln, char *codes) {
   }
 }
 
+int _clicked= 0;
+
+// print ansi line and hilite matches
+int printansiln(char *ln, int n, int matchLink) {
+  char *s= ln;
+
+  int m= matchLink? findlink(s) : matchfinder(s, _search);
+  char *f= m ? s+(m>>8) : NULL;
+  int len= m & 0xff;
+
+  char *found= f; // a flag!
+
+  // trunacte if only and no match
+  if (_only && !f) *s= 0;
+
+  // reset codes before each text char!
+  char *codes= -n==screen_rows/2-1?"\e[27m":"";
+  codes= "";
+
+  // find and hilite each match
+  while(f) {
+    printansi(f-s, s, codes);
+
+    // -- print match
+    // test if click on
+    if (_search && !strcmp(_search, "links")) {
+      int r= -n-1, c= visCol(ln, f);
+      int vend= visCol(ln, f+len);
+      if (_click_r==r+1 && c<=_click_c && _click_c<=vend) {
+        char *p= sskip(f, "\e]:A:{");
+        // copy "shortcut" to cmd line
+        line->s[0]= 0;
+        while(*p && !isspace(*p))
+          line= dstrncat(line, p++, 1);
+        // go!
+        tab= click(line);
+        _clicked= 1;
+        // make click pos inactive!
+        // todo: cleaner?
+        FREE(_search);
+
+        B(red); C(white);
+      }
+    } else if (_search) {
+      // hilite every match
+      B(red); C(white);
+    }
+
+    //printf("\e ");
+    printansi(len, f, codes);
+    printf("\e[24;0m"); // reset
+
+    if (len==0xff) { f=NULL; break; } // all
+    s= f + len;
+
+    // assume color (todo search back?)
+    B(white); C(black);
+    // find next match
+    m= matchLink? findlink(s) : matchfinder(s, _search);
+    len= m & 0xff;
+    f= len ? s+(m>>8) : NULL;
+  }
+  // print remainder
+  // (this will always be called, even for lines not to be displayed)
+  printansi(strlen(s), s, codes);
+
+  return found;
+}
+
 // Return: true if clicked (askin redo page)
 
 int printAnsiLines(FILE *fansi, int top, int rows) {
-  int clicked= 0;
+  _clicked= 0;
 
   int matchLink = _search && !strcmp(_search, "LINKS");
   int c, n=top;
@@ -632,75 +702,19 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
 
   fseek(fansi, 0, SEEK_SET);
   dstr *ln= dstrncat(NULL, NULL, 160);
+  char *found= NULL;
   while(c= fgetc(fansi)) {
     // TODO: cleanup when make the hidden lines simplier...
     if (c=='\n' || c==EOF) {
-      gotorc(_screen_top-n, _screen_left);
       // -- print accumulated line
-      char *s= ln->s;
-      int m= matchLink? findlink(s) : matchfinder(s, _search);
-      char *f= m ? s+(m>>8) : NULL;
-      int len= m & 0xff;
-      char *found= f; // a flag!
-      if (_only && !f) *s= 0;
-
-      char *codes= -n==screen_rows/2-1?"\e[27m":"";
-      codes= "";
-
-      // find and hilite each match
-      //char cr[2]="\r";
-      //printansi(1, cr, NULL);
-      while(f) {
-        printansi(f-s, s, codes);
-
-        // -- print match
-        // test if click ON
-        if (_search && !strcmp(_search, "LINKS")) {
-          int r= -n-1, c= visCol(ln->s, f);
-          int vend= visCol(ln->s, f+len);
-          //printf("{%d,%d}", c, vend);
-          if (_click_r==r+1 && c<=_click_c && _click_c<=vend) {
-            char *p= sskip(f, "\e]:A:{");
-            ln->s[0]= 0;
-            while(*p && !isspace(*p))
-              ln= dstrncat(ln, p++, 1);
-            // GO!
-            tab= click(ln->s);
-            // we could exit here, but we'd rather hilite first, maybe wait a bit to allow user to regret?
-            clicked= 1;
-            // make click pos inactive!
-            // TODO: cleaner?
-            FREE(_search);
-
-            B(red); C(white);
-          }
-        } else if (_search) {
-          // hilite every match
-          B(red); C(white);
-        }
-
-        printansi(len, f, codes);
-        printf("\e[24;0m"); // reset
-
-        if (len==0xff) { f=NULL; break; } // all
-        s= f + len;
-
-        // assume color (TODO search back?)
-        B(white); C(black);
-        // find next match
-        m= matchLink? findlink(s) : matchfinder(s, _search);
-        len= m & 0xff;
-        f= len ? s+(m>>8) : NULL;
+      if (ln->s[0]) {
+        gotorc(_screen_top-n, _screen_left);
+        found= printansiln(ln->s, n, matchLink);
+        ln->s[0]= 0;
       }
-      // print remainder
-      // (this will always be called, even for lines not to be displayed)
-      printansi(strlen(s), s, codes);
-      ln->s[0]= 0;
-
       if (c==EOF) break;
       c= fgetc(fansi);
       if (c!='\n' && c!='#') {
-
         // count of lines printed
         if (n<0 && (!_only || found || matchLink)) {
           _clearend();
@@ -708,9 +722,7 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
         }
         if (n>=0 || !_only || found || matchLink)
           n--;
-
          if (n<-rows) break;
-
       } else {
         // skip comment line(s)
         while(c=='\n' || c=='#') {
@@ -742,7 +754,7 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
   reset();
   fflush(stdout);
 
-  return clicked;
+  return _clicked;
 }
 
 void displayScrollbar(int vis) {
@@ -805,6 +817,7 @@ void displayTabInfo(keycode k) {
  char buf[10]; sprintf(buf, " Tab%+d ", tab);
 
  // print Tab-3 center white o black
+ // TODO: a bit too much on the nose?
  if (0) {
    gy= 10;
    gx= (gsizex-strlen(buf)*8)/2;
@@ -818,7 +831,7 @@ void displayTabInfo(keycode k) {
      gy= sgy;
      // clear previous host
      for(int i=gsizex/8; i; i--) gputc(' ');
-     // TODO: use FULLWIDTH? or small font
+     // TODO: use fullwidth? or small font
      char *u= url, *end;
      u= sskip(u, "http://");
      u= end= sskip(u, "https://");
@@ -847,7 +860,8 @@ void displayTabInfo(keycode k) {
 
 // --- Display
 
-// Return true if tab changed (by click) TODO: eleganse? Hmmm
+// Return true if tab changed (by click)
+// TODO: elegance? hmmm
 int displayWin(keycode k, char *url, char *file, int top, int rows, int clreos) {
   static int wpage= 0;
   // -- update header
@@ -876,7 +890,6 @@ int displayWin(keycode k, char *url, char *file, int top, int rows, int clreos) 
     // TODO: same calculation as in displaPageNum
     wpage= snprintf(parts, sizeof(parts), " L%d %d/%d ", top, (top+2)/(rows-4)+1, (nlines-rows+2)/(rows-4)+1);
     while (*u) {
-      // TODO: unicode?
       putchar(*u++);
       col++;
       if (col+1 >= screen_cols-wpage) break;
@@ -2102,6 +2115,8 @@ keycode keyAction(keycode k) {
 
   int kc= k & ~META & ~ CTRL;
   
+  if (k==CTRL+'L') clear();
+    
   // Do this first so it can map to other key actions!
   if (k==CTRL+'X') {
     reset();

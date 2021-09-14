@@ -20,6 +20,9 @@ void _jio_exit(); // atexit() should do
 
 
 
+// DEBUG; will cause interrupt and go gdb
+#define DEBUG raise(SIGTRAP)
+
 #define TRACE(exprs...) if (trace) printf(exprs);
 
 #define error(exp, exitcode, msg...) \
@@ -37,6 +40,7 @@ void clear();
 void clearend();
 void cleareos();
 
+// notice thi sis zero based! (not ansi)
 void gotorc(int r, int c);
 
 void cursoroff();

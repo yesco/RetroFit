@@ -74,7 +74,12 @@ void clear() { printf("\x1b[2J\x1b[H"); }
 void clearend() { printf("\x1b[K"); }
 void cleareos() { printf("\x1b[J"); }
 
-void gotorc(int r, int c) { printf("\x1b[%d;%dH", r+1, c+1); }
+// notice thi sis zero based! (not ansi)
+void gotorc(int r, int c) {
+  // negative values breaks the ESC seq giving garbage on the screen!
+  assert(r>=0 && c>=0);
+  printf("\x1b[%d;%dH", r+1, c+1);
+}
 
 void inverse(int on) { printf(on ? "\x1b[7m" : "\x1b[m"); }
 void fgcolor(int c) { printf("\x1b[[3%dm", c); }
