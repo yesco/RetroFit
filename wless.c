@@ -388,10 +388,10 @@ void download(char* url, int force, int dolog) {
   if (f) {
     fclose(f);
   } else {
-    dstr *cmd= dstrprintf(NULL, "./wdownload %s \"%.*s\" %d %d &",
+    dstr *run= dstrprintf(NULL, "./wdownload %s \"%.*s\" %d %d &",
       force?"-d":"", ulen, url, screen_rows, screen_cols);
-    system(cmd->s);
-    free(cmd);
+    system(run->s);
+    free(run);
     // wait a little for .TMP to be created
     // TODO: fix this timing issue, create the .TMP file?
     usleep(300*1000);
@@ -1008,9 +1008,9 @@ int display(int k) {
 keycode copyurl() {
   if (!url) return REDRAW;
   printf(" copying URL"); fflush(stdout);
-  dstr *cmd= dstrprintf(NULL, "printf \"%s\" | termux-clipboard-set", url);
-  system(cmd->s);
-  free(cmd);
+  dstr *run= dstrprintf(NULL, "printf \"%s\" | termux-clipboard-set", url);
+  system(run->s);
+  free(run);
   return REDRAW;
 }
 
@@ -1207,7 +1207,7 @@ keycode command(keycode k, dstr *ds) {
       // Calculate expression
       if (strspn(ln, "+-0123456789.eE+*/%^=-lastijng<>!()[] ")==len 
           && !strchr(ln, '"') && !strchr(ln, '\'')) {
-        dstr *cmd= dstrprintf(NULL, "printf \"`echo \\\"%s\\\" | bc -l`\"", ln);
+        dstr *run= dstrprintf(NULL, "printf \"`echo \\\"%s\\\" | bc -l`\"", ln);
         // delete "microphone prompt"
         display(k);
 
@@ -1220,8 +1220,8 @@ keycode command(keycode k, dstr *ds) {
         printf("  ==> ");
         clearend();
         C(green); fflush(stdout);
-        system(cmd->s);
-        free(cmd);
+        system(run->s);
+        free(run);
         clearend();
         C(white); fflush(stdout);
 
@@ -2356,18 +2356,18 @@ keycode editTillEvent() {
     if (k==TAB) {
       printf("\n====================\n");
       if (1) {
-        dstr *cmd= dstrprintf(NULL, "cut -d\\  -f3 .whistory | sort | uniq -c | sort -n | GREP_COLORS='mt=01;32' grep --color=always -iP \"%s\" ", line->s);
-        system(cmd->s);
+        dstr *run= dstrprintf(NULL, "cut -d\\  -f3 .whistory | sort | uniq -c | sort -n | GREP_COLORS='mt=01;32' grep --color=always -iP \"%s\" ", line->s);
+        system(run->s);
         printf("\n\n(ctrl-L to redraw)\n");
-        free(cmd);
+        free(run);
       }
 
       if (1) {
         printf("\n====================\n");
-        dstr *cmd= dstrprintf(NULL, "cut -d\\  -f3 .whistory  | sort | uniq -c | sort -n | GREP_COLORS='mt=01;32' grep --color=always -P \" %s\" ", line->s);
-        system(cmd->s);
+        dstr *run= dstrprintf(NULL, "cut -d\\  -f3 .whistory  | sort | uniq -c | sort -n | GREP_COLORS='mt=01;32' grep --color=always -P \" %s\" ", line->s);
+        system(run->s);
         printf("\n\n(ctrl-L to redraw)\n");
-        free(cmd);
+        free(run);
         k= NO_REDRAW;
       }
     }
