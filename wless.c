@@ -607,13 +607,13 @@ void _clearend() {
 }
 
 void printansi(int len, char *ln, char *codes) {
-  static int ch= 0, chk= 0;
+  static int ch= 0, chk= 0; // utf-8 decode
   if (!ln || len<=0) return;
   char c;
   _curx= 0;
   while ((c= *ln++) && len-->0) {
     if (c=='\n' || c=='\r') {
-      _curx= 0; ch= 0;
+      _curx= 0; ch= 0; chk= 0;
       printf("\e[%dG", _screen_left);
       printf("\e[24;0m"); // reset
       continue;
@@ -636,11 +636,11 @@ void printansi(int len, char *ln, char *codes) {
       putchar(c); ch= (ch<<6) + (c & 0x3f);
       if (--chk==0 && isfullwidth(ch))
         _curx++;
-    } else
+    } else {
       putchar(c); ch= 0;
+    }
+
     if (c>31 && !isinsideutf8(c))
-      // TODO: wide chars isfullwidth()
-      // but that requires "whole char"
       _curx++;
     else if (c=='\r' || c=='\n')
       _curx= 0;
