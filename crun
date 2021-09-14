@@ -7,6 +7,8 @@
 # run with #define MAIN true
 # restore terminal to sanity
 
+ulimit -c unlimited
+
 rm core 2>/dev/null
 rm a.out 2>/dev/null
 
@@ -22,7 +24,12 @@ printf "# ./crun $FIL\n"
 [[ -e $FIL ]] && printf "# ./wcode $FIL ===> `./wcode $FIL` LOCs\n\n"
 
 [[ -f $FIL ]] && cc -DMAIN -Wno-string-compare -g $FIL && (./a.out $@ ; printf "\nExit=$?\n")
-stty sane
 
+stty sane 2>/dev/null
+
+if [[ -f core ]]; then
+   echo "got core!"
+   (echo "where" | gdb a.out core)
+fi
 
 
