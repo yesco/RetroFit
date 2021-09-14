@@ -2024,6 +2024,23 @@ void listCXActions() {
   // TODO: open help screen for CTRL-X?
 }
 
+// call emacs/editor on page files
+void editor(char *file) {
+  char *editor = getenv("EDITOR");
+  dstr *run= dstrprintf(NULL, "tidy -i -q --force-output yes  %s > .tidy.html 2> .tidy.errors ; %s .tidy.html .tidy.errors %s ", file, editor?editor:"emacs", file);
+  // fix endings, lol TODO: fix..
+  memcpy(strstr(run->s, ".ANSI"), ".DOWN", 5);
+  memcpy(strstr(run->s, ".ANSI"), ".DOWN", 5);
+  // add ANSI file
+  run= dstrprintf(run, " %s", file);
+
+  reset(); B(black); C(white); clear(); fflush(stdout); B(black); C(white);
+  _jio_exit();
+  system(run->s);
+  free(run);
+  jio();
+}
+
 keycode ctrlXAction(keycode xk) {
   keycode k= REDRAW; // default
 
@@ -2043,9 +2060,9 @@ keycode ctrlXAction(keycode xk) {
   case CTRL+'O': { // open in chrome
     printf("Opening in external browser"); fflush(stdout);
     int http= strstr(url, "http");
-    dstr *cmd= dstrprintf(NULL, "termux-open-url \"%s%s\"", http?"":"http://", url);
-    system(cmd->s);
-    free(cmd);
+    dstr *run= dstrprintf(NULL, "termux-open-url \"%s%s\"", http?"":"http://", url);
+    system(run->s);
+    free(run);
     return REDRAW;
   }
 
@@ -2078,20 +2095,7 @@ keycode ctrlXAction(keycode xk) {
 
   // TODO: generalize all to systemf()
   // Edit HTM (and ANSI)L with emacs
-  case CTRL+'E': {
-    dstr *cmd= dstrprintf(NULL, "tidy -i -q --force-output yes  %s > .tidy.html 2> .tidy.errors ; emacs .tidy.html .tidy.errors %s ", file, file);
-    // fix endings, lol TODO: fix..
-    memcpy(strstr(cmd->s, ".ANSI"), ".DOWN", 5);
-    memcpy(strstr(cmd->s, ".ANSI"), ".DOWN", 5);
-    // add ANSI file
-    cmd= dstrprintf(cmd, " %s", file);
-
-    reset(); B(black); C(white); clear(); fflush(stdout); B(black); C(white);
-    _jio_exit();
-    system(cmd->s);
-    jio();
-    break;
-  }
+  case CTRL+'E': editor(file);
     
     // Map to themselves:
   case CTRL+'Z': case CTRL+'C':
