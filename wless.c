@@ -68,10 +68,10 @@ char *hit= NULL; // FREE!
 char *file= NULL;
 char *url= NULL;
 
-dstr *line= NULL;
+dstr *cmd= NULL;
 
 void clearcmd() {
-  if (line) line->s[0]= 0;
+  if (cmd) cmd->s[0]= 0;
 }
 
 
@@ -217,9 +217,9 @@ keycode listshortcuts() {
     printf("%s\n", links[i]);
 
   // try clever matching of command line
-  if (line->s[0]) {
+  if (cmd->s[0]) {
     for(int i=0; i<nlinks; i++) {
-      int m= match(links[i], line->s);
+      int m= match(links[i], cmd->s);
       if (0) ;
       else if (m>10000) C(green);
       else if (m>1000) C(yellow);
@@ -653,11 +653,11 @@ int printansiln(char *ln, int n, int matchLink) {
       if (_click_r==r+1 && c<=_click_c && _click_c<=vend) {
         char *p= sskip(f, "\e]:A:{");
         // copy "shortcut" to cmd line
-        line->s[0]= 0;
+        cmd->s[0]= 0;
         while(*p && !isspace(*p))
-          line= dstrncat(line, p++, 1);
+          cmd= dstrncat(cmd, p++, 1);
         // go!
-        tab= click(line);
+        tab= click(cmd);
         _clicked= 1;
         // make click pos inactive!
         // todo: cleaner?
@@ -1358,7 +1358,7 @@ int clickDispatch(int k) {
     return CTRL+'Q';
   }
   if (!strcmp(dir, "NC")) {
-    char *ln= line->s;
+    char *ln= cmd->s;
     char *r= speech();
     gtoast(r);
     keywait(1000);
@@ -2072,8 +2072,8 @@ keycode ctrlXAction(keycode xk) {
   case CTRL+'S': { // save
     FILE *h= fopenext(file, ".DOWN", "r");
     FAILIF(!h, "Can't open");
-    FAILIF(!line->s[0], "No filename");
-    FILE *s= fopen(line->s, "w");
+    FAILIF(!cmd->s[0], "No filename");
+    FILE *s= fopen(cmd->s, "w");
     FAILIF(!s, "Can't create");
     int c, n= 0;
     while((c= fgetc(h))!=EOF) {
@@ -2081,7 +2081,7 @@ keycode ctrlXAction(keycode xk) {
     }
     fclose(s);
     fclose(h);
-    message("Saved to file: %s [%d bytes]\n", line->s, n);
+    message("Saved to file: %s [%d bytes]\n", cmd->s, n);
     clearcmd();
     return NO_REDRAW;
   }
@@ -2089,7 +2089,7 @@ keycode ctrlXAction(keycode xk) {
   case CTRL+'U': return copyurl();
   case 'u': { // edit url
     clearcmd();
-    line= dstrncat(line, url, -1);
+    cmd= dstrncat(cmd, url, -1);
     return NO_REDRAW;
   }
 
@@ -2141,7 +2141,7 @@ keycode keyAction(keycode k) {
   // ^D - save current page as bookmark
   // ^S-D- save all open tabs as "folder" (chrome)
   if (k==CTRL+'D' || (k<127 && strchr("=*#$", k))) {
-    bookmark(k, line->s);
+    bookmark(k, cmd->s);
     k= NO_REDRAW;
   }
   if (k==CTRL+'A') k= listbookmarks(NULL, NULL);
@@ -2297,13 +2297,13 @@ keycode editTillEvent() {
     gotorc(screen_rows-1, 0);
     B(black); C(white);
     cursoron();
-    k= edit(&line, -1, NULL, NULL, " *");
+    k= edit(&cmd, -1, NULL, NULL, " *");
     cursoroff();
 
     // terminal may have been resized!
     rows = screen_rows-1;
 
-    char *ln= line->s;
+    char *ln= cmd->s;
 
     // Safe-way out!
     if (!strcmp(ln, "QUIT")) exit(0);
@@ -2323,12 +2323,12 @@ keycode editTillEvent() {
     //
     // this is almost DWIM!
     if (k==' ' && *ln && ln[strlen(ln)-1]!=' ') {
-      line= dstrncat(line, " ", 1);
+      cmd= dstrncat(cmd, " ", 1);
       k= NO_REDRAW;
       continue;
     }
     if (k=='*' && *ln && isdigit(ln[strlen(ln)-1])) {
-      line= dstrncat(line, "*", 1);
+      cmd= dstrncat(cmd, "*", 1);
       k= NO_REDRAW;
       continue;
     }
@@ -2356,7 +2356,7 @@ keycode editTillEvent() {
     if (k==TAB) {
       printf("\n====================\n");
       if (1) {
-        dstr *run= dstrprintf(NULL, "cut -d\\  -f3 .whistory | sort | uniq -c | sort -n | GREP_COLORS='mt=01;32' grep --color=always -iP \"%s\" ", line->s);
+        dstr *run= dstrprintf(NULL, "cut -d\\  -f3 .whistory | sort | uniq -c | sort -n | GREP_COLORS='mt=01;32' grep --color=always -iP \"%s\" ", cmd->s);
         system(run->s);
         printf("\n\n(ctrl-L to redraw)\n");
         free(run);
@@ -2364,7 +2364,7 @@ keycode editTillEvent() {
 
       if (1) {
         printf("\n====================\n");
-        dstr *run= dstrprintf(NULL, "cut -d\\  -f3 .whistory  | sort | uniq -c | sort -n | GREP_COLORS='mt=01;32' grep --color=always -P \" %s\" ", line->s);
+        dstr *run= dstrprintf(NULL, "cut -d\\  -f3 .whistory  | sort | uniq -c | sort -n | GREP_COLORS='mt=01;32' grep --color=always -P \" %s\" ", cmd->s);
         system(run->s);
         printf("\n\n(ctrl-L to redraw)\n");
         free(run);
@@ -2394,7 +2394,7 @@ int main(void) {
   
   int k= 0, q=0, lasttab=-1, lasttop=-1;
   // string for editing/command
-  line= dstrncat(NULL, NULL, 1);
+  cmd= dstrncat(NULL, NULL, 1);
 
   // main loop
   while(1) {
@@ -2447,9 +2447,9 @@ int main(void) {
     //printf("---%8x---%s\n", k, keystring(k));
 
     // - read special event & decode
-    k= editTillEvent(line);
+    k= editTillEvent(cmd);
 
-    k= command(k, line);
+    k= command(k, cmd);
     k= keyAction(k);
 
     // -- system
