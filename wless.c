@@ -1,8 +1,60 @@
-// TODO: keep rereading file to displaY?
-// tail -f source:
+//           welss.c
+//
+//         browser UI
+//        
+//
+// (>) 2021 Jonas S Karlsson
+//        jsk@yesco.org
+
+// A "Command Line First" Project
+//
+// This file implements a command line
+// browser, it's still a full TUI app,
+// but it's fully controllable from the
+// command line.
+//
+// This not to say that there are other
+// ways to interact with the browser,
+// but there are no irritating GUI menus
+// that provide all functionality.
+//
+// Instead, we have a small "irritating"
+// Termux/Xterm enabled TUI, mostly focused
+// on scrolling the current page, or going
+// back and forth in browser history.
+//
+
+// Implementation details:
+// - structured to have no unique
+//   non-persistent state
+// - state is directlly persisted
+// - state is read from disk at each
+//   action (yes! it's fast enough!
+//     use LEFT/RIGHT to go back and
+//     forth between seen pages...)
+// - pages are always rendered from disk
+//   file (.ANSI) - it is fast!
+// - at each action the screen completely
+//   redrawn (unless supressed)
+//
+// - it's a fast hack - you've been warned!
+// - it has many experimental UI-functions
+//   many will be removed when done/failed
+//
+// - the code has little state, but it's
+//   global.
+//
+//   0. start_tab, tab, top
+//   1. current history line =>
+//      (hit, url, file)
+//   2. the command line (cmd)
+//   3. searching metadata (_search, _only,
+//      _click_r, _click_c)
+
+// TODO: tail -f "feature"?
+//
 // - http://git.savannah.gnu.org/cgit/coreutils.git/tree/src/tail.c
 
-// partly from old imacs.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -17,12 +69,12 @@
 // lazy include no .h
 #include "graphics.c"
 
+// TODO: move to INI
 #define LOADING_FILE ".w/Cache/loading.html.ANSI"
 #define INTERNET_SEARCH "https://duckduckgo.com/html?q=%s"
 
 
-// generic functions?
-
+// generic functions
 
 void message(char* format, ...) {
   va_list argp;
@@ -39,41 +91,38 @@ void message(char* format, ...) {
   fflush(stdout);
 }
 
-
 // set k=NO_REDRAW to not update screen
-// (good for showing temporary information like menus/hilite)
+// (good for showing temporary information like menus/hilite, CTRL-L redraws
 #define NO_REDRAW -1
 #define REDRAW (CTRL+'L')
 
 // --- limits
-int nlines= 0, nright= 10;
-
-int ntab= 1; // number of newly openeed tabs + last
+int nlines= 0; // number of lines in file
+// number of newly opened tabs + last
+int start_tab=0, ntab= 1;
 
 int rows;
 
 // --- "global" browser state
 FILE *fhistory, *fbookmarks;
 
-int top, right, tab, start_tab;
+int top, tab;
 
+// searching and matching
 char *_search= NULL;
 int _only= 0;
-
 int _click_r=-100, _click_c=-100;
 
 
 char *hit= NULL; // FREE!
-// DONT free (partof hit)
-char *file= NULL;
-char *url= NULL;
+// DONT free (pointers into hit)
+char *file= NULL, *url= NULL;
 
 dstr *cmd= NULL;
 
 void clearcmd() {
   if (cmd) cmd->s[0]= 0;
 }
-
 
 int incdec(int v, int k, int ikey, int dkey, int min, int max, int min2val, int max2val) {
   if (k==ikey) v++;
@@ -87,7 +136,7 @@ int incdec(int v, int k, int ikey, int dkey, int min, int max, int min2val, int 
 #define COUNT(var, ikey, dkey, limit) var= incdec(var, k, ikey, dkey, 0, limit-1, 0, limit-1)
 #define COUNT_WRAP(var, ikey, dkey, limit) var= incdec(var, k, ikey, dkey, 0, limit-1, limit-1, 0)
 
-///////////////////////////////////
+////////////////////////////////////////
 // bookmarks + links
 
 // TODO: dynamic array? or read from file and match on every keystroke?
@@ -96,8 +145,8 @@ int incdec(int v, int k, int ikey, int dkey, int min, int max, int min2val, int 
 int nlinks= 0;
 char *links[LINKS_MAX] = {0};
 
+// free old links after n
 void trunclinks(int n) {
-  // free old links
   while(nlinks > n) {
     char *l= links[--nlinks];
     if (l) free(l);
@@ -105,6 +154,7 @@ void trunclinks(int n) {
   }
 }
 
+// open fname (.FOO) but with ext .BAR
 FILE *fopenext(char *fname, char *ext, char *mode) {
   char tmp[strlen(fname)+1+strlen(ext)+1];
   strcpy(tmp, fname);
@@ -113,7 +163,6 @@ FILE *fopenext(char *fname, char *ext, char *mode) {
     strcpy(ldot, ext);
   else
     strcat(tmp, ext);
-  //printf("....open: %s\n", tmp); key();
   return fopen(tmp, mode);
 }
 
@@ -132,18 +181,28 @@ int loadshortcuts(char *file) {
   // TODO: display error message?
   if (!flinks) return 0;
 
-  // TODO: this doesn't work with popen
+  // TODO: fgetline doesn't work with popen
   char *lk;
   while (lk=fgetline(flinks)) {
     if (nlinks<LINKS_MAX)
       links[nlinks++]= lk;
     else if (LINKS_MAX>=nlinks) {
       message("loadshortcuts: LINKS_MAX reached!");
-      //error(LINKS_MAX>=nlinks, 77, "Getmore links! %d");
     }
   }
   fclose(flinks);
 }
+
+// Generic fuzzy string matcher
+// (match link/desc A with cmd shortcut B)
+// Usage: match("foo bar", "f b")
+
+// Returns  0  if no match
+//    INT_MAX  if equal (case match)
+//  IMT_MAX/2  if equal (case not)
+//      10000  if it's a prefix
+//       1000+ if substring (>= 1000)
+//          n  prefixwords matched
 
 // score of string A matched to B
 //    INT_MAX  "FOO" to "FOO"
@@ -155,12 +214,6 @@ int loadshortcuts(char *file) {
 //          2  "fie foo fum" "foo fum"
 //          2  "fie foo foo bar" "foo bar"
 //
-// Returns  0  if no match
-//    INT_MAX  if equal (case match)
-//  IMT_MAX/2  if equal (case not)
-//      10000  if it's a prefix
-//       1000+ if substring (>= 1000)
-//          n  prefixwords matched
 int match(char* a, char* b) {
   // equal
   if (!strcmp(a, b)) return INT_MAX;
@@ -997,7 +1050,7 @@ int display(int k) {
   // -- footer
   reset();
   // TODO: set message and show for X s?
-  if (0) message("%3d %3d/%d = %d %d", top, right, tab, ntab-1, 4711, 12);
+  if (0) message("L%3d %3d/%d", top, tab, ntab-1);
   gotorc(screen_rows-1, 0);
 
   return r;
@@ -2260,8 +2313,6 @@ keycode keyAction(keycode k) {
 
   if (start_tab+tab<=1) tab= -start_tab+1;
   if (tab>=ntab) tab= ntab-1;
-
-  //COUNT_WRAP(right, RIGHT, LEFT, nright);
 
   //TODO: field? nfield
   // remove "right"
