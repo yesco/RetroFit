@@ -1,0 +1,45 @@
+# ESP-32 CyberDeck
+
+This is a sketch idea is for a future-proof esp32 CyberDeck
+
+# Features
+
+esp32 is powerful, however, it is
+limited in size of binaries, to get
+the most functionality we split it up
+in physical hardware plug-in components.
+
+You need more storage, get another
+webcache co-processor, lol?
+
+- esp32 webcache storage co-processor
+  - adafruit web/bt coprocessor
+  - esp32 libcurl
+  Implements libcurl down/up-loader
+  and web-cache using the internal
+  flash. It also handles cert/ssh etc.
+  - esp32 miniz zlib compressor
+  - esp32 webserver
+  - esp32 "fileserver" api (CHORD?)
+
+- esp32 display co-processor
+  - output directly to vga (bitluni)
+  - advanced terminal vt100+ (fabio lib)
+  - ./w web-terminal/browser-UI
+  - (run on 4.7" ePaper display module?)
+  - (run on vga32)
+  - in/out of remote display VNC (client+server)
+
+- esp32 magnios
+  - a functional "cloud-computer"
+  - serial usb-interface
+  - replicatable state (add-only)
+  - built-in macro-language (jml)
+  - built-in editor (imacs)
+  - built-in lisp (esp-lisp)
+  - built-in panda (not exist yet)
+  - (ncurses as window system?)
+  - stateless persisten processes/tasks
+    (i.e. state persistent ONLY)
+    (no cache/state in RAM)
+    (means can hot-swap w/o data-loss)
