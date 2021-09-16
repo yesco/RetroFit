@@ -574,7 +574,7 @@ int visCol(char *ln, char *end) {
   int col= 0;
   char c;
   while ((c= *ln) && ln++<=end) {
-    if (c=='\r') col= 0; // ^M
+    if (c=='\r' || c=='\n') col= 0; // ^M
     else if (c=='\e') {
       if ((c= *ln)==']') {
         // skip hidden text
@@ -586,10 +586,10 @@ int visCol(char *ln, char *end) {
       }
     } else if (c<32) ;
     else if (c>127) {
+      // TODO: utf-8 fullwidth
       if (isstartutf8(c)) col++;
     } else {
       if (c>=' ') col++;
-      // TODO: detect fullwidth char? :-(
     }
   }
   return col;
@@ -607,6 +607,12 @@ void _clearend() {
 }
 
 void printansi(int len, char *ln, char *codes) {
+  // poor mans (don't scroll sideways)
+  if (0) {
+    printf("%.*s", len, ln);
+    return;
+  }
+
   static int ch= 0, chk= 0; // utf-8 decode
   if (!ln || len<=0) return;
   char c;
@@ -705,10 +711,11 @@ int printansiln(char *ln, int n, int matchLink) {
 
     // -- print match
     // test if click on
-    if (_search && !strcmp(_search, "links")) {
-      int r= -n-1, c= visCol(ln, f);
+    if (_search && !strcmp(_search, "LINKS")) {
+      int r= -n-1+1, c= visCol(ln, f);
+//printf("c(%d ? %d %d)", _click_c, c, f-ln);
       int vend= visCol(ln, f+len);
-      if (_click_r==r+1 && c<=_click_c && _click_c<=vend) {
+      if (_click_r==r && c<=_click_c && _click_c<=vend) {
         char *p= sskip(f, "\e]:A:{");
         // copy "shortcut" to cmd line
         cmd->s[0]= 0;
@@ -722,7 +729,11 @@ int printansiln(char *ln, int n, int matchLink) {
         FREE(_search);
 
         B(red); C(white);
+      } else {
+        // missed it, hilite anyway!
+        B(red); C(white);
       }
+
     } else if (_search) {
       // hilite every match
       B(red); C(white);

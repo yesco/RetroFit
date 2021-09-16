@@ -18,10 +18,11 @@
 // Binary ansi ?
 /*
 
+  TODO: implement for w.c and wless.c
 
   Terminal state (4 bytes = "int")
-    1 byte bg (256)
-    1 byte fg (256)
+    1 byte bg (0-255)
+    1 byte fg (0-255)
     1 byte 8 bits features:
        underline bold italic blink
        overline strike reverse ?cursor
@@ -32,7 +33,7 @@
        1 last was whitespace
        1 last was newline
 
-   Window state (4 bytes = "int")
+   Window state (8 bytes = "long")
     2 byte cursor (row, col)
     2 byte origin (row, col)
     2 byte size (row, col)
@@ -59,19 +60,19 @@
   0e -- link ("keys url content") (SO)
   0f -- link end (SI)
 
-  10 -- black
-  11 -- red
-  12 -- green
+  10 -- black (text)
+  11 -- red   
+  12 -- green 
   13 -- yellow
   14 -- blue
   15 -- magenta
   16 -- cyan
   17 -- white
 
-  18 -- none? (color)     (^Z = EOF!)
-  19 -- fg-prefix (next char 256 color)
-  1a -- bg-prefix (next char 256 color)
-  1b -- ESC (ansi=bold/underline/italic)
+  18 -- bg black!           (^Z = EOF!)
+  19 -- fg-prefix (next char 255 color)
+  1a -- bg-prefix (next char 255 color)
+  1b -- ESC (ansi stuff!)
 
   1c -- database (FS file separator)
   1d -- table sep (GS group separator)
@@ -80,6 +81,28 @@
   1f -- hard space (US - unit separator)
 
   7f -- DEL (?)
+
+  C0 y0 - quoted binary       (0-63)
+  C1 y1 - quoted binary     (64-127)
+
+  E0 y2 - mode charxels
+  ED y3 - mode sixels
+
+  F0 z0 - mode sextants 
+
+  F4 o0 - bitblt (win)       overlong 
+  F5 o1 - end bitblt         >U+10FFFF
+  F6 o2 - scroll (UDLR)      >U+10FFFF
+  F7 o3 - ascblt             >U+10FFFF
+
+  F8 x0 - number          (5 byte utf8) 
+  F9 x1 - string               ..
+  FA x2 - list                 ..
+  FB x3 - map                  ..
+  FC x4 - blob            (6 byte utf8)
+  FD x5 - name
+  FE x6 - datetime        (7 byte utf8)
+  FF x7 - unwritten flash (8 byte utf8)
 
   // UTF-8 encoding
   0xxx xxxx ASCII              (128)
@@ -143,6 +166,8 @@
   4 overlongs (y0-y3)/4 - ???
   4 to big    (o0-o3)/4 - ???
   1 overlongs (z0   )/1 - ???
+ ===
+  17 extra chars!
 
   1100 0000 overlong ASCII! (C0) y0
   1100 0001 overlong ASCII! (C1) y1
