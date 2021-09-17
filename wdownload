@@ -20,6 +20,9 @@ COLS=${3:-}
 SAFE=`$WPATH/wquote "$GO"`
 CFILE=$WDIR/Cache/$SAFE
 
+#USERAGENT="curl/7.78.0"
+USERAGENT="./w (minimalist text-only retro browser; Linux/Android/Termux) github.com/yesco/RetroFit"
+
 # --- DOWNLOAD forces a new download
 
 [ $DOWNLOAD ] && rm -f $CFILE.ANSI $CFILE.TMP
@@ -80,7 +83,7 @@ if [[ ! -f "$CFILE.DOWN" ]]; then
    # TODO: this make it not print ERROR?
    # -a $CFILE.LOG 
 
-  (wget -S -O $CFILE.TMP "$GO" || echo 0 ) 2>&1 | grep ERROR > $CFILE.ERR \
+  (wget -U "$USERAGENT" -S -O $CFILE.TMP "$GO" || echo 0 ) 2>&1 | grep ERROR > $CFILE.ERR \
     && (err=$? ; echo "WGET.ERROR $?" >> $CFILE.ERR ; exit $err) \
    && rm $CFILE.TMP || rm $CFILE.ERR
 

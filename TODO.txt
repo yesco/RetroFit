@@ -1,5 +1,11 @@
 ﻿# ----------- TODOs ideas for ./w
 
+- *.LINKS: links spanning spanning several lines get multiple entries.
+
+- wget fails on.... https://au.finance.yahoo.com/news/the-boring-company-completes-the-excavation-of-its-las-vegas-tunnels-121043367.html
+   - 404 on "wrong" user-agent!
+   use -U "curl/7.78.0"
+
 - somehting in scrolling makes it hang and not take any input...!
 
 - img: display alt attribute, or rel?

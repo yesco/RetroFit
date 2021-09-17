@@ -72,7 +72,8 @@
 // TODO: move to INI
 #define LOADING_FILE ".w/Cache/loading.html.ANSI"
 #define INTERNET_SEARCH "https://duckduckgo.com/html?q=%s"
-
+// Text only retro-info text search-engine
+//#define INTERNET_SEARCH "https://search.marginalia.nu/search?query=foo"
 
 // generic functions
 
