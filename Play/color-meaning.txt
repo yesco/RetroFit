@@ -1,0 +1,48 @@
+# 1 RED
+  
+passion, energy, sexuality, warn, caution, danger, 
+
+# 2 ORANGE
+
+warmth, joy, fun, optimistic, uplifting, soecial communication
+
+# 3 YELLOW
+
+happiness, optimism, thought, curiosity,
+
+# 4 GREEN
+
+harmony, health, balance, safe, secure, hope, prosperity, growth, luck
+
+# 5 TURQUOISE
+
+calmness, clarity, stabalizes emotions, cool calming peace, boost of positive mental energy, balance on the path of spiritual growth
+
+# 6 BLUE
+
+trust, loyalty, relaxing, peace, confident, secure, dislikes confrontation and too much attention, honest, responsible, count on it
+
+# 7 PURPLE
+
+spirituality, imagination, innermost thoughts, wisdom, reminds us of who we are, spiritual growth, royalty, luxary, mystery, magic sparks
+
+# 8 PINK
+
+love, compassion, sympathy, acceptance, playful, friendly, nurture, joy, feminine, bursting with pure romance.
+
+# 9 BROWN
+
+stabilty, reliability, comforting, counselour, friend full of wisdom, honest opionon and support and protection, stay grounded, inspire the simple things in life,
+
+# 10 BLACK
+
+power, sophistication, incredible strong and intimidating, exudes authority, feel secure and protected, formal, elegance, sexiness
+
+# 11 GRAY
+
+compromize and contro, neutral, convservative, unemotional, solid as rock, stable, reliable, calming, peaceful, relaxing, soothing, avoids attention, mature, insightful
+
+# 12 WHITE
+
+pure and innocence, true balance of all colors, cleanliness, perfection, hope and clarify, refreshing and purifying mind, open-mindness, self-reflection
+
