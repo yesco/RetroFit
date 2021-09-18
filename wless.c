@@ -291,12 +291,13 @@ keycode listshortcuts() {
 
 // TODO: research universal XML bookmarks format called XBEL, also supported by e.g. Galeon, various "always-have-my-bookmarks" websites and number of universal bookmark converters.
 
+// k=='^' == ^note or ^todo and no log url!
 void logbookmark(int k, char *s) {
   //log(bms, url, offset, top, s);
   gotorc(screen_rows-1, 0);
   cleareos();
   dstr *ds= dstrprintf(NULL, "%s %s %d %d %c%s\n",
-    isotime(), url,  -1, top, k, s);
+    isotime(), k!='^'? url: "",  -1, top, k, s);
   // print to screen w/o newline
   fputs(ds->s, fbookmarks);
   free(ds);
@@ -1213,6 +1214,25 @@ keycode command(keycode k, dstr *ds) {
   int len= strlen(ln);
   if (!*ln) return k;
 
+  // Command Letters
+  //   ?	help
+  //   *#$@	bookmark
+  //   /&=	search
+  //   %	??? substitute
+  //   !| `	pipes/commands
+  //   ^	??? note
+  //   _	??? copy/paste
+  //   +-	???
+  //   <> = ,.	back/forw page?
+  //   ()[]{}
+  //   :;	??? commando
+  //   "'
+  //   \	???
+  //   ~	??? home/not?
+  //   0-9 *	??? line?
+  //   A-Z*	??? open back
+
+
   // SEARCHING in page
   if (k==RETURN || k==CTRL+'S' || k==CTRL+'O') {
     switch(ln[0]) {
@@ -1281,10 +1301,10 @@ keycode command(keycode k, dstr *ds) {
       break;
     }
 
-    // If have SPC then NOT link/url
+    // no have space - link/url
     if (!strchr(ln, ' ')) {
 
-      // CLICK link
+      // -- CLICK link
       // all a-z, maybe link click?
       if (strspn(ln, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")==len) {
         int rtab= click(ln);
@@ -1298,7 +1318,7 @@ keycode command(keycode k, dstr *ds) {
         // not a link name - do search!
       }
 
-      // Calculate expression
+      // -- Calculate expression
       if (strspn(ln, "+-0123456789.eE+*/%^=-lastijng<>!()[] ")==len 
           && !strchr(ln, '"') && !strchr(ln, '\'')) {
         dstr *run= dstrprintf(NULL, "printf \"`echo \\\"%s\\\" | bc -l`\"", ln);
@@ -1322,7 +1342,7 @@ keycode command(keycode k, dstr *ds) {
         return NO_REDRAW;
       }
 
-      // OPEN url
+      // -- OPEN url
       // (url? or file? have /:.? )
       if (strchr(ln+1, '/') || strchr(ln+1, ':') || strchr(ln, '.')) {
         tab= newtab(ln);
@@ -1333,7 +1353,37 @@ keycode command(keycode k, dstr *ds) {
       // Fallthrough (even if no space)
     }
 
-    // SEARCH the web (duckduckgo)
+
+    // textual commands?
+    char *txt= strchr(ln, ' ');
+    if (txt) txt++;
+
+    if (0) {
+
+    } else if (!strncmp(ln, "note ", 5) || !strncmp(ln, "todo ", 5)) {
+
+      // -- note / todo
+      bookmark('^', ln);
+      return NO_REDRAW;
+
+    } else if (!strncmp(ln, "say ", 4) || !strncmp(ln, "tweet ", 6)) {
+
+      // -- say / tweet
+      FILE *f= fopen(".wtweets", "a+");
+      if (f) {
+        dstr *ds= dstrprintf(NULL, "%s %s\n", isotime(), txt);
+        fputs(ds->s, f);
+        free(ds);
+        message("Tweeted %s", txt);
+        fclose(f);
+        return NO_REDRAW;
+      }
+
+    }
+      
+
+
+    // -- SEARCH the web (duckduckgo)
     // TODO: change query to use dstr!
     dstr *q= dstrncaturi(NULL, ln, -1);
     char query[strlen(INTERNET_SEARCH)+strlen(q->s)+1];
