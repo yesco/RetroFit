@@ -1,5 +1,18 @@
 ﻿# ----------- TODOs ideas for ./w
 
+- w.x segfault https://en.wikipedia.org/wiki/Irish_Travellers
+  - wdownload gives different version shorter!!!
+  ~/GIT/RetroFit $ ./ls i*.html
+   166  inc-00.html  
+   217  inc-01.html               
+   229  inc-02.html              
+344792  ir-curl.html            
+344792  ir-myown.html          
+344792  ir.html               
+277697  irish.html
+
+    - if User-Agent contains "Android" or "iPhone" you'll get smaller version!
+
 - twtxt - textual mini tweeting platform
   tweet "foobar"
   follow bob

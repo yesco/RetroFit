@@ -712,16 +712,20 @@ void setLinkUrl(dstr* val) {
   //fprintf(stderr, "\nFIXURL:  %s\n", _url->s);
 
   // absolute url
-  if (strchr(_url->s, ':') || strstr(_url->s, "//")) return;
+  if (strchr(_url->s, ':')) return;
+  char* dslash= strstr(_url->s, "//");
+  if (dslash > _url->s) return;
 
   dstr *n= NULL;
   // absolute path /foo...
-  if (_url->s[0]=='/')
+  if (dslash) 
+    n= dstrncat(NULL, "http:", -1);
+  else if (_url->s[0]=='/')
     n= dstrncat(NULL, hosturl, -1);
   else
     n= dstrncat(NULL, dsbase->s, -1);
   
-  n= dstrncat(n, _url->s,-1);
+  n= dstrncat(n, _url->s, -1);
   free(_url);
   _url= n;
 
@@ -883,6 +887,8 @@ void newTag(TAG tag) {
 }
 
 void addAttr(TAG tag, TAG attr, dstr* val) {
+  if  (!tag || !attr || !val) return;
+
   // - https://www.w3.org/TR/html4/appendix/notes.html#non-ascii-chars
 
   // B.2.2 Ampersands in URI attribute values The URI that is constructed when a form is submitted may be used as an anchor-style link (e.g., the href attribute for the A element). Unfortunately, the use of the "&" character to separate form fields interacts with its use in SGML attribute values to delimit character entity references. For example, to use the URI "http://host/?x=1&y=2" as a linking URI, it must be written <A href="http://host/?x=1&#38;y=2"> or <A href="http://host/?x=1&amp;y=2">.
@@ -908,6 +914,10 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
       setBase(val);
       return;
     }
+
+    // frame - make a link
+    // TODO: render as a tag, but no content?
+    //if (strstr(" frame iframe "))
 
     // don't put in link for images
     // TODO: render differnt?

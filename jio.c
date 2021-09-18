@@ -793,7 +793,9 @@ dstr* dstrprintf(dstr* d, char* fmt, ...) {
   return d;
 }
 
-// encode for URI
+// Actusally, encode for safe file name!
+
+// (encode an URI)
 // we quote any char required plus
 // any that may cause trouble in bash
 //
@@ -803,7 +805,7 @@ dstr *dstrncaturi(dstr *d, char *s, int size) {
   d= dstrncat(d, NULL, ((size<0 && s)? strlen(s) : size)*11/10);
   
   while (s && *s && (size<0 || size-->0)) {
-    if (*s<' ' || *s>127 || strchr(" !#$%&'()*-+:\\/;<>?@[]^{}`~", *s)) {
+    if (*s<' ' || *s>127 || strchr(" !#$%&'()*-+,:;\\/<>?@[]^{}`~", *s)) {
       char hex[8]; sprintf(hex, "%%%02x", (unsigned char)*s);
       d= dstrncat(d, hex, -1);
     } else {
