@@ -1,5 +1,46 @@
 ﻿# ----------- TODOs ideas for ./w
 
+- twtxt - textual mini tweeting platform
+  tweet "foobar"
+  follow bob
+  following (list)
+  unfollow bob
+  timeline (list global backwards 5m ago..)
+  view bob (url)
+  nick me (name) 
+  - https://twtxt.readthedocs.io/en/stable/user/configuration.html
+
+  - https://felix.plesoianu.ro/web/federation-fediverse.html
+
+- TODO: twee/lyskom/news
+
+  note #fish foobar
+  todo [1 day, on wednesday] what
+
+  say (append to file [@foo])
+
+  news (unread+filter)
+  view bob
+
+  follow url
+  unfollow bob/url
+  list (filter)
+
+  list (all followed?)
+
+  find
+  - wget -O -o --no-check-certificate https://registry.twtxt.org/api/plain/users
+  = list "nick URL timestamp"
+
+  discover: 
+
+  - https://twtxt.readthedocs.io/en/stable/user/discoverability.html
+
+  Filters: words/today/yesterday/last/top/unread/read/last week
+
+  Expansions: %u=url, %d=date %t=time %p=place, %i=iso-date-time, %f=file ansi, %n=%=tab number, %l=line, %e=email
+
+
 - *.LINKS: links spanning spanning several lines get multiple entries.
 
 - wget fails on.... https://au.finance.yahoo.com/news/the-boring-company-completes-the-excavation-of-its-las-vegas-tunnels-121043367.html

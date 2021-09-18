@@ -25,7 +25,7 @@ USERAGENT="./w (minimalist text-only retro browser; Linux/Android/Termux) github
 
 # --- DOWNLOAD forces a new download
 
-[ $DOWNLOAD ] && rm -f $CFILE.ANSI $CFILE.TMP
+# [ $DOWNLOAD ] && rm -f $CFILE.ANSI $CFILE.TMP
 
 # --- Log it (if -d)
 # (logging it adds to history so we can browse it!)
@@ -41,13 +41,6 @@ USERAGENT="./w (minimalist text-only retro browser; Linux/Android/Termux) github
 # --- local file (always copy)
 
 [ -f $GO ] && cp $GO $CFILE.DOWN && ( rm -f $CFILE.ANSI ; touch $CFILE.TMP )
-
-# --- Do we already have it?
-# (detect change of screen width?)
-
-#[ -f $CFILE.DOWN && ! $DOWNLOAD ] \
-#  && $WPATH/wmessage "./wdownload already have $O" $ROWS $COLS \
-#  && exit 0
 
 # --- log
 echo "`date --iso=s` #=DOWN $GO $CFILE.ANSI" \
@@ -68,7 +61,7 @@ echo "`date --iso=s` #=DOWN $GO $CFILE.ANSI" \
 # TODO: always update?
 
 # --- download if not local file
-if [[ ! -f "$CFILE.DOWN" ]]; then
+if [[ $DOWNLOAD || ! -f "$CFILE.DOWN" ]]; then
    # - display spinning globe!
    $WPATH/spin.x & foo_pid=$!
 
@@ -83,7 +76,11 @@ if [[ ! -f "$CFILE.DOWN" ]]; then
    # TODO: this make it not print ERROR?
    # -a $CFILE.LOG 
 
-  (wget -U "$USERAGENT" -S -O $CFILE.TMP "$GO" || echo 0 ) 2>&1 | grep ERROR > $CFILE.ERR \
+  # TODO: backups?
+  #   -N --backups=3 
+  #   has no effect as we rename...
+
+  (wget -N --backups=3 -U "$USERAGENT" -S -O $CFILE.TMP "$GO" || echo 0 ) 2>&1 | grep ERROR > $CFILE.ERR \
     && (err=$? ; echo "WGET.ERROR $?" >> $CFILE.ERR ; exit $err) \
    && rm $CFILE.TMP || rm $CFILE.ERR
 
@@ -102,7 +99,17 @@ if [[ ! -f "$CFILE.DOWN" ]]; then
 
    # - cat so get correct date on file
    # (wget gives file as of HEAD date!)
-   cat $CFILE.TMP > $CFILE.DOWN
+
+#   cat $CFILE.TMP > $CFILE.DOWN
+
+   # - rotate backups manually
+   # use actual HEAD date
+   rm -f $CFILE.DOWN.3
+   mv -f $CFILE.DOWN.2 $CFILE.DOWN.3 2>/dev/null
+   mv -f $CFILE.DOWN.1 $CFILE.DOWN.2 2>/dev/null
+   mv -f $CFILE.DOWN $CFILE.DOWN.1 2>/dev/null
+   mv -f $CFILE.TMP $CFILE.DOWN
+
    #   ls -l $CFILE.*
 fi
 

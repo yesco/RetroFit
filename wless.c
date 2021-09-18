@@ -423,6 +423,9 @@ void search(int k, char* text) {
 }
 
 // start download in background
+#define FORCE_RENDER 1
+#define FORCE_RELOAD 2
+
 void download(char* url, int force, int dolog) {
   if (!url || !*url) return;
   char *end= strpbrk(url, " \t\n");
@@ -443,7 +446,7 @@ void download(char* url, int force, int dolog) {
     fclose(f);
   } else {
     dstr *run= dstrprintf(NULL, "./wdownload %s \"%.*s\" %d %d &",
-      force?"-d":"", ulen, url, screen_rows, screen_cols);
+      force>=FORCE_RELOAD?"-d":"", ulen, url, screen_rows, screen_cols);
     system(run->s);
     free(run);
     // wait a little for .TMP to be created
@@ -453,7 +456,11 @@ void download(char* url, int force, int dolog) {
 }
 
 void reload(char* url) {
-  download(url, 1, 0);
+  download(url, FORCE_RELOAD, 0);
+}
+
+void rerender(char* url) {
+  download(url, FORCE_RENDER, 0);
 }
 
 int netErr() {
@@ -689,6 +696,8 @@ void printansi(int len, char *ln, char *codes) {
 
 int _clicked= 0;
 
+char *diffcodes= NULL;
+
 // print ansi line and hilite matches
 int printansiln(char *ln, int n, int matchLink) {
   char *s= ln;
@@ -705,6 +714,7 @@ int printansiln(char *ln, int n, int matchLink) {
   // reset codes before each text char!
   char *codes= -n==screen_rows/2-1?"\e[27m":"";
   codes= "";
+  codes= diffcodes? diffcodes: "";
 
   // find and hilite each match
   while(f) {
@@ -758,6 +768,8 @@ int printansiln(char *ln, int n, int matchLink) {
   // (this will always be called, even for lines not to be displayed)
   printansi(strlen(s), s, codes);
 
+  diffcodes= NULL;
+
   return found;
 }
 
@@ -784,6 +796,16 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
       }
       if (c==EOF) break;
       c= fgetc(fansi);
+
+      // diff marker? "ignore"
+      if (c=='+' || c=='-' || c==' ' || c=='%') {
+        // if inverted 3x otherise 4x
+        if (c=='+') diffcodes="\e[48;5;22m"; // dark green 28, 22
+        if (c=='-') diffcodes="\e[41;1m"; // red
+        if (c=='%') diffcodes="\e[48;5;18m"; // dark blue
+        c= fgetc(fansi);
+      }
+
       if (c!='\n' && c!='#') {
         // count of lines printed
         if (n<0 && (!_only || found || matchLink)) {
@@ -1784,7 +1806,7 @@ void loadPageMetaData() {
 
 // CTRL
 // ==== 
-// ^A    bookmarks
+// ^A    list/search bookmark
 // ^B    back, chrome:bookmarks
 // ^C    EXIT
 // ^D    ? del-tab, chrome: bookmark
@@ -1800,8 +1822,8 @@ void loadPageMetaData() {
 // ^N    scroll-down, chrome: new window
 // ^O    ? , chrome: open file on computer
 // ^P    scroll-up, chrome: print file
-// ^Q    quotable info about page
-// ^R    reload
+// ^Q    query info about page
+// ^R    ReRender (for current width)
 // ^S    search (search-next?)
 // ^T    ? tabs list, chrome: new tab
 // ^U    (urls) list-links/shortcuts, chrome: display HTML (use ^E)
@@ -1826,14 +1848,16 @@ void loadPageMetaData() {
 // ^X ^K    ? emacs: prefix
 // ^X ^L    ? emacs: downcase-region
 // ^X ^M    RET: long commands?
+// ESC-x    ??? 
 // ^X ^N    ! ? emacs: set-goal-column
 // ^X ^O    ! ? emacs: delete-blank-lines
 // ^X ^P    ? emacs: mark-page
 // ^X ^Q    ? emacs: read-only-mode
-// ^X ^R    ? emacs: find-file-read-only
-// ^X ^S    ? emacs:save
+// ^X ^R    Force Re(down)Load file
+// ^X ^S    save file
 // ^X ^T    ? emacs: transpose-lines
 // ^X ^U    copyUrl
+// ^X ^u    pastUrl in command
 // ^X ^V    ? emacs: find-alternative-file
 // ^X ^W    ? emacs: write-file
 // ^X ^X    ?eXchange mark and point
@@ -1966,7 +1990,7 @@ keycode keyAction(keycode k) {
     bookmark(k, cmd->s);
     k= NO_REDRAW;
   }
-  if (k==CTRL+'A') k= listbookmarks(NULL, NULL);
+  if (k==CTRL+'A') k= listbookmarks(NULL, cmd->s[0]? cmd->s: NULL);
   if (k==CTRL+'Q') k= listbookmarks(url, NULL);
 
   if (k==CTRL+'U') k= listshortcuts();
@@ -1976,8 +2000,8 @@ keycode keyAction(keycode k) {
   // TODO: how to only do RE-RENDER (w.x)?
   // (twice in a row?, lol)
   if (k==CTRL+'R') {
-    gtoast("Reloading");
-    reload(url);
+    gtoast("ReRender");
+    rerender(url);
     k= REDRAW;
   }
   // chrome: CTRL-P: print current webbpage ? save?
