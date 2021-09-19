@@ -28,6 +28,16 @@ void _jio_exit(); // atexit() should do
 #define error(exp, exitcode, msg...) \
   do if (exp) { fprintf(stderr, "%%ERROR: %s:%d in %s(...)\n", __FILE__, __LINE__, __func__); fprintf(stderr, msg); fputc('\n', stderr); char*z=NULL; *z=42; kill(getpid(), SIGABRT); exit(exitcode); } while(0)
 
+// timestamped logging
+
+#define FLOGF(F, fmt, args...) \
+  do { \
+   dstr* d= dstrprintf(NULL, "%s " fmt, isotime(), args); \
+   if (F) fputs(d->s, F); \
+   if (F) fflush(F); \
+   if (d) free(d); \
+  } while(0)
+
 ////////////////////////////////////////
 // - ansi screen
 

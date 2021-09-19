@@ -296,24 +296,14 @@ void logbookmark(int k, char *s) {
   //log(bms, url, offset, top, s);
   gotorc(screen_rows-1, 0);
   cleareos();
-  dstr *ds= dstrprintf(NULL, "%s %s %d %d %c%s\n",
-    isotime(), k!='^'? url: "",  -1, top, k, s);
-  // print to screen w/o newline
-  fputs(ds->s, fbookmarks);
-  free(ds);
+  FLOGF(fbookmarks, "%s %d %d %c%s\n",
+    k!='^'? url: "\"\"",  -1, top, k, s);
   message("Saved bookmark '%c' = '%s'", k, s);
 }
 
 void loghistory(char *url, int ulen, char *file) {
-  dstr *ds= dstrprintf(NULL, "%s #=W %.*s %s\n",
-    isotime(), ulen, url, file);
-if (strstr(ds->s, "LINKTEXT")) {
-  printf("\n\n\n-------------loghistory- LINKTEXT!---->%s<\n", ds->s);
-  if (key()==CTRL+'C') assert(!"stop");
-}
-  fputs(ds->s, fhistory);
-  fflush(fhistory);
-  free(ds);
+  FLOGF(fhistory, "#=W %.*s %s\n",
+    ulen, url, file);
 }
 
 keycode listbookmarks(char *url, char *s) {
@@ -1370,17 +1360,11 @@ keycode command(keycode k, dstr *ds) {
 
       // -- say / tweet
       FILE *f= fopen(".wtweets", "a+");
-      if (f) {
-        dstr *ds= dstrprintf(NULL, "%s %s\n", isotime(), txt);
-        fputs(ds->s, f);
-        free(ds);
-        message("Tweeted %s", txt);
-        fclose(f);
-        return NO_REDRAW;
-      }
-
+      FLOGF(f, "%s\n", txt);
+      message("Tweeted %s", txt);
+      fclose(f);
+      return NO_REDRAW;
     }
-      
 
 
     // -- SEARCH the web (duckduckgo)
