@@ -515,8 +515,9 @@ void nl() {
   printf("\e[K\n"); // workaround bug!
   _cury++;
 
-  // hidden source file offset
-  printf("@%d:\r", offset);
+  // output offset of current location
+  // ( diff -I @[[;digit;]]  == ignore ! )
+  printf("@%d\n", offset);
 
   // recolor for each new line
   recolor();

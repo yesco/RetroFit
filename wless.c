@@ -783,13 +783,15 @@ int printansiln(char *ln, int n, int matchLink) {
 
 // Return: true if clicked (askin redo page)
 
+int page_offset= -1;
+
 int printAnsiLines(FILE *fansi, int top, int rows) {
   _clicked= 0;
+  page_offset= -1;
 
   int matchLink = _search && !strcmp(_search, "LINKS");
   int c, n=top;
   rows-=1;
-
   fseek(fansi, 0, SEEK_SET);
   dstr *ln= dstrncat(NULL, NULL, 160);
   char *found= NULL;
@@ -805,12 +807,24 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
       if (c==EOF) break;
       c= fgetc(fansi);
 
-      // diff marker? "ignore"
-      if (c=='+' || c=='-' || c==' ' || c=='%') {
+      // (soruce) offset
+      if (c=='@') {
+        int num=-1;
+        if (1==fscanf(fansi, "%d", &num)) {
+          if (page_offset==-1)
+            page_offset= num;
+        } // else error?
+        // is followed by nl
+        continue;
+      }
+
+      // diff adds one char, detect
+      // (any leading space we've removed or quoted if in _pre-mode)
+      if (strchr(" +-!%<>", c)) {
         // if inverted 3x otherise 4x
-        if (c=='+') diffcodes="\e[48;5;22m"; // dark green 28, 22
-        if (c=='-') diffcodes="\e[41;1m"; // red
-        if (c=='%') diffcodes="\e[48;5;18m"; // dark blue
+        if (c=='+' || c=='>') diffcodes="\e[48;5;22m"; // added: dark green 28, 22
+        if (c=='-' || c=='<') diffcodes="\e[41;1m"; // removed: red
+        if (c=='!' || c=='%') diffcodes="\e[48;5;18m"; // changed: dark blue
         c= fgetc(fansi);
       }
 
