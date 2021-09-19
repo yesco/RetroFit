@@ -306,6 +306,23 @@ void loghistory(char *url, int ulen, char *file) {
     ulen, url, file);
 }
 
+#define FAILIF(exp, msg...) if(exp){message(msg); return NO_REDRAW;}
+
+keycode follow(char *txt) {
+  if (!txt || !*txt) txt= url;
+  FAILIF(!url || !*url, "No URL");
+ 
+  // -- follow
+  FILE *f= fopen(".wfollow", "a+");
+  // assume it's an URL
+  FLOGF(f, "%s\n", txt);
+  message("Followed %s", txt);
+  fclose(f);
+
+  return NO_REDRAW;
+}
+
+
 keycode listbookmarks(char *url, char *s) {
   char *line;
   clear();
@@ -1364,8 +1381,9 @@ keycode command(keycode k, dstr *ds) {
       message("Tweeted %s", txt);
       fclose(f);
       return NO_REDRAW;
+    } else if (!strncmp(ln, "follow ", 4)) {
+      return follow(txt);
     }
-
 
     // -- SEARCH the web (duckduckgo)
     // TODO: change query to use dstr!
@@ -1550,8 +1568,6 @@ int clickDispatch(int k) {
 
 ////////////////////////////////////////
 // DRAG SCROLLERS ACTIONS
-
-#define FAILIF(exp, msg...) if(exp){message(msg); return NO_REDRAW;}
 
 
 void scrollBookmarks() {
@@ -1947,6 +1963,8 @@ keycode ctrlXAction(keycode xk) {
 
   case 'k': return deltab();
   case CTRL+'B': return gohistory();
+
+  case CTRL+'F': return follow(cmd->s);
 
   case CTRL+'S': { // save
     FILE *h= fopenext(file, ".DOWN", "r");
