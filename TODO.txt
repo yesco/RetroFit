@@ -1,5 +1,10 @@
 ﻿# ----------- TODOs ideas for ./w
 
+- assert break for table 
+  Whole page is inside table...
+  (when to give up table tag? revert to simple?)
+  - https://blog.robertelder.org/diff-algorithm/
+
 - w.x segfault https://en.wikipedia.org/wiki/Irish_Travellers
   - wdownload gives different version shorter!!!
   ~/GIT/RetroFit $ ./ls i*.html
@@ -13,6 +18,8 @@
 
     - if User-Agent contains "Android" or "iPhone" you'll get smaller version!
 
+  - https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent
+
 - twtxt - textual mini tweeting platform
   tweet "foobar"
   follow bob
@@ -20,7 +27,7 @@
   unfollow bob
   timeline (list global backwards 5m ago..)
   view bob (url)
-  nick me (name) 
+  nick 0h me (name) 
   - https://twtxt.readthedocs.io/en/stable/user/configuration.html
 
   - https://felix.plesoianu.ro/web/federation-fediverse.html
