@@ -156,6 +156,7 @@ int parse_color(TAG fnd, int dflt) {
 // pink gray lightgreen cyan ...
 // RGB (256^3) or rgb (0-255) color for C()/B()
 int decode_color(char* name, int dflt) {
+  if (!name) return dflt;
   int32_t c= parse_color(name, -1);
   if (c!=-1) return c;
   
@@ -735,6 +736,9 @@ void setLinkUrl(dstr* val) {
 
 void addContent();
 
+// extracted by process
+char *style= NULL, *sc= NULL, *sb= NULL;
+
 int process(TAG *end);
 
 // Use HI macro! (passes in tag)
@@ -796,9 +800,13 @@ int hi(TAG *tag, char* tags, enum color f, enum color b) {
       recolor();
     }
 
+    // -- style overrides
+    if (sc) C(decode_color(sc, _reverse?_bg:_fg));
+    if (sb) B(decode_color(sb, _reverse?_fg:_bg));
+    FREE(style); FREE(sc); FREE(sb);
+
     // -- content
     {
-      // recolor();
       // actions just before content
       if (strstr(" h1 ", tag)) p(HNL);
       if (strstr(HD, tag)) p(HS);
@@ -1005,6 +1013,7 @@ int process(TAG *end) {
 
     } else { // '<' tag start
       TAG tag= {0};
+
       _pc(FLUSH_WORD);
 
       // parse tag
@@ -1054,8 +1063,23 @@ int process(TAG *end) {
                 ungetc(c, f);
               }
 
-              // addAttr can store/free v
-              addAttr(tag, attr, v);
+              if (v) {
+                // capcture colors
+                if (strstr(" color ", attr))
+                  sc= strdup(v->s);
+                if (strstr(" bgcolor ", attr))
+                  sb= strdup(v->s);
+
+                if (strstr(" style ", attr)) {
+                  sc= getcolonval("color", v->s);
+                  sb= getcolonval("background-color", v->s);
+                  if (!sb) sb= getcolonval("background", v->s);
+                  style= strdup(v->s);
+                  // addAttr can store/free v
+                }
+
+                addAttr(tag, attr, v);
+              }
             }
           }
         }
@@ -1160,6 +1184,7 @@ int process(TAG *end) {
         HI(" ul ol dl ", none, none) ||
         HI(SKIP, none, none) ||
         HI(" table ", none, none) ||
+        ((sc || sb) && HI(tag, black, white)) ||
         0;
     }
   }

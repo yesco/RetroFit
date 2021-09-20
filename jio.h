@@ -195,6 +195,7 @@ int isfullwidth(int c);
 int iszerowidth(int c);
 
 int lprefix(char *a, char *b);
+char *skipspc(char *p);
 char *sskip(char *s, char *w);
 char *struncp(char *s, char *p);
 char *strunc(char *s, char *w);
@@ -205,7 +206,6 @@ char *sdelall(char *s, char *w);
 char *srepl(char *s, char *w, char c);
 char *sreplbetween(char *s, char *first, char *last, char c, int keep);
 char *scollapse(char *s, char c, int n);
-
 
 ///////////////////////////////////
 // Date Time functions
@@ -225,4 +225,10 @@ void spc();
 void bs();
 void repeat(char c, int n);
 void spaces(int n);
+
+//////////////////////////////
+// string extractors
+
+char *getcolonval(char *field, char *s);
+
 

@@ -659,7 +659,7 @@ int iszerowidth(int c) {
 }
 
 // char *strpbrk(char *s, char *brk)|0
-// char *strdep(char **s, char *delim)
+// char *strsep(char **s, char *delim)
 // char *strstr()/strcasestr()|0
 // int strspn(char *s, char* accepts)
 // int strcspn(char *s, char* rejects)
@@ -667,6 +667,11 @@ int iszerowidth(int c) {
 ///////////////////////////////////
 // string modifiers
 // (safe!)
+
+char* skipspc(char *p) {
+  while(p && *p && isspace(*p)) p++;
+  return p;
+}
 
 int lprefix(char *a, char *b) {
   if (!a || !b) return 0;
@@ -678,6 +683,7 @@ int lprefix(char *a, char *b) {
 char *sskip(char *s, char *w) {
   if (!s || !w) return s;
   char *r= s;
+  // simple compare!
   while(*r && *w && *r++==*w++);
   return *w ? s : r;
 }
@@ -752,6 +758,21 @@ char *scollapse(char *s, char c, int n) {
   }
   *d= 0;
   return s;
+}
+
+char *getcolonval(char *field, char *s) {
+  if (!field || !s) return NULL;
+  char *p= NULL;
+  int l= strlen(field);
+  while (s && *s && (p= strstr(s, field)) && (*(p+l)!=':')) s= p+1;
+  if (!p) return NULL;
+  p+= l+1;
+  // we're after ':'
+  s= skipspc(p);
+  l= strcspn(s, ";\"\'");
+  // avoid trailing spaces
+  while(*s && s[l-1]==' ') l--;
+  return strndup(s, l);
 }
 
 ////////////////////////////////////////

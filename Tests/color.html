@@ -1,14 +1,23 @@
 <html>
 <body style='background:pink'>
-Outdated: <font color="green">Color using font</font><br>
-<span style="color:blue">Using a span-tag with CSS<br>
+Background pink.<br>
+Outdated: <font color="green">Green text color using font</font><br>
+Yup. Pink. <span style="color:blue">Blue using a span-tag with CSS.</span> black text.<br>
+
+<p>
+Table colors may not work:
 <table bgcolor='yellow'>
 <tr><td 
 <tr bgcolor='black'><td style="color:red">RED</td><td bgcolor='lightgray'>Can't see</td></tr>
 <tr><td colspan=2>2 fishes</td></tr>
 </table>
-<p style='background: cyan'>After the <i style='color:yellow'>yellow</i> color.</p>
 
-<p style='background-color:cyan'>After the <i style='color:yellow'>yellow</i> color.</p>
+After table.
+<p style='background: lightblue'>Lightblue background with <i style='color:yellow'>italic yellow</i> color.</p>
+
+<p style='background-color:gray'>Using gray background-color <i style='color:yellow'>still italic yellow</i> color.</p>
+<p>This should stil be pink background.</p>
+
+<span bgcolor='yellow'>Nesting yellow background <span bgcolor='pink'>with pink<span bgcolor='lightgray'>lightgray and <span bgcolor='lightgreen'>lightgreen</span> back to lightgray</span> back to pink</span> back to yellow</span> and default (should be pink?)
 </body>
 </html>
