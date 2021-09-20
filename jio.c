@@ -760,11 +760,11 @@ char *scollapse(char *s, char c, int n) {
   return s;
 }
 
-char *getcolonval(char *field, char *s) {
-  if (!field || !s) return NULL;
-  char *p= NULL;
+char *getcolonval(char *field, char *ss) {
+  if (!field || !ss) return NULL;
+  char *p= NULL, *s= ss;
   int l= strlen(field);
-  while (s && *s && (p= strstr(s, field)) && (*(p+l)!=':')) s= p+1;
+  while (s && *s && (p= strstr(s, field)) && (*(p+l)!=':') && (s==ss || !isalnum(*(s-1)))) s= p+1;
   if (!p) return NULL;
   p+= l+1;
   // we're after ':'
