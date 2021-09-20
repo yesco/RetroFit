@@ -1071,13 +1071,14 @@ int process(TAG *end) {
                   sb= strdup(v->s);
 
                 if (strstr(" style ", attr)) {
+                  // TODO: conflict with bgcolor/color being substring...
                   sc= getcolonval("color", v->s);
                   sb= getcolonval("background-color", v->s);
                   if (!sb) sb= getcolonval("background", v->s);
                   style= strdup(v->s);
-                  // addAttr can store/free v
                 }
 
+                // addAttr can store/free v
                 addAttr(tag, attr, v);
               }
             }
@@ -1184,7 +1185,7 @@ int process(TAG *end) {
         HI(" ul ol dl ", none, none) ||
         HI(SKIP, none, none) ||
         HI(" table ", none, none) ||
-        ((sc || sb) && HI(tag, black, white)) ||
+        ((sc || sb) && HI(tag, none, none)) ||
         0;
     }
   }
