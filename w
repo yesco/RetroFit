@@ -57,13 +57,23 @@ sleep 0.2
 # -- browse
 
 #debug
-#gdb -q $WPATH/wless.x -ex run -ex bt -ex quit
+unulimit -c unlimited
 
-#normal
-$WPATH/wless.x
+if [[ 1 ]]; then 
+  gdb -q $WPATH/wless.x -ex run -ex bt
+else 
+  #normal
+  $WPATH/wless.x || exit 22
+fi
 
 stty sane
 
+if [[ -f core ]]; then
+   echo "---got core!"
+   gdb $WPATH/wless core -ex where
+   echo "DO: gdb $WPATH/wless core -ex where"
+   exit 33
+fi
 
 # --- reset screen after text
 

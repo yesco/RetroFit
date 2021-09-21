@@ -181,13 +181,13 @@ int decode_color(char* name, int dflt) {
 #define SNL -11
 
 // -- groups of tags according to format
-#define NL " br hr div pre title h0 h1 h2 h3 h4 h5 h6 blockquote li dt dd table tr noscript address tbody "
-#define XNL " br /ul /ol /dl hr tbody "
+#define NL " br hr div pre title h0 h1 h2 h3 h4 h5 h6 blockquote li dt dd table tr noscript address tbody channel feed author item entry pubdate lastbuilddate updated "
+#define XNL " br /ul /ol /dl hr tbody /item /entry "
 #define HD " title h0 h1 h2 h3 h4 h5 h6 "
 //#define CENTER " center caption " // TODO
 
 #define BD " b strong dt label "
-#define IT " i em caption legend "
+#define IT " i em caption legend pubdate lastbuilddate updated "
 // TODO: #define UL " u a " ????
 
 // TODO: ins=green, del=red
@@ -201,13 +201,13 @@ int decode_color(char* name, int dflt) {
 
 #define FM " form input textarea select option optgroup button label fieldset legend "
 
-#define SKIP " option table "
+#define SKIP " option table link guid id "
 
 // attribute captures
-#define TATTR " a body table th td tr font img a base iframe frame colgroup span div p "
+#define TATTR " a body table th td tr font img base iframe frame colgroup span div p link "
 
 // TODO:
-#define ATTR " href hreflang src alt aria-label title aria-hidden name id type value size accesskey align valign colspan rowspan span color bgcolor target start "
+#define ATTR " href hreflang src alt aria-label title aria-hidden name id type value size accesskey align valign colspan rowspan span color bgcolor target start role rel "
 
 // TODO:
 #define CSS " liststyle color background background-color width height max-height min-height max-width min-width linebreak hypens overflow clip white-space word-break word-spacing word-wrap left right top bottom text-align align-content clear break-before break-after floatdisplay visibility font-size font-weight text-decoration text-shadow text-indent text-justify text-overflow table-layout "
@@ -449,7 +449,28 @@ void step_key() {
   p26(_nkeys++, 0);
 }
 
+void p(int c);
 
+void print_link_shortcut() {
+  step_key();
+
+  // prelink + part of link fit?
+  // let's say 6 text chars...
+  if (6+_curx+strlen(_keys)*2+1+rmargin+1 > screen_cols) nl();
+
+  // output [ab] link key selector
+  indent();
+  int ff=_fg, bb=_bg, ws=_ws; {
+    B(rgb(1,2,4)); C(white);
+    //B(blue); C(white);
+    //B(red); C(white); // retro!
+    _fullwidth++;
+    char* k= (char*)_keys;
+    while (*k) p(*k++);
+    _fullwidth--;
+  } fg(ff), bg(bb);
+  //p(' ');
+}
 
 TAG link_tag;
 dstr* _url= NULL;
@@ -757,6 +778,7 @@ int hi(TAG *tag, char* tags, enum color f, enum color b) {
   if (!tag || !*tag || !strstr(tags, *tag)) return 0;
 
   level++;
+//printf("{%d %s %d %d}", level, tag?*tag:"(null)", f, b);
   TRACE("--->%d %s %d %d\n", level, tag?*tag:NULL, f, b);
 
   // save colors
@@ -769,11 +791,18 @@ int hi(TAG *tag, char* tags, enum color f, enum color b) {
     if (strstr(" ul ol dl ", tag)) _indent+= 2;
 
     // TODO: _capture <title>?
-    if (strstr(" a ", tag)) {
+    if (strstr(" a link ", tag)) {
       underline();
       fg(_fg); bg(_bg); // needed?
       _capture++;
-      print_hidden_url();
+
+      if (_url) {
+        print_hidden_url();
+      } else {
+        print_link_shortcut();
+        p('l'),p('i'),p('n'),p('k');
+      }
+
     }
     if (strstr(" table ", tag)) {
       table= dstrncat(NULL, NULL, 1024);
@@ -826,13 +855,13 @@ int hi(TAG *tag, char* tags, enum color f, enum color b) {
     if (strstr(TT, tag)) p(HS);
 
     // off underline links!
-    if (strstr(" a ", tag)) {
+    if (strstr(" a link ", tag)) {
       end_underline();
       // TODO: make again, but at next new line...
-      //if (content && _url)
       //metadata("LINK", link_tag, &_keys[0], content->s, _url->s);
-      setLinkUrl(NULL);
+
       if (!--_capture) addContent();
+      setLinkUrl(NULL);
     }
     if (strstr(" table ", tag)) {
       if (!--_table) renderTable();
@@ -898,7 +927,7 @@ void newTag(TAG tag) {
 void addAttr(TAG tag, TAG attr, dstr* val) {
   if  (!tag || !attr || !val) return;
 
-  // - https://www.w3.org/TR/html4/appendix/notes.html#non-ascii-chars
+ // - https://www.w3.org/TR/html4/appendix/notes.html#non-ascii-chars
 
   // B.2.2 Ampersands in URI attribute values The URI that is constructed when a form is submitted may be used as an anchor-style link (e.g., the href attribute for the A element). Unfortunately, the use of the "&" character to separate form fields interacts with its use in SGML attribute values to delimit character entity references. For example, to use the URI "http://host/?x=1&y=2" as a linking URI, it must be written <A href="http://host/?x=1&#38;y=2"> or <A href="http://host/?x=1&amp;y=2">.
   // We recommend that HTTP server implementors, and in particular, CGI implementors support the use of ";" in place of "&" to save authors the trouble of escaping "&" characters in this manner.
@@ -912,6 +941,16 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
   if (strstr(" id name tabindex key accesskey ", attr)) {
     // TODO: this might become too long...
     logtag(tag, attr, val->s);
+  }
+
+  if (strstr(" rel ", attr) &&
+      strstr(" link ", tag)) {
+    // just print it
+    p(' ');
+    char *s= val->s;
+    while(*s) p(*s++);
+    p(' ');
+    return;
   }
 
   // embed URL as hidden message
@@ -930,29 +969,13 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
 
     // don't put in link for images
     // TODO: render differnt?
-    if (strstr(" a ", tag)) {
+    if (strstr(" a link ", tag)) {
       memcpy(link_tag, tag, sizeof(link_tag));
-      step_key();
       setLinkUrl(val);
       //print_hidden_url();
 
-      // prelink + part of link fit?
-      // let's say 6 text chars...
-      if (6+_curx+strlen(_keys)*2+1+rmargin+1 > screen_cols) nl();
+      print_link_shortcut();
 
-      // output [ab] link key selector
-      indent();
-      int ff=_fg, bb=_bg, ws=_ws; {
-        B(rgb(1,2,4)); C(white);
-        //B(blue); C(white);
-        //B(red); C(white); // retro!
-        _fullwidth++;
-        char* k= (char*)_keys;
-        while (*k) p(*k++);
-        _fullwidth--;
-      } fg(ff), bg(bb);
-      //p(' ');
-    
       return;
     }
   }    
@@ -1156,7 +1179,7 @@ int process(TAG *end) {
       // NOTE: only one should be trigggered as they consume input!
       // these recurses on process and will return after matching tag found
       // - HI(tag, fg, bg)
-      HI(" title ", white, 20) ||
+      HI(" title subtitle summary ", white, 20) || // html,atom*2
         HI(" h0 ", black, white) ||
         HI(" h1 ", white, black) ||
         HI(" h2 ", black, green) ||
@@ -1179,12 +1202,22 @@ int process(TAG *end) {
         HI(TT, black, rgb(3,3,3)) ||
 
         // TODO: if change from 27 edit jio.c
-        HI(" a ", 27, none) ||
+        HI(" a link ", 27, none) ||
 
         // formatting only
         HI(" ul ol dl ", none, none) ||
         HI(SKIP, none, none) ||
         HI(" table ", none, none) ||
+
+        // RSS & ATOM
+        // - https://www.jsonfeed.org/feed.xml
+        // TODO: https://www.jsonfeed.org/feed.json
+        HI(" description content ", none, none) ||
+        HI(" link ", none, none) ||
+        HI(" channel feed ", none, none) ||
+        // subtitle?
+        HI(" item entry ", none, none) ||
+        // apply color/bgcolor changes
         ((sc || sb) && HI(tag, none, none)) ||
         0;
     }

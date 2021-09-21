@@ -556,7 +556,10 @@ FILE *openOrWaitReloadAnsi() {
 //  if (!buffer) buffer= malloc(size);
 //  if (fansi) setbuffer(fansi, buffer, size); // _IOFBF, size);
 
-  nlines= fansi? flines(fansi) : -1;
+  // it's an upper boundary
+  // each ANSI line has an @offset
+  // but occasionaly #metadata
+  nlines= fansi? flines(fansi)/2 : -1;
   return fansi;
 }
 
@@ -1473,7 +1476,8 @@ void showClick(keycode k, int r, int c) {
     for(int cc=-5; cc<=3; cc++) {
       // make ir round (need round rr?)
       //if (rr*rr+cc*cc>4*4) continue;
-      gotorc(r+rr, c+cc);
+      if (r+rr>=0 && c+cc>=0)
+        gotorc(r+rr, c+cc);
       //B((k && MOUSE_DOWN)? black : yellow);
       B(black);
       putchar(' ');

@@ -1,4 +1,4 @@
-<h1>./wless browser</h1>
+e<h1>./wless browser</h1>
 
 <p><tt>./wless</tt> is a tiny but capable <tt>less</tt>-style pager for <tt>./w</tt> browser.</p>
 
@@ -239,3 +239,22 @@ w   s  es
 
 </pre>
 
+<h2>color support</h2>
+
+./w - the minimalist Webbrowser 
+
+Now have sisters for limited colors. It looks at inline style css in the attribute of the trash, but ignores style sheet definitions/files/classes 
+
+It also recognizes the legacy color and bgcolor attributes.
+
+Tbe color specific fictionally 16 lines. And about 16 LOCs (lines) for a getcolonval() function. I already had written a parser and decoder for all the web color names and and various formats #abc #aabbcc aabbcc abc name rgb(nn, nn, nn) a while ago, bit today it came together.
+
+Still, tables ignores in-cell formatting. That's for another day .. 
+
+I find it something isn't clear how to do, or not efficient, wait! Don't force it now. When it comes to you and it's clear -- it'll be easy to implement!
+
+Html2ansi is now 676 LOCs and browser about 1200.
+
+Next I'm adding a diff function for webpages, it'll show you what changed since you last loaded the it. 
+
+It's be part of my "follow" function that will handle RSS style feeds.
