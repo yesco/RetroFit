@@ -1191,7 +1191,9 @@ int process(TAG *end) {
       if (strstr(NL, tag)) {
         p(SNL);
         // restore color (missing </a>)
-        B(white); C(black);
+        if (strstr(" a ", end)) {
+          B(white); C(black);
+        }
       }
 
       // table hacks
@@ -1251,7 +1253,11 @@ int process(TAG *end) {
         HI(TT, black, rgb(3,3,3)) ||
 
         // TODO: if change from 27 edit jio.c
-        HI(" a link ", 27, none) ||
+        HI(" a link ", 27, none) || // ldarkblue
+
+        // specialized xml types
+        HI(" rss atom feed ", none, 215) || // orange
+        HI(" xml ", none, 247) || // boring gray
 
         // formatting only
         HI(" ul ol dl ", none, none) ||

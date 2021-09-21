@@ -40,6 +40,8 @@ tcol tds[TD_MAX] = {0};
 int incell= 0;
 
 void handle_trd(int isRow, int isEndTag, TAG tag) {
+  if (!table || !table->s) return;
+
   static int head= 0;
   // TODO: fix this...
   assert(tdn < TD_MAX);
