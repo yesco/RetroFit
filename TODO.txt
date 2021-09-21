@@ -1,5 +1,11 @@
 ﻿# ----------- TODOs ideas for ./w
 
+- RSS spec not readable and doesn't render as they have a "table" wrapping all of the page:
+  TODO: if the table seems to be "layout" - give up and just dump the formatted stuff...
+  (seems during parsing the * of the <li> get's "displayed". Possibly that and spacing and etc, (ansi-color codes) should go through a (_)p(c) function to capture?
+  - https://www.rssboard.org/rss-specifi
+cation
+
 - assert break for table 
   Whole page is inside table...
   (when to give up table tag? revert to simple?)
