@@ -201,7 +201,7 @@ int decode_color(char* name, int dflt) {
 
 #define FM " form input textarea select option optgroup button label fieldset legend "
 
-#define SKIP " option table link guid id "
+#define SKIP " option table link guid id"
 
 // attribute captures
 #define TATTR " a body table th td tr font img base iframe frame colgroup span div p link "
@@ -451,7 +451,11 @@ void step_key() {
 
 void p(int c);
 
+dstr *_rel= NULL;
+
 void print_link_shortcut() {
+  if (_rel) return;
+
   step_key();
 
   // prelink + part of link fit?
@@ -473,7 +477,7 @@ void print_link_shortcut() {
 }
 
 TAG link_tag;
-dstr* _url= NULL;
+dstr *_url= NULL;
 
 void print_hidden_url() {
   if (!_url) return;
@@ -798,7 +802,8 @@ int hi(TAG *tag, char* tags, enum color f, enum color b) {
 
       if (_url) {
         print_hidden_url();
-      } else {
+      } else if (!_rel) {
+        // non-XHTML supression of link
         print_link_shortcut();
         p('l'),p('i'),p('n'),p('k');
       }
@@ -943,8 +948,17 @@ void addAttr(TAG tag, TAG attr, dstr* val) {
     logtag(tag, attr, val->s);
   }
 
+  // guardian doesn't terminate <link>
   if (strstr(" rel ", attr) &&
       strstr(" link ", tag)) {
+    // capture rel and don't display link
+    // at is has a "function" for the browser...
+    FREE(_rel);
+    _rel= val;
+
+    // just ignore preload/cache links..
+    return;
+
     // just print it
     p(' ');
     char *s= val->s;
@@ -1049,6 +1063,7 @@ int process(TAG *end) {
 
     } else { // '<' tag start
       TAG tag= {0};
+      FREE(_rel);
 
       _pc(FLUSH_WORD);
 
@@ -1060,7 +1075,7 @@ int process(TAG *end) {
 
       // process attributes till '>'
       // TODO:move out to function
-      if (c!='>') {
+      if (c!='>' && c!='/') {
         // <TAG attr>
         // any tag may contain id/name
         if (1 || strstr(TATTR, tag)) {
@@ -1072,8 +1087,8 @@ int process(TAG *end) {
             ungetc(skipspace(f), f); //hmm
             // read attribute
             TAG attr= {0};
-            c= parse(f, "= >\"\'", attr, sizeof(attr));
-            if (c=='>' ||c==EOF) break;
+            c= parse(f, "= />\"\'", attr, sizeof(attr));
+            if (c=='>' || c=='/' || c==EOF) break;
             //printf("\n---%s.%s\n", tag, attr);
             // do we want it?
             if (strstr, ATTR, attr) {
@@ -1125,6 +1140,27 @@ int process(TAG *end) {
       // TODO :don't if done (in addAttr)
       logtag(tag, NULL, NULL);
 
+      // XML single tag
+      if (c=='/') {
+        c= skipspace(f);
+        while (c!='>') {
+          printf("{%c}", c);
+          if (!STEP) return 0;
+        }
+        FREE(_rel);
+        continue;
+      } else if (strstr(" link ", tag) && _rel) {
+        // NOT: xhtml... 
+        // guardian NO '/' <link href=>
+        // (this only matters as we extract content of <link> for RSS/ATOM)
+        // already got link, maybe no content- terminate
+        //printf("\n{_url=%s}", _url);
+        continue;
+      }
+
+      FREE(_rel);
+
+      // end of tag
       if (c!='>') c= parse(f, ">", NULL, 0);
 
       // skippers

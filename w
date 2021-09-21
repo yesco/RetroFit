@@ -57,10 +57,10 @@ sleep 0.2
 # -- browse
 
 #debug
-unulimit -c unlimited
 
 if [[ 1 ]]; then 
-  gdb -q $WPATH/wless.x -ex run -ex bt
+  unulimit -c unlimited
+  gdb -q $WPATH/wless.x -ex run -ex bt || WPATH/wless.x
 else 
   #normal
   $WPATH/wless.x || exit 22
