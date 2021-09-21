@@ -999,6 +999,11 @@ void addContent() {
   content= NULL;
 }
 
+// unquote HTML inside tag (RSS/ATOM)
+// TODO: DESCRIPTION SUMMARY CONTENT
+//       (IFF have type='xhtml')
+int _unquote= 0; 
+
 int process(TAG *end) {
   int c;
   while (STEP) {
@@ -1031,6 +1036,14 @@ int process(TAG *end) {
       if (c==';') *e++= c; else ungetc(c, f);
       char* d= decode_entity(entity);
       s= d ? d : s;
+
+      // single char
+      // TODO: doesn't really work as we take different path for reading '>', unless..., we move content decoding to STEP (and fgetc()). LOL
+      if (_unquote && *s && !*(s+1)) {
+        ungetc(*s, f);
+        continue;
+      }
+
       // print - it's all printables
       while(*s) p(*s++);
 
