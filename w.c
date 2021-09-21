@@ -1222,14 +1222,6 @@ int process(TAG *end) {
         HI(SKIP, none, none) ||
         HI(" table ", none, none) ||
 
-        // RSS & ATOM
-        // - https://www.jsonfeed.org/feed.xml
-        // TODO: https://www.jsonfeed.org/feed.json
-        HI(" description content ", none, none) ||
-        HI(" link ", none, none) ||
-        HI(" channel feed ", none, none) ||
-        // subtitle?
-        HI(" item entry ", none, none) ||
         // apply color/bgcolor changes
         ((sc || sb) && HI(tag, none, none)) ||
         0;
