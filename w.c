@@ -1265,7 +1265,8 @@ int process(TAG *end) {
         HI(" table ", none, none) ||
 
         // apply color/bgcolor changes
-        ((sc || sb) && HI(tag, none, none)) ||
+        // (ignore color on link-tag!)
+        ((sc || sb) && !strstr(" link meta ", tag) && HI(tag, none, none)) ||
         0;
     }
   }

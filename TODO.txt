@@ -1,5 +1,12 @@
 ﻿# ----------- TODOs ideas for ./w
 
+- google ads tracking iframes:
+  -   <noscript>
+    <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NS64GV" title="GTM" height="0" width="0" style="display:none;visibility:hidden">
+    </iframe>
+  </noscript>
+
+
 - RSS spec not readable and doesn't render as they have a "table" wrapping all of the page:
   TODO: if the table seems to be "layout" - give up and just dump the formatted stuff...
   (seems during parsing the * of the <li> get's "displayed". Possibly that and spacing and etc, (ansi-color codes) should go through a (_)p(c) function to capture?
