@@ -201,7 +201,7 @@ int decode_color(char* name, int dflt) {
 
 #define FM " form input textarea select option optgroup button label fieldset legend "
 
-#define SKIP " option table link guid id"
+#define SKIP " option table link guid id svg "
 
 // attribute captures
 #define TATTR " a body table th td tr font img base iframe frame colgroup span div p link "
