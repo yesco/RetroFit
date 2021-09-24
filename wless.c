@@ -810,25 +810,48 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
       if (c==EOF) break;
       c= fgetc(fansi);
 
-      // (soruce) offset
+      if (c==' ') c= fgetc(fansi);
+      if (c=='\\') { // \ No newline ...
+          // skip this line
+          while((c= fgetc(fansi))!=EOF && c!='\n');
+          ungetc(c, fansi);
+          continue;
+      }
+
+      // diff adds one char, remove space
       if (c=='@') {
+        // extract (html soruce) offset
         int num=-1;
         if (1==fscanf(fansi, "%d", &num)) {
           if (page_offset==-1)
             page_offset= num;
-        } // else error?
-        // is followed by nl
-        continue;
+          continue;
+        }
       }
 
       // diff adds one char, detect
       // (any leading space we've removed or quoted if in _pre-mode)
-      if (strchr(" +-!%<>", c)) {
+      if (strchr(" +-!%<>@", c)) {
         // if inverted 3x otherise 4x
-        if (c=='+' || c=='>') diffcodes="\e[48;5;22m"; // added: dark green 28, 22
+        if (c=='+' || c=='>') diffcodes="\e[48;5;34m"; // added: dark green 28, 22, 34
         if (c=='-' || c=='<') diffcodes="\e[41;1m"; // removed: red
         if (c=='!' || c=='%') diffcodes="\e[48;5;18m"; // changed: dark blue
+        if (c=='@') { // diff output
+          diffcodes= "";
+          // skip this line
+          while((c= fgetc(fansi))!=EOF && c!='\n');
+          ungetc(c, fansi);
+          continue;
+        }
+
         c= fgetc(fansi);
+        if (c=='@') { // diff output
+          diffcodes= "";
+          // skip this line
+          while((c= fgetc(fansi))!=EOF && c!='\n');
+          ungetc(c, fansi);
+          continue;
+        }
       }
 
       if (c!='\n' && c!='#') {
@@ -1072,6 +1095,12 @@ int displayWin(keycode k, char *url, char *file, int top, int rows, int clreos) 
 
   // full redraw
   gotorc(1, 0);
+
+// try show DIFF if exists
+if (fansi) fclose(fansi);
+fansi = fopenext(file, ".DIFF", "r");
+if (!fansi) fansi= fopen(file, "r");
+
   int redo= printAnsiLines(fansi, top, rows);
   fclose(fansi);
 

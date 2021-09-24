@@ -25,7 +25,7 @@ USERAGENT="./w (minimalist text-only retro browser; Linux/Android/Termux) github
 
 # --- DOWNLOAD forces a new download
 
-# [ $DOWNLOAD ] && rm -f $CFILE.ANSI $CFILE.TMP
+# [ $DOWNLOAD ] && rm -f $CFILE.TMP
 
 # --- Log it (if -d)
 # (logging it adds to history so we can browse it!)
@@ -40,7 +40,7 @@ USERAGENT="./w (minimalist text-only retro browser; Linux/Android/Termux) github
 
 # --- local file (always copy)
 
-[ -f $GO ] && cp $GO $CFILE.DOWN && ( rm -f $CFILE.ANSI ; touch $CFILE.TMP )
+[ -f $GO ] && cp $GO $CFILE.DOWN && ( touch $CFILE.TMP )
 
 # --- log
 echo "`date --iso=s` #=DOWN $GO $CFILE.ANSI" \
@@ -110,6 +110,12 @@ if [[ $DOWNLOAD || ! -f "$CFILE.DOWN" ]]; then
    mv -f $CFILE.DOWN $CFILE.DOWN.1 2>/dev/null
    mv -f $CFILE.TMP $CFILE.DOWN
 
+   rm -f $CFILE.ANSI.3
+   mv -f $CFILE.ANSI.2 $CFILE.ANSI.3 2>/dev/null
+   mv -f $CFILE.ANSI.1 $CFILE.ANSI.2 2>/dev/null
+   mv -f $CFILE.ANSI $CFILE.ANSI.1 2>/dev/null
+   # (below generates the ansi file)
+
    #   ls -l $CFILE.*
 fi
 
@@ -124,6 +130,14 @@ perl $WPATH/wlinks.pl $CFILE.ANSI > $CFILE.LINKS
 perl -0777 -ne 'if (s:^.*?<(title|h1).*?>(.*?)</\1>.*$:$2:ism) { trim; s|\\s+| |smg; print $_; }' $CFILE.DOWN # > $CFILE.TITLE
 
 rm -f $CFILE.TMP
+
+# create unified diff and deltas
+[[ -f $CFILE.ANSI.1 ]] && ( \
+  diff -I '^@[[:digit:]]' -b -U999999 $CFILE.ANSI.1 $CFILE.ANSI > $CFILE.DIFF.TMP ; \
+  diff -I '^@[[:digit:]]' -b $CFILE.ANSI.1 $CFILE.ANSI > $CFILE.DELTA.TMP ; \
+  mv --backup=numbered $CFILE.DIFF.TMP $CFILE.DIFF ; \
+  mv --backup=numbered $CFILE.DELTA.TMP $CFILE.DELTA \
+)
 
 # - Signal app that requested
 # TODO: 

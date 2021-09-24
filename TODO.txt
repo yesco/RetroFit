@@ -1,5 +1,7 @@
 ﻿# ----------- TODOs ideas for ./w
 
+- when new window is opened from link, it should record the current location (url or line number?)
+
 - google ads tracking iframes:
   -   <noscript>
     <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NS64GV" title="GTM" height="0" width="0" style="display:none;visibility:hidden">
