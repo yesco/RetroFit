@@ -132,12 +132,21 @@ perl -0777 -ne 'if (s:^.*?<(title|h1).*?>(.*?)</\1>.*$:$2:ism) { trim; s|\\s+| |
 rm -f $CFILE.TMP
 
 # create unified diff and deltas
-[[ -f $CFILE.ANSI.1 ]] && ( \
-  diff -I '^@[[:digit:]]' -b -U999999 $CFILE.ANSI.1 $CFILE.ANSI > $CFILE.DIFF.TMP ; \
-  diff -I '^@[[:digit:]]' -b $CFILE.ANSI.1 $CFILE.ANSI > $CFILE.DELTA.TMP ; \
-  mv --backup=numbered $CFILE.DIFF.TMP $CFILE.DIFF ; \
-  mv --backup=numbered $CFILE.DELTA.TMP $CFILE.DELTA \
-)
+# (redo formatting to be compat)
+[[ -f $CFILE.DOWN.1 ]] && {
+  $WPATH/w.x $CFILE.DOWN.1 $GO $COLS > $CFILE.ANSI.1
+  diff -I '^@[[:digit:]]' -b -U 999999 $CFILE.ANSI.1 $CFILE.ANSI > $CFILE.DIFF.TMP
+  diff -I '^@[[:digit:]]' -b $CFILE.ANSI.1 $CFILE.ANSI > $CFILE.DELTA.TMP
+  # no diff
+  if [[ -s $CFILE.DELTA.TMP ]]; then
+    mv --backup=numbered $CFILE.DIFF.TMP $CFILE.DIFF
+    mv --backup=numbered $CFILE.DELTA.TMP $CFILE.DELTA
+  else
+    rm -f $CFILE.DELTA $CFILE.DIFF $CFILE.DELTA.TMP $CFILE.DIFF.TMP
+    exit 0
+  fi
+}
+
 
 # - Signal app that requested
 # TODO: 

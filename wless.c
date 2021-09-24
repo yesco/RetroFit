@@ -784,10 +784,16 @@ int printansiln(char *ln, int n, int matchLink) {
   return found;
 }
 
-// Return: true if clicked (askin redo page)
+// read chars till next nl (keeep nl)
+void fskiprest(FILE *f) {
+  int c;
+  while((c= fgetc(f))!=EOF && c!='\n');
+  ungetc(c, f);
+}
 
 int page_offset= -1;
 
+// Return: true if clicked (askin redo page)
 int printAnsiLines(FILE *fansi, int top, int rows) {
   _clicked= 0;
   page_offset= -1;
@@ -810,12 +816,11 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
       if (c==EOF) break;
       c= fgetc(fansi);
 
+      // handle diff output
       if (c==' ') c= fgetc(fansi);
       if (c=='\\') { // \ No newline ...
-          // skip this line
-          while((c= fgetc(fansi))!=EOF && c!='\n');
-          ungetc(c, fansi);
-          continue;
+        fskiprest(fansi);
+        continue;
       }
 
       // diff adds one char, remove space
@@ -838,18 +843,14 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
         if (c=='!' || c=='%') diffcodes="\e[48;5;18m"; // changed: dark blue
         if (c=='@') { // diff output
           diffcodes= "";
-          // skip this line
-          while((c= fgetc(fansi))!=EOF && c!='\n');
-          ungetc(c, fansi);
+          fskiprest(fansi);
           continue;
         }
 
         c= fgetc(fansi);
-        if (c=='@') { // diff output
-          diffcodes= "";
-          // skip this line
-          while((c= fgetc(fansi))!=EOF && c!='\n');
-          ungetc(c, fansi);
+        if (c=='@') { // at offset
+          diffcodes= ""; // reset
+          fskiprest(fansi);
           continue;
         }
       }
