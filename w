@@ -22,7 +22,7 @@ export UDIR=`pwd`
 
 # Build
 
-(cd $WPATH ; ./wbuild) || exit $!
+(cd $WPATH ; bash ./wbuild) || exit $!
 
 # just to be sure...
 
@@ -45,7 +45,7 @@ stty size >/dev/null
 for f in "$@"
 do
   
-  $WPATH/wdownload -d -l "$f" $LINES $COLUMNS &
+  bash $WPATH/wdownload -d -l "$f" $LINES $COLUMNS &
 
 done
 
@@ -58,13 +58,13 @@ sleep 0.2
 
 #debug
 
-if [[ 1 ]]; then 
-  ulimit -c unlimited
-  gdb -q $WPATH/wless.x -ex run -ex bt || WPATH/wless.x
-else 
+#if [[ 0 ]]; then 
+#  ulimit -c unlimited
+#  gdb -q $WPATH/wless.x -ex run -ex bt || WPATH/wless.x
+#else 
   #normal
   $WPATH/wless.x || exit 22
-fi
+#fi
 
 stty sane
 
