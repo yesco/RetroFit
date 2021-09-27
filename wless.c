@@ -1375,7 +1375,7 @@ keycode command(keycode k, dstr *ds) {
       // -- Calculate expression
       if (strspn(ln, "+-0123456789.eE+*/%^=-lastijng<>!()[] ")==len 
           && !strchr(ln, '"') && !strchr(ln, '\'')) {
-        dstr *run= dstrprintf(NULL, "printf \"`echo \\\"%s\\\" | bc -l`\"", ln);
+        dstr *run= dstrprintf(NULL, "printf \"` printf \\\"%s\\n\\\" | bc -l`\"", ln);
         // delete "microphone prompt"
         display(k);
 
@@ -1393,6 +1393,8 @@ keycode command(keycode k, dstr *ds) {
         clearend();
         C(white); fflush(stdout);
 
+        gotorc(1,0);
+        keywait(1000*3);
         return NO_REDRAW;
       }
 

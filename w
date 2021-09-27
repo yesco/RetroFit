@@ -59,7 +59,7 @@ sleep 0.2
 #debug
 
 if [[ 1 ]]; then 
-  unulimit -c unlimited
+  ulimit -c unlimited
   gdb -q $WPATH/wless.x -ex run -ex bt || WPATH/wless.x
 else 
   #normal
