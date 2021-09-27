@@ -63,6 +63,8 @@
 #include <unistd.h>
 #include <assert.h>
 #include <time.h>
+#include <limits.h>
+#include <stdarg.h>
 
 #include "jio.h"
 

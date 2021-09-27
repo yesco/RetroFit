@@ -27,7 +27,7 @@ if [[ w.c -nt w.x ]]; then
   echo "--- w.c changed, recompiling w.x..."
   echo "`date --iso=s` #=CC w.c" >> .wlog
   rm w.x 2>/dev/null
-  $CC $OPT -g -w -lunistring jio.c w.c -o w.x || (exit 4711) || exit
+  $CC $OPT -g -w jio.c w.c -o w.x -lunistring || (exit 4711) || exit
 fi
 
 # --- compile spinner.c
