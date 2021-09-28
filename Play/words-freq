@@ -1,0 +1,1 @@
+cat .w/Cache/*.DOWN | ./words  | sort | uniq -c | sort -rn | less

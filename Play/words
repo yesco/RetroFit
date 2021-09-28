@@ -1,0 +1,2 @@
+perl -0777 -pne 's/<.*?>/ /smg' | \
+grep -i -o -E '[a-z]+'
