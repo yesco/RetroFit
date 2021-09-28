@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+
+printf "You shouldn't see this\r\e[Kone\n"
+printf "\e[30;46mThis should be black text on light blue background\e[mblack back\e[K\n"
+printf "\e[38;5;232m\e[48;5;44m256 color should be ALMOST the same\e[mblack back\eK\n"
+printf "\e[38;2;10;10;10m\e[48;2;0;200;200mAnd this (if you support full RGB\e[mblack back\eK\n"
+printf "\n\e]:A:{you should NOT see this}\e\\Bye!\n"
+
+
