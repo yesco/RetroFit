@@ -1,3 +1,5 @@
+#!/usr/bin/bash
+
 #
 #     ./w - mini web-browser
 #
@@ -11,10 +13,27 @@
 # Usage:
 #  ./w [URL ...]
 
+
+# --- check dependencies
+
+for c in bash pwd stty sleep printf diff killall cc
+do
+  [[ -z "`type -P $c`" ]] && echo "%% ERROR '$c' not installed" && missingprog="$missingprog $c"
+done
+
+[[ ! -z "$missingprog" ]] && {
+  echo 
+  echo "Terminated script because of missing programs: $missingprog"
+  exit 1
+}
+
+# --- set up script paths
+
 export UDIR=`pwd`
 #echo "UDIR=$UDIR"
 [[ ! -e $BASH_SOURCE ]] && export WPATH=$(cd `dirname ${BASH_SOURCE:-.}` ; pwd)
 [[ -e $BASH_SOURCE ]] && export WPATH=$UDIR
+
 
 #echo "WPATH=$WPATH"
 
@@ -70,7 +89,7 @@ stty sane
 
 if [[ -f core ]]; then
    echo "---got core!"
-   gdb $WPATH/wless core -ex where
+   type -Pgdb && gdb $WPATH/wless core -ex where
    echo "DO: gdb $WPATH/wless core -ex where"
    exit 33
 fi
@@ -113,17 +132,20 @@ cat .stderr 2>/dev/null 1>&2
 
 cd $WPATH
 
-git show :w.c >.w.c
-git show :table.c >.table.c
-git show :wless.c >.wless.c
-git show :jio.c >.jio.c
-git show :graphics.c >.graphics.c
+type -P git && {
+  git show :w.c >.w.c
+  git show :table.c >.table.c
+  git show :wless.c >.wless.c
+  git show :jio.c >.jio.c
+  git show :graphics.c >.graphics.c
 
-cat .w.c .table.c .wless.c >.before-all.c
-cat w.c table.c wless.c >.all.c
+  cat .w.c .table.c .wless.c >.before-all.c
+  cat w.c table.c wless.c >.all.c
 
-cat .w.c .table.c >.before-render.c
-cat w.c table.c >.render.c
+  cat .w.c .table.c >.before-render.c
+  cat w.c table.c >.render.c
+}
+
 
 # --- print stats and USAGE
 

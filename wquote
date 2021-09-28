@@ -1,3 +1,5 @@
+#!/usr/bin/bash
+
 # quote a string to be safe filename
 #
 # WARNING: has to be in sync with

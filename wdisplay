@@ -21,9 +21,11 @@ ANSI=${1:-.stdout}
 
 echo "`date --iso=s` #=WDISPLAY $HISTLINE $TOP $LINES $ANSI" >> .wlog
 
-./wlinks $ANSI > .wlinks
+perl $WPATH/wlinks.pl $ANSI > .wlinks
+
 
 # - display a screen-ful (or as asked)
 
 (cat $ANSI | perl -0777 -pe 's/(\n#.*?)+\n//g') \
+| grep -vP '@\d+$' \
 | tail +$TOP | head -$SHOWLINES

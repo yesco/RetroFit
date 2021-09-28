@@ -1,3 +1,5 @@
+#!/usr/bin/bash
+
 # opt?
 # (don't optimize as debugging won't tell the truth!)
 #OPT=-O3

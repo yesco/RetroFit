@@ -1,3 +1,5 @@
+#!/usr/bin/bash
+
 # Show log (last first)
 # 
 # Log line format::

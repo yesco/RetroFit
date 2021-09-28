@@ -1,3 +1,5 @@
+#!/usr/bin/bash
+
 [ -n $UDIR ] && UDIR=`pwd`
 [ -n WPATH ] && WPATH=$UDIR
 
