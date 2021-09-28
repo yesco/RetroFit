@@ -55,3 +55,4 @@ fi
 # 
 # $CC -g -w w.c && ((echo "run http://yesco.org/";echo "where") | gdb ./a.out )
 
+cc -lunistring 2>&1 | grep main >/dev/null || echo "%% ./wbuild: MISSING library 'libunistring' please install"
