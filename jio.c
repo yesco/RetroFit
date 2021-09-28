@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <signal.h>
+#include <stdarg.h>
 
 // OSX doesn't have!?!?!
 #include <sys/ioctl.h>

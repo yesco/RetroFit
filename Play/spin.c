@@ -9,7 +9,7 @@ void show() { printf("\e[?25h"); }
 void save() { printf("\e7"); }
 void restore() { printf("\e8"); }
 
-void gotorc(int r, c) { printf("\e[%d;%dH", r, c); }
+void gotorc(int r, int c) { printf("\e[%d;%dH", r, c); }
 
 int spin_n= 0;
 

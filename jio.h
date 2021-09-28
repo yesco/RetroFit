@@ -10,6 +10,7 @@
 //
 
 #include <stdio.h>
+#include <signal.h>
 
 // misc system IO
 

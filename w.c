@@ -127,6 +127,8 @@ const int lmargin= 2;
 #include <uniname.h>
 #include <wchar.h>
 
+#include <signal.h>
+
 #include "jio.h"
 
 // generally used for parse() of symbols
