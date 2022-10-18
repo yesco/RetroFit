@@ -16,7 +16,7 @@
 
 # --- check dependencies
 
-for c in bash pwd stty sleep printf diff killall cc
+for c in bash pwd stty sleep printf diff killall cc wget perl
 do
   [[ -z "`type -P $c`" ]] && echo "%% ERROR '$c' not installed" && missingprog="$missingprog $c"
 done
