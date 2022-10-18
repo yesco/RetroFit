@@ -719,7 +719,7 @@ int printansiln(char *ln, int n, int matchLink) {
   char *f= m ? s+(m>>8) : NULL;
   int len= m & 0xff;
 
-  char *found= f; // a flag!
+  int found= !!f;
 
   // trunacte if only and no match
   if (_only && !f) *s= 0;
@@ -805,7 +805,7 @@ int printAnsiLines(FILE *fansi, int top, int rows) {
   rows-=1;
   fseek(fansi, 0, SEEK_SET);
   dstr *ln= dstrncat(NULL, NULL, 160);
-  char *found= NULL;
+  int found= 0;
   while(c= fgetc(fansi)) {
     // TODO: cleanup when make the hidden lines simplier...
     if (c=='\n' || c==EOF) {
@@ -2006,7 +2006,7 @@ keycode ctrlXAction(keycode xk) {
 
   case CTRL+'O': { // open in chrome
     printf("Opening in external browser"); fflush(stdout);
-    int http= strstr(url, "http");
+    int http= !!strstr(url, "http");
     dstr *run= dstrprintf(NULL, "termux-open-url \"%s%s\"", http?"":"http://", url);
     system(run->s);
     free(run);

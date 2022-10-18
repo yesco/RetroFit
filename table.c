@@ -66,7 +66,7 @@ void handle_trd(int isRow, int isEndTag, TAG tag) {
   }
 
   if (strstr(" td th ", tag)) incell= 1;
-  head= strstr(" th ", tag);
+  head= !!strstr(" th ", tag);
 
   //C(blue); printf("[%s]", tag); C(black);
 
@@ -250,7 +250,7 @@ void renderTable() {
           letter[t->i]= baseletter+overflows;
           overflows++;
           putwchar(letter[t->i]);
-        } C(fg); B(bg);
+        } C((int)fg); B((int)bg);
       }
       // extra space between cols
       putchar(' ');

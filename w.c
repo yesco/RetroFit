@@ -1183,7 +1183,7 @@ int process(TAG *end) {
             putchar('|');
         }
         //printf("\n[===%s===]\n", tag);
-        handle_trd(strstr(" tr ", tag), strchr(tag, '/'), tag);
+        handle_trd(!!strstr(" tr ", tag), !!strchr(tag, '/'), tag);
       }
 
       // check if </endTAG>
