@@ -97,7 +97,7 @@ void message(char* format, ...) {
 // set k=NO_REDRAW to not update screen
 // (good for showing temporary information like menus/hilite, CTRL-L redraws
 #define NO_REDRAW -1
-#define REDRAW (CTRL+'L')
+#define REDRAW (CTRL+'P')
 
 // --- limits
 int nlines= 0; // number of lines in file
@@ -2068,9 +2068,6 @@ keycode keyAction(keycode k) {
 
   int kc= k & ~META & ~ CTRL;
   
-  // normal processing will redraw!
-  if (k==CTRL+'L') ;
-    
   // Do this first so it can map to other key actions!
   if (k==CTRL+'X') {
     reset();
@@ -2104,12 +2101,21 @@ keycode keyAction(keycode k) {
   // TODO: how to only do RE-RENDER (w.x)?
   // (twice in a row?, lol)
   if (k==CTRL+'R') {
+    gtoast("ReLoad!");
+    reload(url);
+    k= REDRAW;
+  }
+
+  // normal processing will redraw!
+  //  if (k==CTRL+'L') ;
+
+  if (k==CTRL+'L') {
     gtoast("ReRender");
     rerender(url);
     k= REDRAW;
   }
-  // chrome: CTRL-P: print current webbpage ? save?
-  // chrome: CTRL-S: save current webpage
+  // chrome: CTRL-P: print current webbpage ? save? - Currently used to redraw as we use CTRL-L for ReRender...
+  // chrome: CTRL-S: save current webpage - we use for search in page
   // chrome: ESC: stop loading webpage
   // chrome: ^U - display HTML
   // chrome: ^O - open file on computer
