@@ -131,7 +131,7 @@ keycode newPanHistory(keycode k, int future) {
     //tab+= k & SCROLL_UP? -1 : +1;
     //tab= MAX(-start_tab, MIN(ntab-1, tab));
     //} else {
-    const step=5;
+    const int step=5;
     n+= k & SCROLL_UP? +step : -step;
     //}
 

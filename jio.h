@@ -163,6 +163,7 @@ keycode key();
 keycode peekey();
 int keywait(int ms);
 keycode waitScrollEnd(keycode k);
+int keyRepeated();
 
 char* keystring(int c);
 void testkeys();

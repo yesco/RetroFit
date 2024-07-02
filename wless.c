@@ -711,6 +711,11 @@ int _clicked= 0;
 
 char *diffcodes= NULL;
 
+// forwards
+int click(char *keys);
+keycode deltab();
+int newtab(char* url);
+
 // print ansi line and hilite matches
 int printansiln(char *ln, int n, int matchLink) {
   char *s= ln;
