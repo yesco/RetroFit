@@ -88,6 +88,22 @@ pixel gset(int x, int y, int c) {
   return v;
 }
 
+void gline(int x, int y, int dx, int dy, int c) {
+  if (dx >=-dy) {
+    for(int d=0; d<=dx; d++)
+      gset(x+d, y+ (dy*d+dx/2)/dx, c);
+  } else {
+    for(int d=0; d<=dy; d++)
+      gset(x+ (dx*d+dy/2)/dy, y+d, c);
+  }
+}
+
+void glineto(int x, int y, int tx, int ty, int c) {
+  gline(x, y, tx-x, ty-y, c);
+}
+
+
+
 // Update the screen to the current canvas
 void gupdate() {
   assert(pixels_per_row<=2);
