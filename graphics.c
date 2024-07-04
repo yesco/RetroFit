@@ -88,7 +88,10 @@ pixel gset(int x, int y, int c) {
   return v;
 }
 
+// Update the screen to the current canvas
 void gupdate() {
+  assert(pixels_per_row<=2);
+  assert(pixels_per_col<=2);
   save();
   pixel lastbg= black, lastfg= white;
   int lastr= -1, lastc= -1;
@@ -96,6 +99,7 @@ void gupdate() {
   B(black); C(white);
   for(int y=0; y<gsizey; y+=pixels_per_row) {
     for(int x=0; x<gsizex; x+=pixels_per_col) {
+      // Only applies if 2?? what if row:2,col:1 ???
       pixel a= *gpixel(x, y), b= *gpixel(x+1, y);
       pixel c= *gpixel(x, y+1), d= *gpixel(x+1, y+1);
 //      pixel *p= _gscold + (gpixel(x, y) - _gscreen);
@@ -114,6 +118,7 @@ void gupdate() {
         gotorc(nr, nc);
       lastr= nr; lastc= nc;
 
+      // TODO: improve? choose policy?
       // decide fg color
       pixel fg= MAX(a, MAX(b, MAX(c, d)));
       // decide bg color
@@ -151,6 +156,8 @@ void gnl() {
   gx = 0;
 }
 
+// Graphics put CHAR on screen, move cursor
+// (\n wraps line)
 void gputc(char c) {
   if (c<0 || c>127) return;
   char *def = font8x8_basic[c];
@@ -170,12 +177,15 @@ void gputc(char c) {
   if ((gx+= 8)>gsizex) gnl();
 }
 
+// Graphics put STRING on screen, move cursor
+// (\n wraps line)
 void gputs(char *s) {
   if (!s) return;
   int c;
   while((c= *s++)) gputc(c); 
 }
 
+// Graphics put TEXT centered on screen using char length
 void drawCenteredText(char *s) {
   if (!s) return;
   int len= strlen(s);
@@ -187,10 +197,12 @@ void drawCenteredText(char *s) {
 
 
 ////////////////////////////////////////
-// figures
+// figures ??? TODO:
+
+// TODO: remove? maybe these are only for speed/demo?
 
 
-
+// TODO: what does it do?
 void drawX() {
   for(int rr=1; rr<=screen_rows-2; rr++) {
     //B(white);
@@ -202,7 +214,7 @@ void drawX() {
   usleep(10*1000);
 }
 
-// clear only content area
+// clear actual screen content area
 void wclear() {
   gclear();
   B(black); C(white);
@@ -212,6 +224,7 @@ void wclear() {
   fflush(stdout);
 }
 
+// Show a toast TEXT centered on empty screen
 void gtoast(char *s) {
   gclear(); gfg= black; gbg= white;
   drawCenteredText(s);
@@ -219,6 +232,7 @@ void gtoast(char *s) {
   gotorc(0,0);
 }
 
+// Show a read toast TEXT centered in red
 void gtoasterr(char *s) {
   gclear(); gfg= red; gbg= white;
   drawCenteredText(s);
@@ -293,6 +307,8 @@ void drawPullDownMenu(color *colors, char **labels, int ncol, int n, int right) 
   }
 }
 
+// Plot at ROW COL the CHaracter with Width Height using BackGround color and ForeGround color
+// Plots on actual screen, not canvas
 void plot(int r, int c, char ch, int w, int h, int bg, int fg) {
   //printf("plot %d %d %c\n", r, c, ch); return;
   if (ch>127) return;
@@ -316,6 +332,8 @@ void plot(int r, int c, char ch, int w, int h, int bg, int fg) {
   }
 }
 
+// Plot string at ROW COL the String with Width Height using BackGround color and ForeGround color
+// Plots on actual screen, not canvas
 void plots(int r, int c, char *s, int w, int h, int bg, int fg) {
   int ch;
   while((ch= *s++)) {
