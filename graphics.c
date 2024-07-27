@@ -337,6 +337,8 @@ void drawPullDownMenu(color *colors, char **labels, int ncol, int n, int right) 
   }
 }
 
+// BIG CHARS: plot char using colored spaces (not pixels)
+
 // Plot at ROW COL the CHaracter with Width Height using BackGround color and ForeGround color
 // Plots on actual screen, not canvas
 void plot(int r, int c, char ch, int w, int h, int bg, int fg) {
