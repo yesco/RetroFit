@@ -17,11 +17,11 @@ int forward(int n) {
 float pi= 3.14; // TODO: fix
 
 float left(float d) {
-  return rad-= pi*d/360;
+  return rad-= 2*pi*d/360;
 }
 
 float right(float d) {
-  return rad+= pi*d/360;
+  return rad+= 2*pi*d/360;
 }
 
 int main(void) {
@@ -39,9 +39,31 @@ int main(void) {
   y= gsizey/2;
 
   forward(10);
-  left(90);
-  c= green;
+  //left(90);
+  //c= green;
+  //forward(10);
+  //gline(x,y,0,+30,c);
+  //gline(x,y,10,-10,c);
+  //gline(x,y,0,-10,c);
+  //gline(x,y,0,10,c);
+  //left(90);
+
+  c=green;
   forward(10);
+
+  left(45);
+
+  c=red;
+  forward(10);
+
+  c=blue;
+  forward(10);
+
+  //gline(x,y,0,10,c);
+  //gline(x,y,+10,0,green);
+  //gline(x,y,0,10,c);
+  //gline(x,y,+10,0,green);
+  //x+=10; y+=0;
   
   gupdate();
 

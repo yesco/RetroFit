@@ -89,12 +89,21 @@ pixel gset(int x, int y, int c) {
 }
 
 void gline(int x, int y, int dx, int dy, int c) {
-  if (dx >=-dy) {
-    for(int d=0; d<=dx; d++)
-      gset(x+d, y+ (dy*d+dx/2)/dx, c);
-  } else {
-    for(int d=0; d<=dy; d++)
-      gset(x+ (dx*d+dy/2)/dy, y+d, c);
+  int ax= abs(dx), ay= abs(dy);
+  if (ax >= ay) { // x
+    printf("Fiefum\n");
+    int s= dy>0?1:-1;
+    for(int d=0; d<=ax; d++) {
+      usleep(200*1000);
+      gset(x+s*d, y-s*ay*d/dx, c);
+      void gupdate();
+      gupdate();
+    }
+  } else { // y
+    printf("Foobar\n");
+    int s= dy>0?1:-1;
+    for(int d=0; d<ay; d++)
+      gset(x+s*ax*d/dy, y+s*d, c);
   }
 }
 
