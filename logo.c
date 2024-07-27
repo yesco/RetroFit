@@ -53,12 +53,17 @@ void myclock() {
   if (gsizey/2 < w) w= gsizey/2;
   w-= 3;
   
+  wclear();
+  
   while(peekey()<0) {
+    //usleep(1000*1000);
+    usleep(1000*1000/10);
+
     s++;
     if (s>=60) m++,s=0;
     if (m>=60) h++,m=0;
     
-    wclear();
+    gclear();
     
     center(); left(90);
     right(h*360/12);
@@ -76,9 +81,6 @@ void myclock() {
     forward(w);
 
     gupdate();
-
-    //usleep(1000*1000);
-    usleep(1000*1000/10);
   }
 }
 

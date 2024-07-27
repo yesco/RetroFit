@@ -50,13 +50,13 @@ void gallocate(int x, int y, int clear) {
   }
   if (clear) {
     memset(_gscreen, none, size);
-    memset(_gscold, none, size);
     gx= 0, gy= 0, gbg= black, gfg= white;
   }
 }
 
+// allocate and clear graphics canvas
 // TODO: generalize
-// clear graphics canvas
+// TODO: ahum
 gscreen gclear() {
   gallocate(
     screen_cols*pixels_per_col,
@@ -111,7 +111,8 @@ void glineto(int x, int y, int tx, int ty, int c) {
 
 
 
-// Update the screen to the current canvas
+// Incrementially update screen with changes in canvas
+// (keeps a copy of last and diffs)
 void gupdate() {
   assert(pixels_per_row<=2);
   assert(pixels_per_col<=2);
@@ -245,6 +246,7 @@ void wclear() {
     clearend(); putchar('\n');
   }
   fflush(stdout);
+  memset(_gscold, none, gbytes);
 }
 
 // Show a toast TEXT centered on empty screen
