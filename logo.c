@@ -42,6 +42,7 @@ void mygraph(float xa, float xb, float stp, float ya, float yb, double f(double)
   for(float x= xa; x<=xb; x+= stp) {
     float y= f(x);
     gset(x/(xb-xa)*2*xc+xc, y/(yb-ya)*2*yc+yc, c);
+    //gupdate();
   }
 }
 
@@ -122,6 +123,7 @@ int main(void) {
   
   mygraph(-10,10, 0.01, -1.2,1.2, sin, red);
   mygraph(-10,10, 0.1, -1.2,1.2, cos, green);
+  mygraph(-10,10, 0.01, -1.2,1.2, tan, cyan);
 
   gupdate();
   key();
