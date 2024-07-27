@@ -80,6 +80,7 @@ pixel *gpixel(int x, int y) {
 }
 
 pixel gset(int x, int y, int c) {
+  printf(" (%d,%d) ", x, y);
   pixel *p= gpixel(x, y);
   if (!p) return 0;
   // blend?
@@ -90,11 +91,12 @@ pixel gset(int x, int y, int c) {
 
 void gline(int x, int y, int dx, int dy, int c) {
   int ax= abs(dx), ay= abs(dy);
+  printf("\n--GLINE(%d,%d,%d,%d,%d); ax=%d ay=%d ", x,y,dx,dy,c,ax,ay);
   if (ax >= ay) { // x
     printf("Fiefum\n");
-    int s= dy>0?1:-1;
+    int s= dx>=0?1:-1;
     for(int d=0; d<=ax; d++) {
-      usleep(200*1000);
+      //usleep(200*1000);
       gset(x+s*d, y-s*ay*d/dx, c);
       void gupdate();
       gupdate();

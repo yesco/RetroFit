@@ -56,8 +56,9 @@ int main(void) {
   c=red;
   forward(10);
 
-  c=blue;
-  forward(10);
+  right(45+90);
+  c=cyan;
+  forward(9);
 
   //gline(x,y,0,10,c);
   //gline(x,y,+10,0,green);
