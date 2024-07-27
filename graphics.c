@@ -160,6 +160,11 @@ void gupdate() {
       // colors?
       fg= fa? a : fb? b : fc? c : fd? d : gfg;
 
+      // TODO: if only two colors and no none then can
+      // draw both without conflict...
+
+      // TODO: is it better to just let last win?
+
       // print quad-block
       const char* s= BLOCKS[fa*1+fb*2+fc*4+fd*8];
       if (bg!=lastbg) B(lastbg= bg);
@@ -242,7 +247,7 @@ void drawX() {
 void wclear() {
   gclear();
   B(black); C(white);
-  for(int r=0; r<screen_rows-2; r++) {
+  for(int r=0; r<screen_rows-1; r++) {
     clearend(); putchar('\n');
   }
   fflush(stdout);
