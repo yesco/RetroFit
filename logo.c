@@ -2,6 +2,8 @@
 #include "graphics.c"
 #include <math.h>
 
+// TODO: use gx and gy?
+
 int x= 0, y= 0, c= white;
 float rad= 0;
 
@@ -42,7 +44,7 @@ void mygraph(float xa, float xb, float stp, float ya, float yb, double f(double)
   for(float x= xa; x<=xb; x+= stp) {
     float y= f(x);
     gset(x/(xb-xa)*2*xc+xc, y/(yb-ya)*2*yc+yc, c);
-    //gupdate();
+    gupdate();
   }
 }
 
@@ -118,8 +120,13 @@ int main(void) {
   wclear();
   center();
 
-  center(); angle(  0); forward(xc);
-  center(); angle( 90); forward(xc);
+  // draw axis
+  center(); angle(  0); forward(xc); {
+    gx= x-8; gy=y; gputc('x');
+  }
+  center(); angle( 90); forward(xc); {
+    gx= x-8; gy=0; gputc('y');
+  }    
   center(); angle(180); forward(xc);
   center(); angle(270); forward(xc);
   
