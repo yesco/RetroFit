@@ -90,13 +90,17 @@ pixel gset(int x, int y, int c) {
   return v;
 }
 
+void gline(int, int, int, int, int);
+
 // Bresenham's Line Algorithm
 // - https://en.m.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+// TODO: bug???
+// doesn't draw right to left, or up to down ???? WTF?
 void gline(int x, int y, int dx, int dy, int c) {
   int ax= abs(dx);
-  int sx= dx>0?1:-1;
+  int sx= dx>=0?1:-1;
   int ay= -abs(dy);
-  int sy= dy>0?1:-1;
+  int sy= dy>=0?1:-1;
   int e= dx+dy;
 
   int x1= x+dx, y1= y+dy;
@@ -119,28 +123,6 @@ void gline(int x, int y, int dx, int dy, int c) {
 }
 
 // doens't work, lol
-void gline3(int x, int y, int dx, int dy, int c) {
-  if (dx<0) x+= dx, dx= -dx;
-  if (dy<0) y+= dy, dy= -dy;
-  // dx and dy is now positive
-  if (dx>dy) {
-    int D= 2*dy-dx;
-    for(int d=0; d<=dx; d++) {
-      gset(x+d, y, c);
-      if (D>0) y++, D-= 2*dx;
-      D+= 2*dy;
-    }
-  } else {
-    int D= 2*dx-dy;
-    for(int d=0; d<=dy; d++) {
-      gset(x, y+d, c);
-      if (D>0) x++, D-= 2*dy;
-      D+= 2*dx;
-    }
-  }
-}
-
-// doens't work, lol
 void gline2(int x, int y, int dx, int dy, int c) {
   int ax= abs(dx), ay= abs(dy);
   int sx= dx>=0?1:-1;
@@ -149,8 +131,8 @@ void gline2(int x, int y, int dx, int dy, int c) {
     for(int d=0; d<=ax; d++)
       gset(x+sx*d, y+sy*ay*d/dx, c);
   } else {
-    for(int d=0; d<ay; d++)
-      gset(x-sx*ax*d/dy, y+sy*d, c);
+    for(int d=0; d<=ay; d++)
+      gset(x+sx*ax*d/dy, y+sy*d, c);
   }
 }
 

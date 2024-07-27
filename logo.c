@@ -40,12 +40,40 @@ void center() {
 }
 
 // plot a Function in x=[xa,xb] with STeP, on y=[ya,yb] using Color
-void mygraph(float xa, float xb, float stp, float ya, float yb, double f(double), int c) {
+void graph(float xa, float xb, float stp, float ya, float yb, double f(double), int c) {
   for(float x= xa; x<=xb; x+= stp) {
     float y= f(x);
     gset(x/(xb-xa)*2*xc+xc, y/(yb-ya)*2*yc+yc, c);
     gupdate();
   }
+}
+
+// graphs w axis and label
+void mygraph() {
+  wclear();
+  center();
+
+  // draw axis
+  //center(); angle(  0); forward(xc); {
+  center(); forward(xc); {
+    gx= x-8; gy=y; gputc('x');
+  }
+  center(); left(90); forward(xc); {
+    gx= x-8; gy=0; gputc('y');
+  }    
+
+  // TODO: these two doesn't work???
+  center(); angle(180); forward(xc);
+  center(); angle(270); forward(xc);
+
+  center(); right(180); forward(xc);
+  center(); left(90); forward(xc);
+  
+  graph(-10,10, 0.01, -1.2,1.2, sin, red);
+  graph(-10,10, 0.1, -1.2,1.2, cos, green);
+  graph(-10,10, 0.01, -1.2,1.2, tan, cyan);
+
+  gupdate();
 }
 
 void myclock() {
@@ -116,25 +144,7 @@ int main(void) {
   
   gupdate();
 
-  // graphs w axis
-  wclear();
-  center();
-
-  // draw axis
-  center(); angle(  0); forward(xc); {
-    gx= x-8; gy=y; gputc('x');
-  }
-  center(); angle( 90); forward(xc); {
-    gx= x-8; gy=0; gputc('y');
-  }    
-  center(); angle(180); forward(xc);
-  center(); angle(270); forward(xc);
-  
-  mygraph(-10,10, 0.01, -1.2,1.2, sin, red);
-  mygraph(-10,10, 0.1, -1.2,1.2, cos, green);
-  mygraph(-10,10, 0.01, -1.2,1.2, tan, cyan);
-
-  gupdate();
+  mygraph();
   key();
 
   // draw a ticking clock
