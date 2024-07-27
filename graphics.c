@@ -56,6 +56,7 @@ void gallocate(int x, int y, int clear) {
 }
 
 // TODO: generalize
+// clear graphics canvas
 gscreen gclear() {
   gallocate(
     screen_cols*pixels_per_col,
@@ -79,10 +80,11 @@ pixel *gpixel(int x, int y) {
   return &(g[y*gsizex + x]);
 }
 
+// sets new color of pixel (x,y) returns old color
 pixel gset(int x, int y, int c) {
   pixel *p= gpixel(x, y);
   if (!p) return 0;
-  // blend?
+  // TODO: blend?
   pixel v= *p;
   if (c!=none) *p= c;
   return v;

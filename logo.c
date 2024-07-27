@@ -16,12 +16,33 @@ int forward(int n) {
 
 float pi= 3.14; // TODO: fix
 
+float angle(float d) {
+  return rad= 2*pi*d/360;
+}
+
 float left(float d) {
   return rad-= 2*pi*d/360;
 }
 
 float right(float d) {
   return rad+= 2*pi*d/360;
+}
+
+int xc, yc;
+
+void center() {
+  x= xc= gsizex/2;
+  y= yc= gsizey/2;
+  rad= 0;
+  c= white;
+}
+
+// plot a Function in x=[xa,xb] with STeP, on y=[ya,yb] using Color
+void mygraph(float xa, float xb, float stp, float ya, float yb, double f(double), int c) {
+  for(float x= xa; x<=xb; x+= stp) {
+    float y= f(x);
+    gset(x/(xb-xa)*2*xc+xc, y/(yb-ya)*2*yc+yc, c);
+  }
 }
 
 void myclock() {
@@ -38,20 +59,17 @@ void myclock() {
     
     wclear();
     
-    x= gsizex/2; y= gsizey/2;
-    rad= 0; left(90);
+    center(); left(90);
     right(h*360/12);
     c= red;
     forward(w/2);
       
-    x= gsizex/2; y= gsizey/2;
-    rad= 0; left(90);
+    center(); left(90);
     right(m*360/60);
     c= cyan;
     forward(w*0.8);
 	    
-    x= gsizex/2; y= gsizey/2;
-    rad= 0; left(90);
+    center(); left(90);
     right(s*360/60);
     c= white;
     forward(w);
@@ -70,28 +88,14 @@ int main(void) {
   pixels_per_col= 2;
   //pixels_per_col= 1; // TODO: 1
   pixels_per_row= 2;
-  
   gcanvas();
   
-  // TODO: 1
-  x= gsizex/2;
-  y= gsizey/2;
-
   forward(10);
-  //left(90);
-  //c= green;
-  //forward(10);
-  //gline(x,y,0,+30,c);
-  //gline(x,y,10,-10,c);
-  //gline(x,y,0,-10,c);
-  //gline(x,y,0,10,c);
-  //left(90);
 
   c=green;
   forward(10);
 
   left(45);
-
   c=red;
   forward(10);
 
@@ -107,6 +111,22 @@ int main(void) {
   
   gupdate();
 
+  // graphs w axis
+  wclear();
+  center();
+
+  center(); angle(  0); forward(xc);
+  center(); angle( 90); forward(xc);
+  center(); angle(180); forward(xc);
+  center(); angle(270); forward(xc);
+  
+  mygraph(-10,10, 0.01, -1.2,1.2, sin, red);
+  mygraph(-10,10, 0.1, -1.2,1.2, cos, green);
+
+  gupdate();
+  key();
+
+  // draw a ticking clock
   myclock();
 
   cursoron();
