@@ -24,6 +24,45 @@ float right(float d) {
   return rad+= 2*pi*d/360;
 }
 
+void myclock() {
+  int h= 1, m= 45, s= 0;
+
+  int w= gsizex/2;
+  if (gsizey/2 < w) w= gsizey/2;
+  w-= 3;
+  
+  while(peekey()<0) {
+    s++;
+    if (s>=60) m++,s=0;
+    if (m>=60) h++,m=0;
+    
+    wclear();
+    
+    x= gsizex/2; y= gsizey/2;
+    rad= 0; left(90);
+    right(h*360/12);
+    c= red;
+    forward(w/2);
+      
+    x= gsizex/2; y= gsizey/2;
+    rad= 0; left(90);
+    right(m*360/60);
+    c= cyan;
+    forward(w*0.8);
+	    
+    x= gsizex/2; y= gsizey/2;
+    rad= 0; left(90);
+    right(s*360/60);
+    c= white;
+    forward(w);
+
+    gupdate();
+
+    //usleep(1000*1000);
+    usleep(1000*1000/10);
+  }
+}
+
 int main(void) {
   jio();
   cursoroff();
@@ -67,6 +106,8 @@ int main(void) {
   //x+=10; y+=0;
   
   gupdate();
+
+  myclock();
 
   cursoron();
   exit(0);
