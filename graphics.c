@@ -182,8 +182,11 @@ void gupdate() {
         continue;
       
       int nr= y/pixels_per_row, nc= x/pixels_per_col;
+
+      // not next pos, jump
       if (lastr!=nr || lastc!=nc-1)
         gotorc(nr, nc);
+
       lastr= nr; lastc= nc;
 
       // TODO: improve? choose policy?
@@ -213,7 +216,7 @@ void gupdate() {
       const char* s= BLOCKS[fa*1+fb*2+fc*4+fd*8];
       if (bg!=lastbg) B(lastbg= bg);
       if (fg!=lastfg) C(lastfg= fg);
-      B(bg); C(fg);
+      //B(bg); C(fg);
       printf("%s", s);
     }
   }
@@ -565,6 +568,13 @@ int main(void) { /* ENDWCOUNT */
     break;
   }
   printf("\n");
+
+  // gupdate very slow drawing this!
+  gbox(0,0,gsizex-1,gsizey-1,red); gupdate();
+  gbox(0,0,gsizex-1,gsizey-1,green); gupdate();
+  gbox(0,0,gsizex-1,gsizey-1,blue); gupdate();
+  gbox(0,0,gsizex-1,gsizey-1,white); gupdate();
+  gbox(0,0,gsizex-1,gsizey-1,black); gupdate();
 }
 #endif
 

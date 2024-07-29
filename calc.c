@@ -98,9 +98,6 @@ void calc() {
 
     gupdate();
 
-    // gupdate very slow drawing this!
-    //    gbox(0,0,gsizex-1,gsizey-1,red); gupdate();
-
     // action by key
     k= key();
     if ((k & MOUSE)==MOUSE_DOWN) {
