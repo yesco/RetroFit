@@ -3,6 +3,16 @@
 #include <math.h>
 #include <assert.h>
 
+// -- keys position mapping from MOUSE click
+// Limited. Stores only char of key and
+// (x,y) of starting position. Returns index
+// into keyc[], keyy[],keyx[].
+//
+// Assumption: keys are added in x-> and then y-> order.
+//
+// Matching starts from right bottom, first key (kx,ky)
+// that is less than click position (x,y) is returned.
+
 #define NKEYS 64
 
 char keyc[NKEYS]= {0};
