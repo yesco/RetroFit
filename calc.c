@@ -8,15 +8,17 @@
 char keyc[NKEYS]= {0};
 int keyy[NKEYS]= {0};
 int keyx[NKEYS]= {0};
-int nkeys= 1; // ahum, not 0?
+int nkeys= 0; // ahum, not 0?
 
 // Search key positions to find where clicked
 // Returns: 0 if not found, otherwise index
 int findnkey(int x, int y) {
   int i;
-  for(i=0; i<NKEYS; i++) { 
-    if (x < keyx[i]) break;
-    if (y < keyy[i]) break;
+  for(i=nkeys; i; i--) { 
+    //printf("  %d: '%c' x%d y%d for %d %d\n", i, keyc[i], keyx[i], keyy[i], x, y);
+    if (keyx[i] > x) continue;
+    if (keyy[i] > y) continue;
+    //printf("---passed: %d\n", i);
     return i;
   }
   return 0;
@@ -33,6 +35,7 @@ void dkey(char k) {
   // draw
   gputc(' ');
 
+  // save pos of char for inverse
   int x= gx, y= gy;
   gputc(k);
 
@@ -101,7 +104,15 @@ void calc() {
     gupdate();
 
     // action by key
-    int k= key();
+    k= key();
+    if ((k & MOUSE)==MOUSE_DOWN) {
+      int r= mouserow(k), c= mousecol(k);
+      int i= findnkey(c*pixels_per_col, r*pixels_per_row);
+      //printf("\nMOUSE: %x r%d c%d %d | \n", k, r, c, i);
+      if (i) {
+	k= keyc[i];
+      }
+    }
 
     // take two -- see below
     if (s-stack<2 && strchr("+-*/^", k)) continue;
@@ -111,6 +122,7 @@ void calc() {
     case '0' ... '9': *s= 10* *s + k-'0'; break;
     case '.': break; // TODO: enter string?
     case 'E': break; // TODO: 1E5
+    case 8: case 127: break; // TODO: backspace
 
     case ' ': case '\n': case '\r': // or <enter> or space
     case '<': s++; *s= 0; break; // push/enter
@@ -137,6 +149,7 @@ void calc() {
     case 'T': *s= tan(*s); break;
     }
 
+    //printf(" %s %d %x | ", keystring(k), k, k);
   } while(k!=CTRL+'C');
 }
 

@@ -1529,7 +1529,7 @@ int clickDispatch(int k) {
   if (k & MOUSE_DOWN) return NO_REDRAW;
 
   // TODO: make function/macro/API?
-  int b= (k>>16) & 0xff, r= (k>>8) & 0xff, c= k & 0xff;
+  int b= (k>>16) & 0xff, r= mouserow(k), c= mousecol(k);
   int save_k= k;
   k= REDRAW;
 

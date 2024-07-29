@@ -388,6 +388,14 @@ int keyRepeated() {
   return mstime()-_prevkeyms<200;
 }
 
+int mouserow(int k) {
+  return (k>>8) & 0xff;
+}
+
+int mousecol(int k) {
+  return k & 0xff;
+}
+
 // Returns a static string describing KEY
 // Note: next call may change previous returned value, NOT thread-safe
 char* keystring(int k) {

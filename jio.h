@@ -165,6 +165,9 @@ int keywait(int ms);
 keycode waitScrollEnd(keycode k);
 int keyRepeated();
 
+int mouserow(int k);
+int mousecol(int k);
+
 char* keystring(int c);
 void testkeys();
 
