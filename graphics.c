@@ -140,7 +140,20 @@ void glineto(int x, int y, int tx, int ty, int c) {
   gline(x, y, tx-x, ty-y, c);
 }
 
+void gbox(int x, int y, int w, int h, int c) {
+  for(int dy=0; dy<h; dy++) {
+    for(int dx=0; dx<w; dx++) {
+      pixel* p= gpixel(x+dx, y+dy);
+      *p= c>=0? c: invertcolor(*p);
+    }
+  }
+}
 
+// Invert a box of pixels
+// Invert twice and it's undone
+void ginvert(int x, int y, int w, int h) {
+  gbox(x, y, w, h, -1);
+}
 
 // Incrementially update screen with changes in canvas
 // (keeps a copy of last and diffs)

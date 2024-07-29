@@ -189,6 +189,16 @@ color B(int n) {
   return f(n==blue? rgb(0,0,1) : n==white ? n+8 : n);
 }
 
+// invert a color, twice and it's back
+color invertcolor(color c) {
+  switch((int)c) {
+  case 0 ... 7: return 7-c;
+  case none: return white; // TODO: depends background?
+  case 9 ... 255: return 255-c+9;
+  default: return red; printf("ERROR: color=%x\n", c); // TODO
+  }
+}
+
 color readablefg() {
   // TODO: generalize for rgb and RGB, use hue?
   // TODO: bad name!

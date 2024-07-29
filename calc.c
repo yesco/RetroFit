@@ -51,24 +51,7 @@ void dkey(char k) {
 
   gputc(' ');
 
-  // "invert"
-  for(int dy=-1; dy<8; dy++) {
-    for(int dx=-2; dx<8+2; dx++) { // TODO: wrong for 1 or more pad?
-      pixel* p= gpixel(x+dx, y+dy);
-      // inverse color?
-      if (p) {
-	switch(*p) {
-	  //case 1 ... 7: *p= 7-*p; break;
-	case black: *p= white; break;
-	case white: *p= black; break;
-	case none: *p= white; break; // TODO: depends background?
-	  //case 9 ... 255: *p= 255-*p+9; break; // TODO: Hmmmm?
-	default: *p= red; printf("ERROR: color=%d\n", *p);
-	}
-      }
-    }
-  }
-
+  ginvert(x-2, y-1, 8+3, 8+1);
 }
   
 void row(char* keys) {
@@ -93,10 +76,12 @@ void calc() {
     gx= 0; gy= 0;
     int wc= 6*3;
     int w= wc*8;
+
     // draw result panel
     char r[64]= {0};
-    sprintf(r, "%32g", *s);
+    sprintf(r, "%*.*g", wc, wc-5, *s);
     
+    // right adjust
     gx= w-8*strlen(r);
     gputs(r);
     gputc('\n'); gy+= 4;
@@ -112,6 +97,9 @@ void calc() {
     }
 
     gupdate();
+
+    // gupdate very slow drawing this!
+    //    gbox(0,0,gsizex-1,gsizey-1,red); gupdate();
 
     // action by key
     k= key();

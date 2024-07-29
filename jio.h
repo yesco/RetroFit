@@ -99,6 +99,8 @@ void recolor();
 color C(int n);
 color B(int n);
 
+color invertcolor(color c);
+
 color readablefg();
 
 ////////////////////////////////////////
