@@ -74,15 +74,26 @@ void insertmode(int on);
 // ( https://www.calmar.ws/vim/256-xterm-24bit-rgb-color-chart.html )
 // ( https://raw.githubusercontent.com/jonasjacek/colors/master/index.html _
 typedef enum color{
+
+  // canonical basic colors (lowercase)
   black, red, green, yellow, blue, magenta, cyan, white,
+
+  // a NONE color / TRANSPARENT
   none=8, // TODO: not right? -1? -2? lol (byte... hmmm)
+
   // 8--15: same but bright!
+
   // 16--231: rgb= 16 + 36*r + 6*g + b  USE: rgb(r,g,b)
+
   // 231--255: gray / 24 ???
-  // jsk's guesses
+
+  // jsk's personal favories (lowecase)
   purple= 93,
   orange= 214,
   brightorange= yellow+8,
+
+  // =============================================  
+  // OFFICIAL 256 XTERM/ANSI NAMES uses UpperCaseN
 
   Black            = 0,
   Maroon           = 1,
@@ -106,6 +117,8 @@ typedef enum color{
   // They don't have unique names, neither number after name!
   // I've uniqieufied them and roughtly sorted in basic colors
   // But nothing beats looking at it and picking it by name/number.
+
+  // TODO: make a color name number picker...
 
 
   // -- GREEN
