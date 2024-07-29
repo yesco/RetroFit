@@ -70,7 +70,12 @@ void restorescreen();
 void insertmode(int on);
 
 // - higher level colors
-typedef enum color{black, red, green, yellow, blue, magenta, cyan, white, none,
+typedef enum color{
+  black, red, green, yellow, blue, magenta, cyan, white,
+  none=8, // TODO: not right? -1? -2? lol (byte... hmmm)
+  // 8--15: same but bright!
+  // 16--231: rgb= 16 + 36*r + 6*g + b  USE: rgb(r,g,b)
+  // 231--255: gray / 24 ???
   // jsk's guesses
   purple= 93,
   orange= 214,

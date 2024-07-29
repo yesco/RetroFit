@@ -192,10 +192,17 @@ color B(int n) {
 // invert a color, twice and it's back
 color invertcolor(color c) {
   switch((int)c) {
-  case 0 ... 7: return 7-c;
-  case none: return white; // TODO: depends background?
-  case 9 ... 255: return 255-c+9;
-  default: return red; printf("ERROR: color=%x\n", c); // TODO
+  case   0 ... 7:   return 7-c; // faded... default bright anyway...
+  case      none:   return white; // TODO: depends background? OVERLAP
+  case   9 ... 15:  return 15-c+8; // bright... redundant?
+  case  16 ... 231: { // rgb 6 hues per color
+    c-= 16;
+    int b= c % 6, g= (c/6) % 6, r= (c/6/6) % 6;
+    return rgb(5-r, 5-g, 5-b); // TODO: test...
+  }
+  case 232 ... 255: return 255-(c-232); // GRAY TODO: test
+
+  default: return red; printf("ERROR: color=%x\n", c); // TODO: ???
   }
 }
 
