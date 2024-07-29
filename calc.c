@@ -100,19 +100,24 @@ void calc() {
 
     // action by key
     k= key();
+    int i;
     if ((k & MOUSE)==MOUSE_DOWN) {
       int r= mouserow(k), c= mousecol(k);
-      int i= findnkey(c*pixels_per_col, r*pixels_per_row);
-      if (i) {
-	k= keyc[i];
-	// show key pressed down for a while
-	ginvert(keyx[i]+6, keyy[i]-1, 8+5, 8+2);
-	gupdate();
-	usleep(100*1000);
-	key(); // read MOUSE_UP
-	ginvert(keyx[i]+6, keyy[i]-1, 8+5, 8+2);
-	gupdate();
-      }
+      i= findnkey(c*pixels_per_col, r*pixels_per_row);
+      if (i) k=keyc[i];
+    } else {
+      for(i=nkeys; i; i--)
+	if (keyc[i]==k) break;
+    }
+
+    // show key pressed down for a while
+    if (i) {
+      ginvert(keyx[i]+6, keyy[i]-1, 8+5, 8+2);
+      gupdate();
+      usleep(100*1000);
+      if (k & MOUSE) key(); // read MOUSE_UP
+      ginvert(keyx[i]+6, keyy[i]-1, 8+5, 8+2);
+      gupdate();
     }
 
     // take two -- see below
