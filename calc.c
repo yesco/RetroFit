@@ -103,9 +103,15 @@ void calc() {
     if ((k & MOUSE)==MOUSE_DOWN) {
       int r= mouserow(k), c= mousecol(k);
       int i= findnkey(c*pixels_per_col, r*pixels_per_row);
-      //printf("\nMOUSE: %x r%d c%d %d | \n", k, r, c, i);
       if (i) {
 	k= keyc[i];
+	// show key pressed down for a while
+	ginvert(keyx[i]+6, keyy[i]-1, 8+5, 8+2);
+	gupdate();
+	usleep(100*1000);
+	key(); // read MOUSE_UP
+	ginvert(keyx[i]+6, keyy[i]-1, 8+5, 8+2);
+	gupdate();
       }
     }
 
