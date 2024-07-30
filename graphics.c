@@ -144,7 +144,7 @@ void gbox(int x, int y, int w, int h, int c) {
   for(int dy=0; dy<h; dy++) {
     for(int dx=0; dx<w; dx++) {
       pixel* p= gpixel(x+dx, y+dy);
-      *p= c>=0? c: invertcolor(*p);
+      if (p) *p= c>=0? c: invertcolor(*p);
     }
   }
 }
