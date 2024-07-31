@@ -34,7 +34,7 @@ int findnkey(int x, int y) {
   return 0;
 }
 
-void dkey(char k) {
+void dkey(char k, char* s) {
   // remember coordinates
   nkeys++;
   assert(nkeys<NKEYS);
@@ -43,22 +43,38 @@ void dkey(char k) {
   keyy[nkeys]= gy;
 
   // draw
-  gputc(' ');
+  //gputc(' ');
 
   // save pos of char for inverse
   int x= gx, y= gy;
   gputc(k);
 
-  gputc(' ');
+  //gputc(' ');
+  gx+=5;
 
-  ginvert(x-2, y-1, 8+3, 8+1);
+  ginvert(x-2, y-1, 8+2, 8+1);
 }
   
+// visually press and depress key
+void showkeypress(int i) {
+  int x= keyx[i]+8-2;
+  x= keyx[i]-2;
+  ginvert(x, keyy[i]-1, 8+5, 8+2);
+  gupdate();
+
+    // read MOUSE_UP
+  ///if (k & MOUSE) key(); 
+
+  usleep(100*1000);
+  ginvert(x, keyy[i]-1, 8+5, 8+2);
+  gupdate();
+}
+
 void row(char* keys) {
   int c;
   while((c= *keys++)) {
     if (c==' ') continue;
-    dkey(c);
+    dkey(c, 0);
   }
   gputc('\n'); gy+= 3;
 }
@@ -111,14 +127,7 @@ void calc() {
     }
 
     // show key pressed down for a while
-    if (i) {
-      ginvert(keyx[i]+6, keyy[i]-1, 8+5, 8+2);
-      gupdate();
-      usleep(100*1000);
-      if (k & MOUSE) key(); // read MOUSE_UP
-      ginvert(keyx[i]+6, keyy[i]-1, 8+5, 8+2);
-      gupdate();
-    }
+    if (i) showkeypress(i);
 
     // take two -- see below
     if (s-stack<2 && strchr("+-*/^", k)) continue;
