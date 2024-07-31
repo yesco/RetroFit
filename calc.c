@@ -34,7 +34,10 @@ int findnkey(int x, int y) {
   return 0;
 }
 
-void dkey(char k, char* s) {
+// assumes *s is start of key string
+char* dkey(char* s) {
+  char k= *s;
+
   // remember coordinates
   nkeys++;
   assert(nkeys<NKEYS);
@@ -42,40 +45,54 @@ void dkey(char k, char* s) {
   keyx[nkeys]= gx;
   keyy[nkeys]= gy;
 
-  // draw
-  //gputc(' ');
+  // -- draw
+  
+  // padding between keys
+  if (!*s) return s;
+  gx+= 3;
+
+  int x= gx, y= gy;
 
   // save pos of char for inverse
-  int x= gx, y= gy;
-  gputc(k);
+  while(*s && !isspace(*s)) {
+    gputc(*s);
+    s++;
+  }
 
-  //gputc(' ');
-  gx+=5;
+  // make it look like "a button"
+  ginvert(x-2, y-1, gx-x+2, 8+1);
 
-  ginvert(x-2, y-1, 8+2, 8+1);
+  // padding between keys
+  gx+= 4;
+
+  return s;
 }
   
 // visually press and depress key
 void showkeypress(int i) {
-  int x= keyx[i]+8-2;
-  x= keyx[i]-2;
-  ginvert(x, keyy[i]-1, 8+5, 8+2);
+  int x= keyx[i]+1;
+  int y= keyy[i]-1;
+  int w= keyx[i+1]-keyx[i]-3;
+  
+  //ginvert(x+5, keyy[i]-1, 8+5, 8+2);
+  ginvert(x, y, w, 8+2);
   gupdate();
 
-    // read MOUSE_UP
+  // read MOUSE_UP
   ///if (k & MOUSE) key(); 
 
   usleep(100*1000);
-  ginvert(x, keyy[i]-1, 8+5, 8+2);
+  //ginvert(x, keyy[i]-1, 8+5, 8+2);
+  ginvert(x, y, w, 8+2);
   gupdate();
 }
 
 void row(char* keys) {
-  int c;
-  while((c= *keys++)) {
-    if (c==' ') continue;
-    dkey(c, 0);
+  while(*keys) {
+    while(*keys && isspace(*keys)) keys++;
+    keys= dkey(keys);
   }
+  dkey("");
   gputc('\n'); gy+= 3;
 }
 
@@ -104,11 +121,10 @@ void calc() {
 
     if (firsttime) {
       // draw keys
-      row("( ) Q L X S");
-      row("7 8 9 * D C");
-      row("4 5 6 / B T");
-      row("1 2 3 - I ");
-      row(". 0 E + < >");
+      row("7 8 9 * sin e ^");
+      row("4 5 6 / cos lne");
+      row("1 2 3 - tan dln");
+      row(". 0 E + inv < >");
       firsttime= 0;
     }
 
@@ -133,7 +149,7 @@ void calc() {
     if (s-stack<2 && strchr("+-*/^", k)) continue;
 
     // action
-    switch(toupper(k)) {
+    switch(k) {
     case '0' ... '9': *s= 10* *s + k-'0'; break;
     case '.': break; // TODO: enter string?
     case 'E': break; // TODO: 1E5
@@ -151,17 +167,17 @@ void calc() {
     case '/': s--; *s= *s/s[1]; break;
     case '^': s--; *s= pow(*s, s[1]); break;
 
-    case 'Q': *s= sqrt(*s); break;
-    case 'L': *s= log(*s); break;
-    case 'X': *s= exp(*s); break;
-    case 'D': *s= log10(*s); break;
-    case 'B': *s= log2(*s); break;
+    case 'S': *s= sqrt(*s); break;
+    case 'l': *s= log(*s); break;
+    case 'e': *s= exp(*s); break;
+    case 'd': *s= log10(*s); break;
+    case 'b': *s= log2(*s); break;
 
-    case 'I': *s= 1/ *s; break;
+    case 'i': *s= 1/ *s; break;
 
-    case 'S': *s= sin(*s); break;
-    case 'C': *s= cos(*s); break;
-    case 'T': *s= tan(*s); break;
+    case 's': *s= sin(*s); break;
+    case 'c': *s= cos(*s); break;
+    case 't': *s= tan(*s); break;
     }
 
     //printf(" %s %d %x | ", keystring(k), k, k);
