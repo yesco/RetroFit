@@ -154,7 +154,7 @@ int arg(char** p) {
 }
 
 // LOGO single char commands
-// used: J K N Q (T) V (X) (Y)
+// used: J K M N Q (T) V
 //   Forward [N]
 //   Up (Pen) 
 //   Down (Pen)
@@ -170,38 +170,43 @@ int arg(char** p) {
 //   Erase
 //   Box W [H] (default W)
 //   I - cewnter lol
+//   Text [foobar] or Text "foobar"
+//   X [N] (default 0)
+//   Y [N] (default 0)
+//   V [N] (background default none)
 
 // TODO: how to say filled?
 //   Circle
 //   Graphics (bitblt/"sprite")
-//   Move x y
-//   X45 Y27
 //   Pattern
-//   Text
 
 void logo(char* p) {
   while(*p) {
     //printf(">%s\n", p);
-    switch(toupper(*p++)) {
+    switch(tolower(*p++)) {
     case ' ': case '\t': case '\n': break;
     case '[': break;
     case ']': case 0: return;
-    case 'F': forward(arg(&p)); break;
-    case 'E': gclear(); break;
-    case 'U': pen= 0; assert(!"TODO"); break;
-    case 'D': pen= 1; assert(!"TODO"); break;
-    case 'H': turtle= 0; assert(!"TODO"); break;
-    case 'S': turtle= 1; assert(!"TODO"); break;
-    case 'L': left(argdef(&p, 90)); break;
-    case 'R': right(argdef(&p, 90)); break;
-    case 'A': angle(argdef(&p, 90)); break;
-    case 'O': c= argdef(&p, white); break; // TODO: cOlor names
-    case 'Z': size= argdef(&p, 1); break;
+    case 'f': forward(arg(&p)); break;
+    case 'e': gclear(); break;
+    case 'u': pen= 0; assert(!"TODO"); break;
+    case 'd': pen= 1; assert(!"TODO"); break;
+    case 'h': turtle= 0; assert(!"TODO"); break;
+    case 's': turtle= 1; assert(!"TODO"); break;
+    case 'l': left(argdef(&p, 90)); break;
+    case 'r': right(argdef(&p, 90)); break;
+    case 'a': angle(argdef(&p, 90)); break;
+    case 'o': gfg= c= argdef(&p, white); break; // TODO: cOlor names
+    case 'v': gbg= argdef(&p, none); break; // TODO: cOlor names
+    case 'z': size= argdef(&p, 1); break;
     case '#': { int n= arg(&p); for(int i=1; i<=n; i++) logo(p); }
-    case 'W': usleep(argdef(&p, 1000)*1000); break;
-    case 'I': center(); break;
-    case 'B': { int w= arg(&p), h=argdef(&p, w); gbox(gx, gy, w, h, c); break; }
-      //case 'C': { int x=arg(&p), y=arg(&p), r=arg(&p); circle(x, y, r); break; }
+    case 'w': usleep(argdef(&p, 1000)*1000); break;
+    case 'i': center(); break;
+    case 'b': { int w= arg(&p), h=argdef(&p, w); gbox(gx, gy, w, h, c); break; }
+    case 't': { char d= *p++=='['?']':'"'; while(*p && *p!=d) gputc(*p++); }
+    case 'x': gx= argdef(&p, 0); break;
+    case 'y': gy= argdef(&p, 0); break;
+    //case 'c': { int x=arg(&p), y=arg(&p), r=arg(&p); circle(x, y, r); break; }
     default: printf("\n%%ERROR.logo: %s\n", p);
     }
   }
@@ -256,6 +261,7 @@ int main(void) {
     logo("i#4[f30l]");
     logo("i#90[f2l4]"); // "circle"
     logo("ib50r45o0f50");
+    logo("o3t\"foo\"xyo1t[FiSH]");
     gupdate();
     break;
   }
