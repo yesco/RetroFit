@@ -4,19 +4,23 @@
 
 // TODO: use gx and gy?
 
+float pi= 3.141592654; // TODO: fix
+
 int c= white, pen= 1, turtle= 1, size= 1;
 float rad= 0;
+
+void moveto(int x, int y) {
+  gx= x; gy= y;
+}
 
 int forward(int n) {
   int dx= n*cos(rad);
   int dy= n*sin(rad);
-  gline(gx, gy, dx, dy, c);
+  if (pen) gline(gx, gy, dx, dy, c);
   gx+= dx;
   gy+= dy;
   return n;
 }
-
-float pi= 3.14; // TODO: fix
 
 float angle(float d) {
   return rad= 2*pi*d/360;
@@ -32,12 +36,18 @@ float right(float d) {
 
 int xc, yc;
 
+void home() {
+  moveto(0, 0);
+}
+
 void center() {
   gx= xc= gsizex/2;
   gy= yc= gsizey/2;
   rad= 0;
   c= white;
 }
+
+
 
 // plot a Function in x=[xa,xb] with STeP, on y=[ya,yb] using Color
 void graph(float xa, float xb, float stp, float ya, float yb, double f(double), int c) {
@@ -95,16 +105,20 @@ void myclock() {
     
     gclear();
     
+    // hours
+   
     center(); left(90);
     right(h*360/12);
     c= red;
-    forward(w/2);
+    forward(w*0.7);
       
+    // minutes
     center(); left(90);
     right(m*360/60);
     c= cyan;
     forward(w*0.8);
 	    
+    // seconds
     center(); left(90);
     right(s*360/60);
     c= white;
@@ -114,6 +128,8 @@ void myclock() {
   }
 }
 
+// get a value from *P and move pointer
+// if no value return DEF
 int argdef(char** p, int def) {
   if (!p || !*p) return 0;
   char* s = *p;
@@ -122,9 +138,7 @@ int argdef(char** p, int def) {
     r= 10*r + *s++-'0';
   }
   if (s== *p && *s) {
-    if (islower(*s)) { // variable...
-      assert(!"TODO");
-    } else if (*s=='$') { // arg
+    if (*s=='$') { // arg
       assert(!"TODO");
     } else if (*s=='*') { // pop stack?
       assert(!"TODO");
@@ -141,24 +155,24 @@ int arg(char** p) {
 
 // LOGO single char commands
 // used: J K N Q (T) V (X) (Y)
-//   Forward
-//   Up (Pen)
+//   Forward [N]
+//   Up (Pen) 
 //   Down (Pen)
 //   Show (turtle)
 //   Hide (turtle)
-//   Left (default 90)
-//   Right (default 90)
-//   Angle (default 90/up)
-//  cOlor (default white)
-// siZe (default 1)
-//   #repeat N [...]
-//   Wait (default 1000ms)
+//   Left [D] (default 90)
+//   Right [D] (default 90)
+//   Angle [D] (default 90/up)
+//  cOlor [N] (default white)
+// siZe [N] (default 1)
+//   #repeat [N] [...]
+//   Wait [N] (default 1000ms)
 //   Erase
+//   Box W [H] (default W)
 //   I - cewnter lol
 
 // TODO: how to say filled?
 //   Circle
-//   Box
 //   Graphics (bitblt/"sprite")
 //   Move x y
 //   X45 Y27
@@ -168,7 +182,7 @@ int arg(char** p) {
 void logo(char* p) {
   while(*p) {
     //printf(">%s\n", p);
-    switch(*p++) {
+    switch(toupper(*p++)) {
     case ' ': case '\t': case '\n': break;
     case '[': break;
     case ']': case 0: return;
@@ -186,6 +200,7 @@ void logo(char* p) {
     case '#': { int n= arg(&p); for(int i=1; i<=n; i++) logo(p); }
     case 'W': usleep(argdef(&p, 1000)*1000); break;
     case 'I': center(); break;
+    case 'B': { int w= arg(&p), h=argdef(&p, w); gbox(gx, gy, w, h, c); break; }
       //case 'C': { int x=arg(&p), y=arg(&p), r=arg(&p); circle(x, y, r); break; }
     default: printf("\n%%ERROR.logo: %s\n", p);
     }
@@ -237,13 +252,14 @@ int main(void) {
   }
 
   case 4: {
-    logo("E");
-    logo("I#4[F30L]");
-    logo("I#90[F2L4]"); // "circle"
+    logo("e");
+    logo("i#4[f30l]");
+    logo("i#90[f2l4]"); // "circle"
+    logo("ib50r45o0f50");
     gupdate();
     break;
   }
-  }
+  } 
   
   cursoron();
   exit(0);
