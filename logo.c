@@ -122,7 +122,7 @@ int argdef(char** p, int def) {
     r= 10*r + *s++-'0';
   }
   if (s== *p && *s) {
-    if (isalpha(*s)) { // variable...
+    if (islower(*s)) { // variable...
       assert(!"TODO");
     } else if (*s=='$') { // arg
       assert(!"TODO");
@@ -174,10 +174,10 @@ void logo(char* p) {
     case ']': case 0: return;
     case 'F': forward(arg(&p)); break;
     case 'E': gclear(); break;
-    case 'U': pen= 0; break;
-    case 'D': pen= 1; break;
-    case 'H': turtle= 0; break;
-    case 'S': turtle= 1; break;
+    case 'U': pen= 0; assert(!"TODO"); break;
+    case 'D': pen= 1; assert(!"TODO"); break;
+    case 'H': turtle= 0; assert(!"TODO"); break;
+    case 'S': turtle= 1; assert(!"TODO"); break;
     case 'L': left(argdef(&p, 90)); break;
     case 'R': right(argdef(&p, 90)); break;
     case 'A': angle(argdef(&p, 90)); break;
@@ -237,8 +237,9 @@ int main(void) {
   }
 
   case 4: {
-    wclear();
-    logo("EIF30L90F30L90F30L90F30R90");
+    logo("E");
+    logo("I#4[F30L]");
+    logo("I#90[F2L4]"); // "circle"
     gupdate();
     break;
   }
