@@ -174,13 +174,14 @@ int arg(char** p) {
 //   X [N] (default 0)
 //   Y [N] (default 0)
 //   V [N] (background default none)
+//   Graphics [W],[H],[%s] (bitblt/"sprite")
 
 // TODO: how to say filled?
 //   Circle
-//   Graphics (bitblt/"sprite")
 //   Pattern
 
-void logo(char* p) {
+  
+void logobin(char* p, char* bin) {
   while(*p) {
     //printf(">%s\n", p);
     switch(tolower(*p++)) {
@@ -199,18 +200,44 @@ void logo(char* p) {
     case 'o': gfg= c= argdef(&p, white); break; // TODO: cOlor names
     case 'v': gbg= argdef(&p, none); break; // TODO: cOlor names
     case 'z': size= argdef(&p, 1); break;
-    case '#': { int n= arg(&p); for(int i=1; i<=n; i++) logo(p); }
+    case '#': { int n= arg(&p); for(int i=1; i<=n; i++) logobin(p, bin); }
     case 'w': usleep(argdef(&p, 1000)*1000); break;
     case 'i': center(); break;
     case 'b': { int w= arg(&p), h=argdef(&p, w); gbox(gx, gy, w, h, c); break; }
     case 't': { char d= *p++=='['?']':'"'; while(*p && *p!=d) gputc(*p++); }
     case 'x': gx= argdef(&p, 0); break;
     case 'y': gy= argdef(&p, 0); break;
+    case 'g': if (bin) gbitblit(gx, gy, bin); break;
     //case 'c': { int x=arg(&p), y=arg(&p), r=arg(&p); circle(x, y, r); break; }
     default: printf("\n%%ERROR.logo: %s\n", p);
     }
   }
 }
+
+void logo(char* p) {
+  logobin(p, 0);
+}
+
+
+// bitmap w size "sprite"?
+char bits[]= { 0x10, 0x10,
+  0xff, 0xff,
+  0x80, 0x01,
+  0xff, 0xff,
+  0x80, 0x01,
+
+  0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01,
+  0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01,
+
+  0x20, 0x20,
+  0x40, 0x40,
+  0x80, 0x80,
+  0xff, 0xff,
+};
+	
+// TODO: rgb multicolor "sprite"
+char* rgbs[]= {
+};
 
 int main(void) {
   jio();
@@ -262,6 +289,8 @@ int main(void) {
     logo("i#90[f2l4]"); // "circle"
     logo("ib50r45o0f50");
     logo("o3t\"foo\"xyo1t[FiSH]");
+    logo("ib50t[GURKA]");
+    logobin("x30y30o2g", bits);
     gupdate();
     break;
   }

@@ -253,6 +253,26 @@ void gputc(char c) {
   if ((gx+= 8)>gsizex) gnl();
 }
 
+void gbitblitwh(int x, int y, int w, int h, char* binarr) {
+  char* b= binarr;
+  for (int dy=0; dy<h; dy++) {
+    char bits= 0, cn= 0;
+    for (int dx=0; dx<w; dx++) {
+      int d= dx%8;
+      if (d==0) bits= *b++, cn+= 8;
+      if (bits & 1<<d)
+	gset(x+cn+7-d, y+dy, gfg);
+      else
+	gset(x+cn+7-d, y+dy, gbg);
+    }
+  }
+}
+
+void gbitblit(int x, int y, char* bin) {
+  int w= *bin++, h= *bin++;
+  gbitblitwh(x, y, w, h, bin);
+}
+
 // Graphics put STRING on screen, move cursor
 // (\n wraps line)
 void gputs(char *s) {
