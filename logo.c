@@ -4,15 +4,15 @@
 
 // TODO: use gx and gy?
 
-int x= 0, y= 0, c= white;
+int c= white, pen= 1, turtle= 1, size= 1;
 float rad= 0;
 
 int forward(int n) {
   int dx= n*cos(rad);
   int dy= n*sin(rad);
-  gline(x, y, dx, dy, c);
-  x+= dx;
-  y+= dy;
+  gline(gx, gy, dx, dy, c);
+  gx+= dx;
+  gy+= dy;
   return n;
 }
 
@@ -33,8 +33,8 @@ float right(float d) {
 int xc, yc;
 
 void center() {
-  x= xc= gsizex/2;
-  y= yc= gsizey/2;
+  gx= xc= gsizex/2;
+  gy= yc= gsizey/2;
   rad= 0;
   c= white;
 }
@@ -56,10 +56,10 @@ void mygraph() {
   // draw axis
   //center(); angle(  0); forward(xc); {
   center(); forward(xc); {
-    gx= x-8; gy=y; gputc('x');
+    gx-= 8; gputc('x');
   }
   center(); left(90); forward(xc); {
-    gx= x-8; gy=0; gputc('y');
+    gx-= 8; gy=0; gputc('y');
   }    
 
   // TODO: these two doesn't work???
@@ -114,6 +114,84 @@ void myclock() {
   }
 }
 
+int argdef(char** p, int def) {
+  if (!p || !*p) return 0;
+  char* s = *p;
+  int r= 0;
+  while(isdigit(*s)) {
+    r= 10*r + *s++-'0';
+  }
+  if (s== *p && *s) {
+    if (isalpha(*s)) { // variable...
+      assert(!"TODO");
+    } else if (*s=='$') { // arg
+      assert(!"TODO");
+    } else if (*s=='*') { // pop stack?
+      assert(!"TODO");
+    }
+  }
+  if (s==*p) r= def;
+  *p= s;
+  return r;
+}
+
+int arg(char** p) {
+  return argdef(p, 0);
+}
+
+// LOGO single char commands
+// used: J K N Q (T) V (X) (Y)
+//   Forward
+//   Up (Pen)
+//   Down (Pen)
+//   Show (turtle)
+//   Hide (turtle)
+//   Left (default 90)
+//   Right (default 90)
+//   Angle (default 90/up)
+//  cOlor (default white)
+// siZe (default 1)
+//   #repeat N [...]
+//   Wait (default 1000ms)
+//   Erase
+//   I - cewnter lol
+
+// TODO: how to say filled?
+//   Circle
+//   Box
+//   Graphics (bitblt/"sprite")
+//   Move x y
+//   X45 Y27
+//   Pattern
+//   Text
+
+void logo(char* p) {
+  while(*p) {
+    //printf(">%s\n", p);
+    switch(*p++) {
+    case ' ': case '\t': case '\n': break;
+    case '[': break;
+    case ']': case 0: return;
+    case 'F': forward(arg(&p)); break;
+    case 'E': gclear(); break;
+    case 'U': pen= 0; break;
+    case 'D': pen= 1; break;
+    case 'H': turtle= 0; break;
+    case 'S': turtle= 1; break;
+    case 'L': left(argdef(&p, 90)); break;
+    case 'R': right(argdef(&p, 90)); break;
+    case 'A': angle(argdef(&p, 90)); break;
+    case 'O': c= argdef(&p, white); break; // TODO: cOlor names
+    case 'Z': size= argdef(&p, 1); break;
+    case '#': { int n= arg(&p); for(int i=1; i<=n; i++) logo(p); }
+    case 'W': usleep(argdef(&p, 1000)*1000); break;
+    case 'I': center(); break;
+      //case 'C': { int x=arg(&p), y=arg(&p), r=arg(&p); circle(x, y, r); break; }
+    default: printf("\n%%ERROR.logo: %s\n", p);
+    }
+  }
+}
+
 int main(void) {
   jio();
   cursoroff();
@@ -123,18 +201,20 @@ int main(void) {
   pixels_per_row= 2;
   gcanvas();
   
-  forward(10);
+  switch(4) {
+  case 1: {
+    forward(10);
+    
+    c=green;
+    forward(10);
 
-  c=green;
-  forward(10);
+    left(45);
+    c=red;
+    forward(10);
 
-  left(45);
-  c=red;
-  forward(10);
-
-  right(45+90);
-  c=cyan;
-  forward(9);
+    right(45+90);
+    c=cyan;
+    forward(9);
 
   //gline(x,y,0,10,c);
   //gline(x,y,+10,0,green);
@@ -142,14 +222,28 @@ int main(void) {
   //gline(x,y,+10,0,green);
   //x+=10; y+=0;
   
-  gupdate();
+    gupdate();
+    break; }
 
-  mygraph();
-  key();
+  case 2: {
+    mygraph();
+    key();
+    break;
+  }
 
-  // draw a ticking clock
-  myclock();
+  case 3: {
+    myclock();
+    break;
+  }
 
+  case 4: {
+    wclear();
+    logo("EIF30L90F30L90F30L90F30R90");
+    gupdate();
+    break;
+  }
+  }
+  
   cursoron();
   exit(0);
 }
