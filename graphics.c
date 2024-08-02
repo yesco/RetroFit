@@ -268,6 +268,9 @@ void gbitblitwh(int x, int y, int w, int h, char* binarr) {
   }
 }
 
+// At (X,Y) bitblit bit pattern BIN
+//
+// BIN: { width, heigth, charbits, ... }
 void gbitblit(int x, int y, char* bin) {
   int w= *bin++, h= *bin++;
   gbitblitwh(x, y, w, h, bin);
