@@ -281,11 +281,9 @@ void gbitblit(int x, int y, char* bin) {
 // At (X,y) paste a copied BINary region
 void gpaste(int x, int y, char* bin) {
   int w= *bin++, h= *bin++;
-  for(int dy=0; dy<h; dy++) {
-    for(int dx=0; dx<w; dx++) {
+  for(int dy=0; dy<h; dy++)
+    for(int dx=0; dx<w; dx++)
       gset(x+dx, y+dy, bin[dy*w+dx]);
-    }
-  }
 }
 
 // From (X,Y) copy Width Height region and returned
