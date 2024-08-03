@@ -292,6 +292,12 @@ int main(void) {
     logo("ib50t[GURKA]");
     logobin("x30y30o2g", bits);
     gupdate();
+
+    char* b= gcopy(xc, yc, 100, 100);
+    gpaste(20, 20, b);
+    free(b);
+    gupdate();
+
     break;
   }
   } 

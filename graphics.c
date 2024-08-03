@@ -241,6 +241,8 @@ void gputc(char c) {
   if (c=='\n' || gx+8>gsizex) gnl();
   if (c=='\n') return;
 
+  // notice the bits are "reversed" (easier drawing!)
+  // TODO: unify w bitblit? (but not?)
   for (int y=0; y<8; y++) {
     char bits=def[y];
     for (int x=0; x<8; x++) {
@@ -274,6 +276,32 @@ void gbitblitwh(int x, int y, int w, int h, char* binarr) {
 void gbitblit(int x, int y, char* bin) {
   int w= *bin++, h= *bin++;
   gbitblitwh(x, y, w, h, bin);
+}
+
+// At (X,y) paste a copied BINary region
+void gpaste(int x, int y, char* bin) {
+  int w= *bin++, h= *bin++;
+  for(int dy=0; dy<h; dy++) {
+    for(int dx=0; dx<w; dx++) {
+      gset(x+dx, y+dy, bin[dy*w+dx]);
+    }
+  }
+}
+
+// From (X,Y) copy Width Height region and returned
+// a malloced binary representation.
+//
+// TODO: extra canvas parameter?
+char* gcopy(int x, int y, int w, int h) {
+  char* bin= malloc(2+w*h), *b= bin;
+  *b++= w; *b++= h;
+  for(int dy=0; dy<h; dy++) {
+    for(int dx=0; dx<w; dx++) {
+      pixel* p= gpixel(x+dx, y+dy);
+      *b++= p?*p:none;
+    }
+  }
+  return bin;
 }
 
 // Graphics put STRING on screen, move cursor
